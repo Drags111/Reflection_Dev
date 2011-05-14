@@ -1,0 +1,206 @@
+//------------------------------------------------------------------\\
+//--               Simba Reflection Library                       --||
+//--                 Grounditems Routines                         --||
+//------------------------------------------------------------------//
+
+//---                         Records                             --//
+type
+{Holds information pertaining to a ground item}
+  TGroundItem = record
+    ID: Integer;
+    Stack: Integer;
+    Tile: TTile;
+  end;
+
+{Array of TGroundItem}
+  TGroundItemArray = array of TGroundItem;
+
+{*******************************************************************************
+function NULL_GROUNDITEM: TGroundItem;
+Description: Nulls a TGroundItem
+*******************************************************************************}
+function NULL_GROUNDITEM: TGroundItem;
+begin
+  with Result do
+  begin
+    ID := NULL_INT;
+    Tile := NULL_TILE;
+    Stack := NULL_INT;
+  end;
+end;
+
+{*******************************************************************************
+function R_NewGroundItem(id, stack: integer; T: TTile): TGroundItem;
+By: Drags111
+Description: Returns a new instance of a TGroundItem.
+*******************************************************************************}
+function R_NewGroundItem(id, stack: Integer; T: TTile): TGroundItem;
+begin
+  Result.ID := ID;
+  Result.Stack := Stack;
+  Result.Tile := T;
+end;
+
+{*******************************************************************************
+function R_GetItemsAt(T: TTile): TGroundItemArray;
+By: Method
+Description: Gets all the items on the tile.
+*******************************************************************************}
+function R_GetItemsAt(tile: TTile): TGroundItemArray;
+var
+  cache, hash, plane, nodes, size, index, tail, cur, next,
+  uid, list, id, stack: Integer;
+begin
+  // grab the cache and calculate the tile's hash
+  cache := SmartGetFieldObject(0, hook_static_GroundItemCache);
+  plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
+  hash := tile.x or (tile.y shl 14) or (plane shl 28);
+
+  // grab the nodes array and get the index where our item list
+  // should be, if it exists
+  nodes := SmartGetFieldObject(cache, hook_nodecache_GetNodes);
+  size := SmartGetFieldArraySize(nodes, '', 1);
+  index := hash and (size - 1);
+  SmartFreeObject(cache);
+
+  // get the dummy tail node of the current list and its successor
+  // for use in the next loop
+  tail := SmartGetFieldArrayObject(nodes, '', index);
+  cur := SmartGetFieldObject(tail, hook_node_Next);
+  SmartFreeObject(nodes);
+
+  // loop until we come back to the dummy tail node
+  // (the list is circular)
+  while (not (SmartIsEqual(tail, cur))) do
+  begin
+    uid := SmartGetFieldLongL(cur, hook_node_GetID);
+    if (uid = hash) then
+    begin
+      // if we have matching uids, grab the list and break
+      list := SmartGetFieldObject(cur, hook_nodelistcache_GetNodeList);
+      break;
+    end;
+
+    // otherwise, update our node
+    next := SmartGetFieldObject(cur, hook_node_Next);
+    SmartFreeObject(cur);
+    cur := next;
+  end;
+
+  // free objects we're finished with
+  SmartFreeObject(cur);
+  SmartFreeObject(tail);
+
+  // if we didn't find our list, there are no ground items on
+  // this tile
+  if (list = 0) then
+    Exit;
+
+  // grab pointers for the new list
+  tail := SmartGetFieldObject(list, hook_nodelist_Head);
+  cur := SmartGetFieldObject(tail, hook_node_Next);
+
+  while (not (SmartIsEqual(tail, cur))) do
+  begin
+    // create a new ground item
+    SetArrayLength(Result, GetArrayLength(Result) + 1);
+    id := SmartGetFieldInt(cur, hook_item_GetID);
+    stack := SmartGetFieldInt(cur, hook_item_GetStack);
+    Result[High(Result)] := R_NewGroundItem(id, stack, tile);
+
+    // update our pointers
+    next := SmartGetFieldObject(cur, hook_node_Next);
+    SmartFreeObject(cur);
+    cur := next;
+  end;
+
+  // free remaining objects
+  SmartFreeObject(cur);
+  SmartFreeObject(tail);
+  SmartFreeObject(list);
+end;
+
+{*******************************************************************************
+function R_GetItemsNearMe(AreaFromMe: Integer): TGroundItemArray;
+By: Naike
+Description: Gets all the items near you. I suggest not going above 2.
+1 = 3*3 -> 9 tiles                       [] [] []
+2 = 5*5 -> 25 tiles                      [] You[]   <- GetItemsNear(1)
+3 = 7*7 -> 49 tiles                      [] [] []
+and so on..
+*******************************************************************************}
+function R_GetItemsNearMe(AreaFromMe: Integer): TGroundItemArray;
+var
+  I, II: Integer;
+  MyPos: TPoint;
+  t_GIA: TGroundItemArray;
+begin
+  if not R_LoggedIn then Exit;
+  MyPos := R_GetMyPos;
+  for I:=0 to AreaFromMe * 2 do
+   for II:=0 to AreaFromMe * 2 do
+     t_GIA := R_GetItemsAt(R_Tile(MyPos.X - AreaFromMe + II, MyPos.Y - AreaFromMe + I));
+  Result := t_GIA;
+end;
+
+{*******************************************************************************
+function R_GetItemsNearTile(Tile: TTile; AreaFromTile: Integer): TGroundItemArray;
+By: Naike/Drags111
+Description: Gets all the items near the specified tile. I suggest not
+             going above 2.
+1 = 3*3 -> 9 tiles                       []  [] []
+2 = 5*5 -> 25 tiles                      [] Tile[]   <- GetItemsNear(1)
+3 = 7*7 -> 49 tiles                      []  [] []
+and so on..
+*******************************************************************************}
+function R_GetItemsNearTile(Tile: TTile; AreaFromTile: Integer): TGroundItemArray;
+var
+  I, II: Integer;
+  t_GIA: TGroundItemArray;
+begin
+  if not R_LoggedIn then Exit;
+  for I:=0 to AreaFromTile * 2 do
+   for II:=0 to AreaFromTile * 2 do
+     t_GIA := R_GetItemsAt(R_Tile(Tile.X - AreaFromTile + II, Tile.Y - AreaFromTile + I));
+  Result := t_GIA;
+end;
+
+{*******************************************************************************
+function FindGroundItem(Item: TGroundItem): Boolean;
+By: mormonman
+Description: Returns true if the TGroundItem is found.
+            (Tile, stacksize, and ID must all be the same).
+*******************************************************************************}
+function R_FindGroundItem(Item: TGroundItem): Boolean;
+var
+  Items: TGroundItemArray;
+  i: Integer;
+begin
+  if not R_LoggedIn then Exit;
+  Items := R_GetItemsAt(Item.Tile);
+  if Length(Items) < 1 then Exit;
+  for i := 0 to High(Items) do
+    if Items[i] = Item then
+    begin
+      Result := True;
+      Exit;
+    end;
+end;
+
+{*******************************************************************************
+procedure R_DumpGroundItems(ItemArray: TGroundItemArray);
+By: Drags111
+Description: Prints out the array of Ground Items neatly.
+*******************************************************************************}
+procedure R_DumpGroundItems(ItemArray: TGroundItemArray);
+var
+  i: Integer;
+begin
+  for i := 0 to High(ItemArray) do
+  begin
+    WriteLn('GroundItem['+ToStr(i)+']:');
+    WriteLn('   ID: ' + ToStr(ItemArray[i].ID));
+    WriteLn('   Stack: ' + ToStr(ItemArray[i].Stack));
+    WriteLn('   Tile: ' + ToStr(ItemArray[i].Tile));
+  end;
+end;

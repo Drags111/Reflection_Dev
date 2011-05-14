@@ -187,8 +187,6 @@ begin
       TempBox.Y1 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
       TempBox.X2 := (Base.X + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
       TempBox.Y2 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
-      //TempTile.X := (SmartGetFieldInt(0, hook_static_BaseX) + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512));
-      //TempTile.Y := (SmartGetFieldInt(0, hook_static_BaseY) + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512));
       Result := R_NewObject(ID and $FFFF, OBJECT_TYPE_WALLOBJECT, T, TempBox);
     end;
 
@@ -233,8 +231,6 @@ begin
       TempBox.Y1 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
       TempBox.X2 := (Base.X + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
       TempBox.Y2 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
-      //TempTile.X := (SmartGetFieldInt(0, hook_static_BaseX) + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512));
-      //TempTile.Y := (SmartGetFieldInt(0, hook_static_BaseY) + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512));
       Result := R_NewObject(ID and $FFFF, OBJECT_TYPE_WALLDECOR, T, TempBox);
     end;
 
@@ -274,8 +270,6 @@ begin
       TempBox.Y1 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
       TempBox.X2 := (Base.X + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
       TempBox.Y2 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
-      //TempTile.X := (SmartGetFieldInt(0, hook_static_BaseX) + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512));
-      //TempTile.Y := (SmartGetFieldInt(0, hook_static_BaseY) + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512));
       Result := R_NewObject(ID and $FFFF, OBJECT_TYPE_FLOORDECOR, T, TempBox);
     end;
 
@@ -486,10 +480,9 @@ end;
 
 procedure R_DumpObjects(ObjArray: TRSObjectArray);
 var
-  i, Hi: Integer;
+  i: Integer;
 begin
-  Hi := High(ObjArray);
-  for i := 0 to Hi do
+  for i := 0 to High(ObjArray) do
   begin
     WriteLn('Obj['+ToStr(i)+']:');
     WriteLn('   Type: ' + ToStr(ObjArray[i].objType));

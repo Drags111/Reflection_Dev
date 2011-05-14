@@ -10,7 +10,10 @@
 {$i ./Reflection/core/players.simba}
 {$i ./Reflection/core/mapwalk.simba}
 {$i ./Reflection/core/objects.simba}
+{$i ./Reflection/core/grounditems.simba}
 {$i ./Reflection/core/interfaces.simba}
+{$i ./Reflection/core/inventory.simba}
+{$i ./Reflection/core/equipment.simba}
 
 var R_UpdateKill: boolean;
 
