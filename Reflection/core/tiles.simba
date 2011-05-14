@@ -1,0 +1,428 @@
+//------------------------------------------------------------------\\
+//--               Simba Reflection Library                       --||
+//--                    Tiles Routines                            --||
+//------------------------------------------------------------------//
+{==============================================================================
+This file relates to Map and Screen locations and converting them to Tiles. The
+methods and formulas here relate to hooks into the Runescape Client's rendering
+system, and therefore a brief description about how those work will help a lot.
+
+The Runescape world is laid out on a large grid. A coordinate on this grid is
+called a Tile. The origin (0,0) is somewhere in the South Western corner of the
+world, and the coordinates increase in the North Easternly direction.
+
+A loading area is a smaller grid 104x104 tiles in size whose bounds can be
+variable. The origin of the loading area is stored in the client as the global
+tile position (BaseX, BaseY), therefore your local Tile position is your global
+Tile position minux the origin of the loading area.
+
+A tile is rendered as 512x512 pixels. Most positions in the renderer data are
+measured in pixels. This means the loading area is 13312x13312 pixels in size.
+to convert a local Tile into a pixel measurement, simply multiply the local Tile
+coordinates by 512.
+
+Each corner of a tile has a height stored in a 2D array in the current Plane
+object. To calculate the average height of a tile, simply average the height of
+its corners.
+
+The client provides a rotation matrix, offset, and scaling values to transform
+a "world" pixel coordinate into a "screen" coordinate. The formula for doing
+this is found in the TileToMSEx function. Since one often requires sub tile
+accuracy, offset values in the range of [0,1] are provided. (0.5,0.5) would be
+the center, and (0,0) would be the south-west corner of the tile.
+
+The minimap is simply a perfectly verticle view of the ground as if it were
+perfectly flat. Tiles here have a size of 4x4 pixels, and the map is rotated
+around your current position by an angle stored in MapAngle. The angle is in
+the range [0,16384], with 0 being North and increasing counter-clockwise. The
+math for converting a Tile into a "minimap" coordinate is provided in TileToMM.
+==============================================================================}
+
+
+//---                                Records                                --//
+
+type
+{Stores the rotation matrix used by the client to render to the main
+ screen, along with offsets.}
+  TRenderData = record
+    xOff,xX,xY,xZ : extended;
+    yOff,yX,yY,yZ : extended;
+    zOff,zX,zY,zZ : extended;
+  end;
+
+{Stores information about the rendered world including ranges
+ for acceptable values, and scaling factors.}
+  TRender = record
+    xScale,yScale : extended;
+    xMin,xMax : extended;
+    yMin,ymax : extended;
+    zMax,zMin : extended;
+  end;
+
+{equivlent to a TPoint, but signifies a global tile position in the
+ Runescape client. Not to be used for any other purpose.}
+  TTile = TPoint;
+
+{Same as TTile, but in an array.}
+  TTileArray = array of TTile;
+
+{*******************************************************************************
+function R_Tile(X, Y: Integer): TTile;
+by: Drags111
+Description: Integers to a TTile
+*******************************************************************************}
+function R_Tile(X, Y: Integer): TTile;
+begin
+  Result.X := X;
+  Result.Y := Y;
+end;
+
+{*******************************************************************************
+function R_NULL_BOX: TBox;
+by: Drags111
+Description: Nulls a TBox
+*******************************************************************************}
+function NULL_BOX: TBox;
+begin
+  Result.X1 := NULL_INT;
+  Result.X2 := NULL_INT;
+  Result.Y1 := NULL_INT;
+  Result.Y2 := NULL_INT;
+end;
+
+{*******************************************************************************
+function R_NULL_TILE: TTile;
+by: Drags111
+Description: Nulls a TTile
+*******************************************************************************}
+function NULL_TILE: TTile;
+begin
+  Result := R_Tile(NULL_INT, NULL_INT);
+end;
+
+{*******************************************************************************
+function R_GetMyPos: TTile;
+By: BenLand100
+Description: Returns the global tile position of your player.
+*******************************************************************************}
+function R_GetMyPos: TTile;
+var
+  me: Integer;
+begin
+  me := SmartGetFieldObject(0, hook_static_MyPlayer);
+  Result.x := SmartGetFieldInt(0, hook_static_BaseX) + SmartGetFieldInt(me, hook_animable_PixelX) / 512;
+  Result.y := SmartGetFieldInt(0, hook_static_BaseY) + SmartGetFieldInt(me, hook_animable_PixelY) / 512;
+  SmartFreeObject(me);
+end;
+
+{*******************************************************************************
+function R_GetPlaneIndex : Integer;
+By: lordsaturn
+Description: Returns loaded plane index
+*******************************************************************************}
+function R_GetPlaneIndex : Integer;
+begin
+  Result := SmartGetFieldInt(0,hook_static_LoadedPlane);
+end;
+
+{*******************************************************************************
+function R_GetMyLocPos: TTile;
+By: BenLand100
+Description: Returns the local tile position of your player.
+*******************************************************************************}
+function R_GetMyLocPos: TTile;
+var
+  me: Integer;
+begin
+  me := SmartGetFieldObject(0, hook_static_MyPlayer);
+  Result.x := (SmartGetFieldInt(me, hook_animable_PixelX) - SmartGetFieldInt(0, hook_static_BaseX)) / 512;
+  Result.y := (SmartGetFieldInt(me, hook_animable_PixelY) - SmartGetFieldInt(0, hook_static_BaseY)) / 512;
+  SmartFreeObject(me);
+end;
+
+{*******************************************************************************
+procedure R_UpdateRenderInfo(var Render : TRender; var RenderData : TRenderData);
+By: Benland100
+Description: Fills a pair of TRender and TRenderData structures with data.
+*******************************************************************************}
+procedure R_UpdateRenderInfo(var Render : TRender; var RenderData : TRenderData);
+var
+  tk, vp, t: Integer;
+begin
+  MarkTime(t);
+  while ((RenderData.zX <= 0) and (RenderData.zY <= 0) and (TimeFromMark(t) < 10000)) do
+  begin
+    tk := SmartGetFieldObject(0, hook_static_Toolkit);
+    vp := SmartGetFieldObject(tk, hook_sdtoolkit_Viewport);
+    with RenderData do
+    begin
+      xOff := SmartGetFieldFloat(vp,hook_sdviewport_xOff);
+      xX := SmartGetFieldFloat(vp,hook_sdviewport_xX);
+      xY := SmartGetFieldFloat(vp,hook_sdviewport_xY);
+      xZ := SmartGetFieldFloat(vp,hook_sdviewport_xZ);
+      yOff := SmartGetFieldFloat(vp,hook_sdviewport_yOff);
+      yX := SmartGetFieldFloat(vp,hook_sdviewport_yX);
+      yY := SmartGetFieldFloat(vp,hook_sdviewport_yY);
+      yZ := SmartGetFieldFloat(vp,hook_sdviewport_yZ);
+      zOff := SmartGetFieldFloat(vp,hook_sdviewport_zoff);
+      zX := SmartGetFieldFloat(vp,hook_sdviewport_zX);
+      zY := SmartGetFieldFloat(vp,hook_sdviewport_zY);
+      zZ := SmartGetFieldFloat(vp,hook_sdviewport_zZ);
+    end;
+    with Render do
+    begin
+  	xScale := SmartGetFieldInt(tk, hook_sdtoolkit_xScale);
+      yScale := SmartGetFieldInt(tk, hook_sdtoolkit_yScale);
+  	xMin := SmartGetFieldInt(tk, hook_sdtoolkit_xMin);
+      xMax := SmartGetFieldInt(tk, hook_sdtoolkit_xMax);
+  	yMin := SmartGetFieldInt(tk, hook_sdtoolkit_yMin);
+      yMax := SmartGetFieldInt(tk, hook_sdtoolkit_yMax);
+  	zMin := SmartGetFieldInt(tk, hook_sdtoolkit_zMin);
+      zMax := SmartGetFieldInt(tk, hook_sdtoolkit_zMax);
+    end;
+    SmartFreeObject(tk);
+    SmartFreeObject(vp);
+  end;
+end;
+
+{*******************************************************************************
+procedure R_EmptyRenderInfo(var Render : TRender; var RenderData : TRenderData);
+By: Drags111
+Description: Empties a pair of TRender and TRenderData structures.
+*******************************************************************************}
+procedure R_EmptyRenderInfo(var Render : TRender; var RenderData : TRenderData);
+begin
+  with RenderData do
+  begin
+    xOff := NULL_INT;
+    xX := NULL_INT;
+    xY := NULL_INT;
+    xZ := NULL_INT;
+  	yOff := NULL_INT;
+    yX := NULL_INT;
+    yY := NULL_INT;
+    yZ := NULL_INT;
+  	zOff := NULL_INT;
+    zX := NULL_INT;
+    zY := NULL_INT;
+    zZ := NULL_INT;
+  end;
+  with Render do
+  begin
+  	xScale := NULL_INT;
+    yScale := NULL_INT;
+  	xMin := NULL_INT;
+    xMax := NULL_INT;
+  	yMin := NULL_INT;
+    yMax := NULL_INT;
+  	zMin := NULL_INT;
+    zMax := NULL_INT;
+  end;
+end;
+
+{*******************************************************************************
+function R_GetTileHeight(tile: TTile) : integer;
+By: BenLand100
+Description: finds the average height of the global tile provided the tile is in
+             the current loading area and on a loaded plane.
+*******************************************************************************}
+function R_GetTileHeight(tile: TTile) : integer;
+var
+  x, y, CurPlane, PlaneInstance : integer;
+begin
+  x:= tile.x - SmartGetFieldInt(0,hook_static_BaseX);
+  y:= tile.y - SmartGetFieldInt(0,hook_static_BaseY);
+  if ((x < 0) or (x > 104) or (y < 0) or (y > 104)) then
+  begin
+    result := 0;
+    exit;
+  end;
+  CurPlane:= SmartGetFieldInt(0,hook_static_LoadedPlane);
+  if ((CurPlane < 3) and ((SmartGetFieldArray3DByte(0,hook_static_GroundSettingsArray,1,x,y) and 2) <> 0)) then
+    CurPlane:= CurPlane + 1;
+  PlaneInstance := SmartGetFieldArrayObject(0,hook_static_PlaneArray,CurPlane);
+  result:= (SmartGetFieldArray2DInt(PlaneInstance,hook_sdplane_TileHeights,x,y) +
+            SmartGetFieldArray2DInt(PlaneInstance,hook_sdplane_TileHeights,x + 1,y) +
+            SmartGetFieldArray2DInt(PlaneInstance,hook_sdplane_TileHeights,x,y + 1) +
+            SmartGetFieldArray2DInt(PlaneInstance,hook_sdplane_TileHeights,x + 1,y + 1)) / 4;
+  if(Result = -1)then
+    writeln('****************TileHight hooks are incorrect.*****************');
+  SmartFreeObject(PlaneInstance);
+end;
+
+{*******************************************************************************
+function R_PointToTile(P: TPoint): TTile;
+By: Drags111
+Description: Converts a TPoint to a TTile.
+*******************************************************************************}
+function R_PointToTile(P: TPoint): TTile;
+begin
+  Result := R_Tile(p.x, p.y);
+end;
+
+{*******************************************************************************
+function R_TileToPoint(T: TTile): TPoint;
+By: Drags111
+Description: Converts a TTile to a TPoint.
+*******************************************************************************}
+function R_TileToPoint(T: TTile): TPoint;
+begin
+  Result := Point(T.x, T.y);
+end;
+
+{*******************************************************************************
+function R_World3DToScreen(xx, yy, zz: Extended): TPoint;
+By: Benland100/mormonman
+Description: Converts a RS 3D point to a coordinate on the screen.
+*******************************************************************************}
+function R_World3DToScreen(xx, yy, zz: Extended): TPoint;//modified TileToMSEx
+var
+  rd : TRenderData;
+  r : TRender;
+  x, y, z: extended;
+  tries: integer;
+label
+  ProcStart;
+begin;
+  ProcStart:
+  R_EmptyRenderInfo(r, rd);
+  x := 0;
+  y := 0;
+  z := 0;
+  Inc(tries);
+  result:= point(-1,-1);
+  R_UpdateRenderInfo(r,rd);
+  z:= rd.zOff + (rd.zX * xx + rd.zY * yy + rd.zZ * zz);
+  if ((z < r.zMin) or (z > r.zMax)) then
+    exit;
+  x:= r.xScale * (rd.xOff + (rd.xX * xx + rd.xY * yy + rd.xZ * zz)) / z;
+  y:= r.yScale * (rd.yOff + (rd.yX * xx + rd.yY * yy + rd.yZ * zz)) / z;
+  if ((x >= r.xMin) and (x <= r.xMax) and (y >= r.yMin) and (y <= r.yMax)) then
+  begin
+    result.x:= Round((x - r.xMin)+4);
+    result.y:= Round((y - r.yMin)+4);
+  end else
+  begin
+    if (tries > 30)then Exit;
+    goto ProcStart;
+  end;
+end;
+
+{*******************************************************************************
+function R_TileToMSEx(tile: TTile; offx, offy : extended; height : integer): TPoint;
+By: BenLand100/mormonman
+Description: Converts the global tile position, a position on that tile in the
+             range [(0,0), (1,1)] with (0.5, 0.5) being center and a height above
+             ground level to a screen location on the main screen, taking camera
+             position and rotation into account.
+*******************************************************************************}
+function R_TileToMSEx(tile: TTile; offx, offy : extended; height : integer) : TPoint;
+var
+  pixelX, pixelY, pixelZ: extended;
+begin
+  pixelX:= (tile.x - SmartGetFieldInt(0,hook_static_BaseX) + offX) * 512.0;
+  pixelY:= R_GetTileHeight(tile) - height;
+  pixelZ:= (tile.y - SmartGetFieldInt(0,hook_static_BaseY) + offY) * 512.0;
+  Result := R_World3DToScreen(pixelX, pixelY, pixelZ);
+  if not PointInBox(Result, IntToBox(MSX1, MSY1, MSX2, MSY2))then
+  begin
+    Result.x := -1;
+    Result.y := -1;
+  end;
+end;
+
+{*******************************************************************************
+function R_TileToMS(tile: TTile; height : integer): TPoint;
+By: BenLand100
+Description: Converts the center of a global tile position and a height above
+             ground level to a screen location on the main screen, taking camera
+             position and rotation into account.
+*******************************************************************************}
+function R_TileToMS(TheTile: TTile; height : integer) : TPoint;
+begin
+  result:= R_TileToMSEx(TheTile, 0.5, 0.5, height);
+end;
+
+{*******************************************************************************
+Function R_TileOnMS(TileX, TileY, Height : Integer) : Boolean;
+By: Drags111
+Description: Results true if the Tile is on the MS.
+*******************************************************************************}
+function R_TileOnMS(TheTile: TTile; Height : Integer) : Boolean;
+begin
+  Result := PointInBox(R_TileToMS(TheTile, Height), IntToBox(MSX1, MSY1, MSX2, MSY2));
+end;
+
+{*******************************************************************************
+function R_TileOnMSEx(Tile : TTile; offX, offY: extended; Height : Integer) : Boolean;
+By: Drags111
+Description: Results true if the tile is on the MS.
+*******************************************************************************}
+function R_TileOnMSEx(T: TTile; offX, offY: extended; Height : Integer) : Boolean;
+begin
+  Result := PointInBox(R_TileToMSEx(T, offX, offY, Height),
+                       IntToBox(MSX1, MSY1, MSX2, MSY2));
+end;
+
+{*******************************************************************************
+function R_TileInBox(Bounds: TBox; Tile: TTile): boolean;
+By: Drags111
+Description: Results true if the tile is in the box. TOP LEFT TO BOTTOM RIGHT.
+*******************************************************************************}
+function R_TileInBox(Bounds: TBox; T: TTile): boolean;
+var
+  tx, ty, x1, y1, x2, y2: integer;
+begin
+  x1 := Bounds.X1; y1 := Bounds.Y1;
+  x2 := Bounds.X2; y2 := Bounds.Y2;
+  tx := T.X; ty := T.Y;
+  Result := ((tx >= x1) and (tx <= x2) and (ty <= y1) and (ty >= y2));
+end;
+
+{*******************************************************************************
+function R_SelfInBox(Bounds: TBox): boolean;
+By: Drags111
+Description: Results true if your char is in the box of tiles. TOP LEFT TO
+          BOTTOM RIGHT.
+*******************************************************************************}
+function R_SelfInBox(Bounds: TBox): boolean;
+var
+  tx, ty, x1, y1, x2, y2: integer;
+  T: TTile;
+begin
+  T := R_GetMyPos;
+  x1 := Bounds.X1; y1 := Bounds.Y1;
+  x2 := Bounds.X2; y2 := Bounds.Y2;
+  tx := T.X; ty := T.Y;
+  Result := ((tx >= x1) and (tx <= x2) and (ty <= y1) and (ty >= y2));
+end;
+
+{*******************************************************************************
+procedure R_InvertTileArray(var Path: TTileArray);
+By: Drags111
+Description: Reverses the path(array of tiles).
+*******************************************************************************}
+procedure R_InvertTileArray(var Path: TTileArray);
+var
+  Temp: TTileArray;
+  i: integer;
+begin
+  for i := High(Path) downto 0 do
+  begin
+    SetLength(Temp, Length(Temp)+1);
+    Temp[High(Temp)] := Path[i];
+  end;
+  Path := Temp;
+end;
+
+function R_GetMidTile(Tile1, Tile2: TTile): TTile;
+begin
+  Result := R_Tile((Tile1.x+Tile2.x)/2, (Tile1.y+Tile2.y)/2);
+end;
+
+
+
+
+
+
+

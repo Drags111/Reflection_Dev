@@ -1,0 +1,482 @@
+//------------------------------------------------------------------\\
+//--               Simba Reflection Library                       --||
+//--                    NPCs Routines                             --||
+//------------------------------------------------------------------//
+
+//---                      Records                                --//
+type
+{Holds information related to an NPC}
+  TNPC = record
+    Index, ID, Level, Animation, Height, HPRatio, Interacting,
+    Orientation: integer;// SOUTH = 0; NORTH = 180; CLOCKWISE.
+    Tile, LocTile: TTile;
+    Pixel: TPoint;//Pixel position on tile
+    Name: String;
+    Actions: TStringArray;
+    Moving, Fighting: boolean;
+  end;
+
+{Array of TNPC}
+  TNPCArray = array of TNPC;
+
+
+{*******************************************************************************
+function NULL_NPC: TNPC;
+Description: Nulls a TNPC
+*******************************************************************************}
+function NULL_NPC: TNPC;
+begin
+  Result.Index := NULL_INT;
+  Result.ID := NULL_INT;
+  Result.Name := NULL_STRING;
+  Result.Actions := [];
+  Result.Tile := NULL_TILE;
+  Result.LocTile := NULL_TILE;
+  Result.Moving := False;
+  Result.Animation := NULL_INT;
+  Result.Height := NULL_INT;
+  Result.HPRatio := NULL_INT;
+  Result.Fighting := False;
+  Result.Orientation := NULL_INT;
+  Result.Level := NULL_INT;
+  Result.Interacting := NULL_INT;
+end;
+
+{*******************************************************************************
+Function R_SortNPCs(NPCs:array of TNPC):array of TNPC;
+By: Widget edited by lordsaturn
+Description: Sorts NPCs by distance from you.
+*******************************************************************************}
+function R_SortNPCs(NPCs:array of TNPC): TNPCArray;
+var
+  i,i2, L: integer;
+  tpa: TPointArray;
+begin
+  L := GetArrayLength(NPCs);
+  if L < 1 then Exit;
+  SetArrayLength(TPA, L);
+  SetArrayLength(Result, L);
+  for i := 0 to L-1 do
+    TPA[i] := NPCs[i].Tile;
+  SortTPAFrom(TPA, R_GetMyPos);
+  for i := 0 to L-1 do
+    for i2 := 0 to L-1 do
+      if (TPA[i].x=NPCs[i2].Tile.x) and (TPA[i].y=NPCs[i2].Tile.y) then
+        Result[i] := NPCs[i2];
+end;
+
+{*******************************************************************************
+function R_GetNPCActionArray(NPCDef: integer): TStringArray;
+By: Drags111
+Description: Gets the Action (String) Array according to the NPC Def.
+             Used in GetNPC functions
+*******************************************************************************}
+function R_GetNPCActionArray(NPCDef: integer): TStringArray;
+var
+  i, c, bytes: integer;
+begin
+  SetLength(Result, 11);
+  c := 0;
+  for i := 0 to 10 do
+  begin
+    bytes := SmartGetFieldArrayObject(NPCDef, hook_npcdef_GetActions, i);
+    if(bytes > 0)then
+    begin
+      Result[c] := R_GetJavaString(bytes, 255);
+      inc(c);
+    end;
+    SmartFreeObject(bytes);
+  end;
+  SetLength(Result, c);
+end;
+
+{*******************************************************************************
+function R_GetAllNPCs(Null: Boolean): TNPCArray;
+By: Drags111
+Description: Stores all the loaded NPCs into an array of TNPC. If Null = True
+then it will include Null NPCs.
+*******************************************************************************}
+function R_GetAllNPCs(Null: Boolean):array of TNPC;
+var
+  i, c, NumNPCs, Index, TheNPC, TheNPCDef, TheBytes, TheNPCNode: integer;
+  Base: TTile;
+begin
+  NumNPCs := SmartGetFieldInt(0,hook_static_NPCCount);
+  if (NumNPCs < 1) then Exit;
+  SetArrayLength(Result,NumNPCs);
+  for i := 0 to (NumNPCs-1) do
+  try
+    Index := SmartGetFieldArrayInt(0, hook_static_NPCIndexArray, i);
+    TheNPCNode := SmartGetFieldArrayObject(0, hook_static_NPCNodes, i);
+    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
+    TheNPCDef := SmartGetFieldObject(TheNPC, hook_npc_NPCDef);
+    TheBytes := SmartGetFieldObject(TheNPCDef, hook_npcdef_GetName);
+
+    if((not Null) and (lowercase(trim(R_GetJavaString(TheBytes, 255))) = 'null'))then
+      continue;
+    Result[c].Index := Index;
+    Result[c].ID := SmartGetFieldInt(TheNPCDef, hook_npcdef_GetID);
+    Result[c].Name := R_GetJavaString(TheBytes, 255);
+    Result[c].Actions := R_GetNPCActionArray(TheNPCDef);
+    //*****Tile and RealTile are the same thing? Should one be Loc tile?******\\
+    Base.X := SmartGetFieldInt(0, hook_static_BaseX);
+    Base.Y := SmartGetFieldInt(0, hook_static_BaseY)
+    Result[c].Tile.X := (Base.X + (SmartGetFieldInt(TheNPC, hook_animable_PixelX) / 512));
+    Result[c].Tile.Y := (Base.Y + (SmartGetFieldInt(TheNPC, hook_animable_PixelY) / 512));
+    Result[c].LocTile.X := (SmartGetFieldInt(TheNPC, hook_animable_PixelX) - Base.X) / 512;
+    Result[c].LocTile.Y := (SmartGetFieldInt(TheNPC, hook_animable_PixelY) - Base.X) / 512;
+    Result[c].Pixel.X := SmartGetFieldInt(TheNPC, hook_animable_PixelX) mod 512; //??
+    Result[c].Pixel.Y := SmartGetFieldInt(TheNPC, hook_animable_PixelY) mod 512; //??
+    Result[c].Moving := (SmartGetFieldInt(TheNPC, hook_character_Motion)>0);
+    Result[c].Animation := SmartGetFieldInt(TheNPC, hook_character_Animation);
+    Result[c].Height := iabs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
+    Result[c].HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
+    Result[c].Fighting := (SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus) >
+                              SmartGetFieldInt(0, hook_static_LoopCycle));
+    Result[c].Orientation := Round(FixD(180 + (SmartGetFieldInt(TheNPC, hook_character_Orientation)* 45) / 2048));
+    Result[c].Level := SmartGetFieldInt(TheNPCDef, hook_npcdef_GetLevel);
+    Result[c].Interacting := SmartGetFieldInt(TheNPC, hook_character_GetInteracting);
+    Inc(c);
+
+  finally
+    SmartFreeObject(TheNPCNode);
+    SmartFreeObject(TheNPC);
+    SmartFreeObject(TheNPCDef);
+    SmartFreeObject(TheBytes);
+  end;
+  SetLength(Result, c);
+end;
+
+{*******************************************************************************
+function R_GetNullNPCsByMulti(TheVarArr: TVariantArray):TNPCArray;
+: Drags111/Naike/mormonman
+Description: Returns the npc array by TheVarArr(IDs and names). Includes Null
+npcs.
+*******************************************************************************}
+function R_GetNullNPCsMulti(TheVarArr: TVariantArray):TNPCArray;
+var
+  vType, i, resCounter, Hi, Hig, h: Integer;
+  NPCs: TNPCArray;
+  b: boolean;
+begin
+  NPCs := R_SortNPCs(R_GetAllNPCs(True));
+  SetLength(Result, Length(NPCs));
+  Hig := High(TheVarArr);
+  Hi := High(NPCs);
+  for i := 0 to Hi do
+    for h := 0 to Hig do
+    begin
+      vType := VarType(TheVarArr[h]);
+      if (vType = varString) then
+        TheVarArr[h] := LowerCase(Trim(TheVarArr[h]));
+      case vType of
+        varInteger: B := NPCs[i].ID = TheVarArr[h];
+        varString: B := (Pos(TheVarArr[h], LowerCase(Trim(NPCs[i].Name))) > 0);
+        else Exit;
+      end;
+      if not B then
+        Continue;
+      Result[resCounter] := NPCs[i];
+      inc(resCounter);
+    end;
+
+  SetLength(Result, resCounter);
+end;
+
+{*******************************************************************************
+function R_GetNullNPCs(TheVar: Variant):TNPCArray;
+By: Drags111/Naike/mormonman
+Description: Returns the npc array by TheVar(ID or name). Includes Null npcs.
+*******************************************************************************}
+function R_GetNullNPCs(TheVar: Variant):TNPCArray;
+begin
+  Result := R_GetNullNPCsMulti([TheVar]);
+end;
+
+{*******************************************************************************
+function R_GetNullNPCMulti(TheVarArr: TVariantArray):TNPC;
+By: Drags111/Naike/mormonman
+Description: Returns the npc by TheVarArr(IDs or names). Includes Null npcs.
+*******************************************************************************}
+function R_GetNullNPCMulti(TheVarArr: TVariantArray):TNPC;
+var
+  NPCs: TNPCArray;
+begin
+  Result := NULL_NPC;
+  NPCs := R_GetNullNPCsMulti(TheVarArr);
+  if Length(NPCs) < 1 then Exit;
+  Result := NPCs[0];
+end;
+
+{*******************************************************************************
+function R_GetNullNPC(TheVar: Variant):TNPC;
+By: Drags111/Naike/mormonman
+Description: Returns the npc by TheVar(ID or name). Includes Null npcs.
+*******************************************************************************}
+function R_GetNullNPC(TheVar: Variant):TNPC;
+begin
+  Result := R_GetNullNPCMulti([TheVar]);
+end;
+
+{*******************************************************************************
+function R_GetNPCsMulti(TheVarArr: TVariantArray): TNPCArray;
+By: Widget, lordsaturn, Narcle, Nava2 and mormonman
+Description: Returns all the currently loaded NPCs using TheVarArr, which will
+             take either strings or Integers. The String is a part of the NPC
+             name, and an Integer is the NPCType (ID).
+*******************************************************************************}
+function R_GetNPCsMulti(TheVarArr: TVariantArray): TNPCArray;
+var
+  vType, i, resCounter, Hi, Hig, h: Integer;
+  NPCs: TNPCArray;
+  b: boolean;
+begin
+  {
+    Initialize the result array, setup for looping.
+  }
+  NPCs := R_SortNPCs(R_GetAllNPCs(False));
+  SetLength(Result, Length(NPCs));
+  Hig := High(TheVarArr);
+  Hi := High(NPCs);
+  for i := 0 to Hi do
+    for h := 0 to Hig do
+    begin
+      vType := VarType(TheVarArr[h]);
+      if (vType = varString) then
+        TheVarArr[h] := LowerCase(Trim(TheVarArr[h]));
+      case vType of
+        varInteger: B := NPCs[i].ID = TheVarArr[h];
+        varString: B := (Pos(TheVarArr[h], LowerCase(Trim(NPCs[i].Name))) > 0);
+        else Exit;
+      end;
+      if not B then
+        Continue;
+      Result[resCounter] := NPCs[i];
+      inc(resCounter);
+    end;
+
+  SetLength(Result, resCounter);
+end;
+
+{*******************************************************************************
+function R_GetNPCs(TheVar: Variant): TNPCArray;
+By: Widget, lordsaturn, Narcle, Nava2 and mormonman
+Description: Returns all the currently loaded NPCs using TheVar, which will
+             take either a string or an Integer. The String is a part of the NPC
+             name, and an Integer is the NPCType (ID).
+*******************************************************************************}
+function R_GetNPCs(TheVar: Variant): TNPCArray;
+begin
+  Result := R_GetNPCsMulti([TheVar]);
+end;
+
+{*******************************************************************************
+function R_GetNPCMulti(TheVarArr: TVariantArray):TNPC;
+By: Drags111/mormonman
+Description: Returns the npc by TheVarArr (names or IDs).
+*******************************************************************************}
+function R_GetNPCMulti(TheVarArr: TVariantArray):TNPC;
+var
+  NPCs: TNPCArray;
+begin
+  Result := NULL_NPC;
+  NPCs := R_GetNPCsMulti(TheVarArr);
+  if Length(NPCs) < 1 then Exit;
+  Result := NPCs[0];
+end;
+
+{*******************************************************************************
+function R_GetNPC(TheVar: Variant):TNPC;
+By: Drags111/mormonman
+Description: Returns the npc by TheVar (name or ID).
+*******************************************************************************}
+function R_GetNPC(TheVar: Variant):TNPC;
+begin
+  Result := R_GetNPCMulti([TheVar]);
+end;
+
+{*******************************************************************************
+function R_GetNPCsAt(T: TTile): TNPCArray;
+By: Drags111
+Description: Returns an array of the NPCs at the given tile
+*******************************************************************************}
+function R_GetNPCsAt(T: TTile): TNPCArray;
+var
+  i, h, c: Integer;
+  Index, TheNPCNode, TheNPC, TheNPCDef, TheBytes: Integer;
+  tmp_tile : TTile;
+begin
+  h := SmartGetFieldInt(0, hook_static_NPCCount);
+  SetLength(Result, h);
+  Dec(h);
+  for i := 0 to h do
+  try
+    Index := SmartGetFieldArrayInt(0, hook_static_NPCIndexArray, i);
+    TheNPCNode := SmartGetFieldArrayObject(0, hook_static_NPCNodes, i);
+    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
+    tmp_tile := R_Tile(
+           SmartGetFieldInt(0,hook_static_BaseX) +
+            SmartGetFieldInt(TheNPC, hook_animable_PixelX) / 512,
+           SmartGetFieldInt(0,hook_static_BaseY) +
+            SmartGetFieldInt(TheNPC, hook_animable_PixelY) / 512);
+
+    if (tmp_tile = t) then
+    begin
+      //***********MEMORY LEAK FOUND*****************\\
+      // [.]TheNPCDef and TheBytes were never freed.  \\
+      // [.]Found 5/13/11 Drags111.
+      TheNPCDef := SmartGetFieldObject(TheNPC, hook_npc_NPCDef);
+      TheBytes := SmartGetFieldObject(TheNPCDef, hook_npcdef_GetName);
+      Result[c].Index := Index;
+      Result[c].ID := SmartGetFieldInt(TheNPCDef, hook_npcdef_GetID);
+      Result[c].Name := R_GetJavaString(TheBytes, 255);
+      Result[c].Actions := R_GetNPCActionArray(TheNPCDef);
+      Result[c].Tile.X := (SmartGetFieldInt(0, hook_static_BaseX) + (SmartGetFieldInt(TheNPC, hook_animable_PixelX) / 512));
+      Result[c].Tile.Y := (SmartGetFieldInt(0, hook_static_BaseY) + (SmartGetFieldInt(TheNPC, hook_animable_PixelY) / 512));
+      Result[c].LocTile.X := (SmartGetFieldInt(TheNPC, hook_animable_PixelX) - SmartGetFieldInt(TheNPC, hook_animable_PixelX)) / 512;
+      Result[c].LocTile.Y := (SmartGetFieldInt(TheNPC, hook_animable_PixelY) - SmartGetFieldInt(TheNPC, hook_animable_PixelY)) / 512;
+      Result[c].Moving := (SmartGetFieldInt(TheNPC, hook_character_Motion)>0);
+      Result[c].Animation := SmartGetFieldInt(TheNPC, hook_character_Animation);
+      Result[c].Height := iabs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
+      Result[c].HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
+      Result[c].Fighting := (SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus) >
+                              SmartGetFieldInt(0, hook_static_LoopCycle));
+      Result[c].Orientation := Round(FixD(180 + (SmartGetFieldInt(TheNPC, hook_character_Orientation)* 45) / 2048));
+      Result[c].Level := SmartGetFieldInt(TheNPCDef, hook_npcdef_GetLevel);
+      Result[c].Interacting := SmartGetFieldInt(TheNPC, hook_character_GetInteracting);
+      Inc(c);
+    end;
+  finally
+    SmartFreeObject(TheNPCNode);
+    SmartFreeObject(TheNPC);
+    SmartFreeObject(TheNPCDef);
+    SmartFreeObject(TheBytes);
+  end;
+  SetLength(Result, c);
+end;
+
+{*******************************************************************************
+function R_FindNPCsMulti(TheVarArr: Variant; var NPCs: TNPCArray): Boolean;
+By: lordsaturn/mormonman
+Description: If any NPC is found according to TheVarArr, the NPCs are placed in
+the NPCs array. Results true if found; false otherwise.
+*******************************************************************************}
+function R_FindNPCsMulti(TheVarArr: TVariantArray; var NPCs: TNPCArray): Boolean;
+begin
+  NPCs := R_GetNPCsMulti(TheVarArr);
+  if Length(NPCs) < 1 then Exit;
+  Result := NPCs[0].ID > -1;
+end;
+
+{*******************************************************************************
+function R_FindNPCs(TheVar: Variant; var NPCs: TNPCArray): Boolean;
+By: lordsaturn/mormonman
+Description: If the NPC is found according to TheVar, the NPC is placed in the
+NPCs array. Results true if found; false otherwise.
+*******************************************************************************}
+function R_FindNPCs(TheVar: Variant; var NPCs: TNPCArray): Boolean;
+begin
+  Result := R_FindNPCsMulti([TheVar], NPCs);
+end;
+
+{*******************************************************************************
+function R_FindNPCMulti(TheVarArr: Variant; var NPC: TNPC): Boolean;
+By: lordsaturn/mormonman
+Description: If the NPC is found according to TheVarArr, the NPC is placed in
+the NPC variable. Results true if found; false otherwise.
+*******************************************************************************}
+function R_FindNPCMulti(TheVarArr: TVariantArray; var NPC: TNPC): Boolean;
+begin
+  NPC := R_GetNPCMulti(TheVarArr);
+  Result := NPC.ID > -1;
+end;
+
+{*******************************************************************************
+function R_FindNPC(TheVar: Variant; var NPC: TNPC): Boolean;
+By: lordsaturn/mormonman
+Description: If the NPC is found according to TheVar, the NPC is placed in the
+NPC variable. Results true if found; false otherwise.
+*******************************************************************************}
+function R_FindNPC(TheVar: Variant; var NPC: TNPC): Boolean;
+begin
+  Result := R_FindNPCMulti([TheVar], NPC);
+end;
+
+{*******************************************************************************
+function R_ValidNullNPCMulti(TheVarArr: TVariantArray): Boolean;
+By: Drags111/Naike/mormonman
+Description: Returns true if npc designated by TheVarArr(names or IDs) is found.
+*******************************************************************************}
+function R_ValidNullNPCMulti(TheVarArr: TVariantArray): Boolean;
+var
+  vType, i, Hi, Hig, h: Integer;
+  NPCs: TNPCArray;
+begin
+  NPCs := R_SortNPCS(R_GetAllNPCs(True));
+  Hi := High(NPCs);
+  Hig := High(TheVarArr);
+  for i := 0 to Hi do
+    for h := 0 to Hig do
+    begin
+      vType := VarType(TheVarArr[h]);
+      if (vType = varString) then
+        TheVarArr[h] := LowerCase(Trim(TheVarArr[h]));
+      case vType of
+        varInteger: Result := NPCs[i].ID = TheVarArr[h];
+        varString: Result := (Pos(TheVarArr[h], LowerCase(Trim(NPCs[i].Name))) > 0);
+        else Exit;
+      end;
+      if Result then Exit;
+    end;
+end;
+
+{*******************************************************************************
+function R_ValidNullNPC(ID: Integer): Boolean;
+By: Drags111/Naike/mormonman
+Description: Returns true if npc designated by TheVar(name or ID) is found.
+*******************************************************************************}
+function R_ValidNullNPC(TheVar: Variant): Boolean;
+begin
+  Result := R_ValidNullNPCMulti([TheVar]);
+end;
+
+{*******************************************************************************
+function R_ValidNPC(TheVar: Variant): Boolean;
+By: lordsaturn
+Description: Results true if the npc is found
+*******************************************************************************}
+function R_ValidNPC(TheVar: Variant): Boolean;
+var
+  NPC: TNPC;
+begin
+  Result := R_FindNPC(TheVar, NPC);
+end;
+
+{*******************************************************************************
+procedure R_DumpNPCs(NPCs: TNPCArray);
+By: Drags111
+Description: Prints out the array of NPCs. Mainly for debugging purposes.
+*******************************************************************************}
+procedure R_DumpNPCs(NPCs: TNPCArray);
+var
+  i, Hi: integer;
+begin
+  Hi := High(NPCs);
+  for i := 0 to Hi do
+  begin
+    Writeln('NPC: '+NPCs[i].Name);
+    Writeln('    '+'Index: '+ ToStr(NPCs[i].Index));
+    Writeln('    '+'ID: '+ToStr(NPCs[i].ID));
+    Writeln('    '+'Actions: '+ ToStr(NPCs[i].Actions));
+    Writeln('    '+'Tile: '+ ToStr(NPCs[i].Tile));
+    Writeln('    '+'LocTile: '+ ToStr(NPCs[i].LocTile));
+    Writeln('    '+'Animation: '+ ToStr(NPCs[i].Animation));
+    Writeln('    '+'Height: '+ ToStr(NPCs[i].Height));
+    Writeln('    '+'Fighting: '+ ToStr(NPCs[i].Fighting));
+    Writeln('    '+'IsMoving: '+ ToStr(NPCs[i].Moving));
+    Writeln('    '+'HPRatio: '+ ToStr(NPCs[i].HPRatio));
+    Writeln('    '+'Level: '+ ToStr(NPCs[i].Level));
+    Writeln('    '+'Orientation: '+ ToStr(NPCs[i].Orientation));
+    Writeln('    '+'Interacting: '+ ToStr(NPCs[i].Interacting));
+  end;
+end;

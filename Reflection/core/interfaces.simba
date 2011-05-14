@@ -1,0 +1,270 @@
+//------------------------------------------------------------------\\
+//--               Simba Reflection Library                       --||
+//--                  Interface Routines                          --||
+//------------------------------------------------------------------//
+
+
+{  Names for each piece are as follows:
+
+  Interface
+        |
+     Child [or Interface Component]  < GetInterfaceComponent here
+           |
+         Component [Or child component]  < GetChildComponent here
+}
+
+type
+{Contains informations pertaining to Interface Components [aka child]}
+  TInterfaceComponent = record
+    Actions: TStringArray;
+    ID, ParentID, Stack: Integer;
+    TextureID, ModelID, ModelZoom: Integer;
+    RelativeX, RelativeY, Width, Height: Integer;
+    Text, Name: String;
+    IsHidden: Boolean;
+  end;
+
+type
+{Contains informations pertaining to Interface Child Components}
+  TChildComponent = record
+    ID, ParentID, Stack: Integer;
+    Text, Name: String;
+    TextureID, ModelID, ModelZoom: Integer;
+    RelativeX, RelativeY: Integer;
+    Width, Height: Integer;
+    IsHidden: Boolean;
+  end;
+
+{*******************************************************************************
+function R_ValidInterface(idx: Integer): Boolean;
+By:
+Description: Returns true if the interface is valid.
+*******************************************************************************}
+function R_ValidInterface(idx: Integer): Boolean;
+begin
+  Result := SmartGetFieldArrayBoolean(0, hook_static_ValidInterfaces, idx);
+end;
+
+{*******************************************************************************
+function R_GetValidInterfaces: TIntegerArray;
+By: Drags111
+Description: Returns an array of all the valid interfaces.
+*******************************************************************************}
+function R_GetValidInterfaces: TIntegerArray;
+var
+  Interfaces, IL, i, c: integer;
+begin
+  try
+    Interfaces := SmartGetFieldObject(0, hook_static_GetInterfaces);
+    IL := SmartGetFieldArraySize(Interfaces, '', 1);
+    SetLength(Result, IL);
+
+    for i := 0 to IL-1 do
+    begin
+      if(R_ValidInterface(i))then
+      begin
+        Result[c] :=i;
+        Inc(c);
+      end;
+    end;
+
+    SetLength(Result, c);
+  finally
+    SmartFreeObject(Interfaces);
+  end;
+end;
+
+{*******************************************************************************
+function R_ValidInterfaceInArray(Interfaces: TIntegerArray): Boolean;
+By: Drags111
+Description: Returns true if any interfaces in InterfaceArray are valid.
+*******************************************************************************}
+function R_ValidInterfaceInArray(Interfaces: TIntegerArray): Boolean;
+var
+  i : Integer;
+  ValidInterfaces: TIntegerArray;
+begin
+  Result := False;
+  ValidInterfaces := R_GetValidInterfaces;
+  for i:=0 to High(Interfaces) do
+    if(InIntArray(ValidInterfaces, Interfaces[i]))then
+    begin
+      Result := True;
+      Exit;
+    end;
+end;
+
+{*******************************************************************************
+Function R_GetInterface(Index, ChildIndex: Integer): Integer;
+By: Bobarkinator
+Description: Returns the interface of InterfaceCache[Index][ChildIndex].
+*******************************************************************************}
+function R_GetInterface(Index, ChildIndex: Integer): Integer;
+begin
+  Result := SmartGetFieldArray2DObject(0, hook_static_GetInterfaces, Index, ChildIndex);
+end;
+
+{*******************************************************************************
+Function R_GetInterfaceText(ParentI, ChildI: Integer): String;
+By: Method
+Description: Returns the Child's text.
+*******************************************************************************}
+function R_GetInterfaceText(ParentI, ChildI: Integer): String;
+var
+   Text, Child: Integer;
+begin
+  Child := R_GetInterface(ParentI, ChildI);
+  Text := SmartGetFieldObject(Child, hook_interface_GetText);
+  Result := R_GetJavaString(Text, 255);
+  SmartFreeObject(Text);
+  SmartFreeObject(Child);
+end;
+
+{*******************************************************************************
+function R_GetValidInterfaceComponents (ParentI : Integer): TIntegerArray;
+By: pyroryan/Drags111
+Description: Returns all the components in the parent interface.
+*******************************************************************************}
+function R_GetValidInterfaceComponents(ParentI : Integer): TIntegerArray;
+var
+  Interfaces, c, path: integer; //Children, i, iface,
+begin
+  try
+    Interfaces := SmartGetFieldObject(0, hook_static_GetInterfaces);
+    c := 0;
+    path := R_GetInterface(ParentI, c);
+    while not (SmartIsNull(path)) do
+    begin
+      SetArrayLength (Result, c+1);
+      Result[c] := c;
+      Inc(c);
+      SmartFreeObject(path);
+      path := R_GetInterface(ParentI, c);
+    end;
+    SetLength(Result, c);
+  finally
+    SmartFreeObject(Interfaces);
+    SmartFreeObject(path);
+  end;
+end;
+
+{*******************************************************************************
+function R_GetValidChildComponents(ParentI, ChildI: Integer): TIntegerArray;
+By: mormonman/Drags111
+Description: Returns all the components in the parent-->child interface.
+*******************************************************************************}
+function R_GetValidChildComponents(ParentI, ChildI: Integer): TIntegerArray;
+var
+  I, c, Path: Integer;
+begin
+  try
+    I := R_GetInterface(ParentI, ChildI)
+    if SmartIsNull(I) then
+      Exit;
+    c := 0;
+    path := SmartGetFieldArrayObject(I, hook_interface_GetChildren, c);
+    while not (SmartIsNull(path)) do
+    begin
+      SetArrayLength (Result, c+1);
+      Result[c] := c;
+      Inc(c);
+      SmartFreeObject(path);
+      path := SmartGetFieldArrayObject(I, hook_interface_GetChildren, c);
+    end;
+    SetLength(Result, c);
+  finally
+    SmartFreeObject(path);
+    SmartFreeObject(I);
+  end;
+end;
+
+{*******************************************************************************
+function R_GetInterfaceComponent(ParentI, ChildI: Integer): TInterfaceComponent;
+By: Drags111
+Description: Gets all Interface Component information and stores in a
+  TInterfaceComponent.
+*******************************************************************************}
+function R_GetInterfaceComponent(ParentI, ChildI: Integer): TInterfaceComponent;
+var
+  Child, NumActions, i, Action, Name: Integer;
+begin
+  try
+    Child := R_GetInterface(ParentI, ChildI);
+    NumActions := SmartGetFieldArraySize(Child, Hook_Interface_GetActions, 1);
+
+    SetLength(Result.Actions, NumActions);
+    for i := 0 to NumActions-1 do
+    begin
+      try
+        Action := SmartGetFieldArrayObject(Child, hook_interface_GetActions, i);
+        if(Action = 0)then
+          continue;
+        Result.Actions[i] := R_GetJavaString(Action, 256);
+      finally
+        SmartFreeObject(Action);
+      end;
+    end;
+    try
+      Name := SmartGetFieldObject(Child, hook_interface_GetName);
+      Result.Name := R_GetJavaString(Name, 256);
+    finally
+      SmartFreeObject(Name);
+    end;
+
+    Result.ID := SmartGetFieldInt(Child, hook_interface_GetID);
+    Result.Stack := SmartGetFieldInt(Child, hook_interface_GetStack);
+    Result.Text := R_GetInterfaceText(ParentI, ChildI);
+    Result.TextureID := SmartGetFieldInt(Child, hook_interface_GetTextureID);
+    Result.ModelID := SmartGetFieldInt(Child, hook_interface_GetModelID);
+    Result.ModelZoom := SmartGetFieldInt(Child, hook_interface_GetModelZoom);
+    Result.RelativeX := SmartGetFieldInt(Child, hook_interface_GetX);
+    Result.RelativeY := SmartGetFieldInt(Child, hook_interface_GetY);
+    Result.Width := SmartGetFieldInt(Child, hook_interface_GetWidth);
+    Result.Height := SmartGetFieldInt(Child, hook_interface_GetHeight);
+    Result.IsHidden := SmartGetFieldBoolean(Child, hook_interface_IsHidden);
+    Result.ParentID := SmartGetFieldInt(Child, hook_interface_GetParentID);
+  finally
+    SmartFreeObject(Child);
+  end;
+end;
+
+{*******************************************************************************
+function R_GetChildComponent(ParentI, ChildI, CompI: Integer): TChildComponent;
+By: Drags111
+Description: Gets all Interface Component information and stores in a
+  TInterfaceComponent.
+*******************************************************************************}
+function R_GetChildComponent(ParentI, ChildI, CompI: Integer): TChildComponent;
+var
+  Child, Component, Text, Name: Integer;
+begin
+  try
+    Child := R_GetInterface(ParentI, ChildI);
+    Component := SmartGetFieldArrayObject(Child, hook_interface_GetChildren, CompI);
+
+    try
+      Name := SmartGetFieldObject(Component, hook_interface_GetName);
+      Text := SmartGetFieldObject(Component, hook_interface_GetText);
+      Result.Name := R_GetJavaString(Name, 255);
+      Result.Text := R_GetJavaString(Text, 255);
+    finally
+      SmartFreeObject(Name);
+      SmartFreeObject(Text);
+    end;
+
+    Result.ID := SmartGetFieldInt(Component, hook_interface_GetID);
+    Result.Stack := SmartGetFieldInt(Component, hook_interface_GetStack);
+    Result.TextureID := SmartGetFieldInt(Component, hook_interface_GetTextureID);
+    Result.ModelID := SmartGetFieldInt(Component, hook_interface_GetModelID);
+    Result.ModelZoom := SmartGetFieldInt(Component, hook_interface_GetModelZoom);
+    Result.RelativeX := SmartGetFieldInt(Component, hook_interface_GetX);
+    Result.RelativeY := SmartGetFieldInt(Component, hook_interface_GetY);
+    Result.Width := SmartGetFieldInt(Component, hook_interface_GetWidth);
+    Result.Height := SmartGetFieldInt(Component, hook_interface_GetHeight);
+    Result.IsHidden := SmartGetFieldBoolean(Component, hook_interface_IsHidden);
+    Result.ParentID := SmartGetFieldInt(Component, hook_interface_GetParentID);
+  finally
+    SmartFreeObject(Component);
+    SmartFreeObject(Child);
+  end;
+end;

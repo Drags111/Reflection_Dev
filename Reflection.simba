@@ -1,0 +1,118 @@
+{$DEFINE SMART}
+{$DEFINE REFLECTION}
+
+{$i ./Reflection/core/constants.simba}
+{$i ./Reflection/core/hooks.simba}
+{$i ./Reflection/core/nodes.simba}
+{$i ./Reflection/core/tiles.simba}
+{$i ./Reflection/core/text.simba}
+{$i ./Reflection/core/npcs.simba}
+{$i ./Reflection/core/players.simba}
+{$i ./Reflection/core/mapwalk.simba}
+{$i ./Reflection/core/objects.simba}
+{$i ./Reflection/core/interfaces.simba}
+
+var R_UpdateKill: boolean;
+
+{*******************************************************************************
+function R_GetCurrentGit(whatKind: string): Integer;
+By: Naike, compressed by Harry
+Description: Gets Hooks.simba information from Harry's server - updated every 10 minutes.
+To-do: Use direct github /raw/, when Simba supports https.
+*******************************************************************************}
+function R_GetCurrentGit(whatKind: string): Integer;
+var
+  S: String;
+  I: Integer;
+begin
+  case whatKind of
+    'clientversion':
+    begin
+      S := GetPage('http://pyroryan.net46.net/reflection/Hooks.simba');
+      I := Pos('ClientVersion', S);
+      Delete(S, 1, I+15);
+      S := Copy(S, 1, Pos(';', S)-1);
+      Result := StrToIntDef(S, -1);
+      if Result = -1 then
+        WriteLn('[Reflection] Failed to get Hook Revision!');
+    end;
+
+    'hookrevision':
+    begin
+      S := GetPage('http://pyroryan.net46.net/reflection/Hooks.simba');
+      I := Pos('HookRev', S);
+      Delete(S, 1, I+9);
+      S := Copy(S, 1, Pos(';', S)-1);
+      Result := StrToIntDef(S, -1);
+      if Result = -1 then
+        WriteLn('[Reflection] Failed to get Hook Revision!');
+    end;
+    else
+      WriteLn('[Reflection] r_GetCurrentGit - invalid option!');
+  end;
+end;
+
+{*******************************************************************************
+Procedure R_UpdateHooks(terminate: boolean);
+By: Naike, cleaned up a bit by Harry
+Description: Tries to update to new hooks!
+*******************************************************************************}
+Procedure R_UpdateHooks(terminate: boolean);
+var
+  myFile, ClientRev, RevHook: Integer;
+begin
+  ClientRev := r_GetCurrentGit('clientversion');
+  RevHook := r_GetCurrentGit('hookrevision');
+  If (ClientRev <= ClientVersion) and (RevHook <= HookRev) then
+  begin
+    if(SmartGetFieldInt(0, hook_static_LoginIndex) = -1) then
+    begin
+      Writeln('[Reflection] No new hooks have been uploaded yet; please be patient!');
+      if (terminate) then
+        TerminateScript;
+    end;
+  end else
+  begin
+    Writeln('[Reflection] You''re using outdated hooks (version ' + ToStr(ClientVersion) + '.' + ToStr(HookRev) + '); updating you to version' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '!');
+    Writeln('[Reflection] If you manually fixed your hooks, please make sure hookrevision values are greater than or equal to the online hooks to prevent overwriting.');
+    myFile := RewriteFile(AppPath + 'includes\reflection\core\hooks.simba', False);
+    WriteFileString(myFile, GetPage('http://pyroryan.net46.net/reflection/Hooks.simba'));
+    CloseFile(myFile);
+    Writeln('[Reflection] Updated you to ' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '; please restart your script!');
+    if (terminate) then
+      TerminateScript;
+  end;
+end;
+
+{*******************************************************************************
+Procedure SetupReflectionEx(Update: Boolean);
+By: Reflection development team
+Description: Sets up reflection constants, and checks if hooks are outdated.
+Will try to update if outdated.
+*******************************************************************************}
+Procedure SetupReflectionEx(Update: Boolean);
+begin
+  R_SetupConstants;
+  If Update then
+    R_UpdateHooks(R_UpdateKill)
+  else
+  begin
+    if(SmartGetFieldInt(0, hook_static_LoginIndex) = -1) then
+    begin
+      Writeln('[Reflection] Hooks outdated!');
+      if (R_UpdateKill) then
+        TerminateScript;
+    end;
+  end;
+end;
+
+{*******************************************************************************
+Procedure SetupReflection;
+By: Reflection development team
+Description: Sets up reflection constants, and checks if hooks are outdated.
+Will try to update if outdated.
+*******************************************************************************}
+Procedure SetupReflection;
+begin
+  SetupReflectionEx(True);
+end;
