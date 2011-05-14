@@ -1,0 +1,151 @@
+//------------------------------------------------------------------\\
+//--               Simba Reflection Library                       --||
+//--                     Chat Routines                            --||
+//------------------------------------------------------------------//
+
+//---                               Constants                               --//
+const
+  CHAT_TYPE_NORMAL  = 0;
+  CHAT_TYPE_CHATTER = 1;
+  //  Private
+  CHAT_TYPE_PRIVATE = 2;
+  //  Trade
+  CHAT_TYPE_TRADE   = 3;
+  //  Black/System
+  CHAT_TYPE_SYSTEM  = 4;
+  //  Includes all the former Types
+  CHAT_TYPE_ALL     = 5;
+
+
+{*******************************************************************************
+function R_GetChatMessages(ChatType: string; Visible, NoName: Boolean): TStringArray;
+By: lordsaturn
+Description: Gets all chat messages using interfaces according to params.
+Valid ChatType Params:
+  'chat', 'normal':   Normal chat
+  'pm', 'private':    Private messages
+  'trade':            Trade chat
+  'black', 'message': Black chat messages
+  'all':              All of the above
+*******************************************************************************}
+
+function R_GetChatMessages(ChatType: Integer; Visible, NoName: Boolean): TStringArray;
+var
+  I, L: integer;
+  FindStr, tmp, s: string;
+begin
+  Result := [];
+  case (ChatType) of
+    CHAT_TYPE_NORMAL: FindStr := '<col=0000ff>';
+    CHAT_TYPE_CHATTER: FindStr := '<col=800000>';
+    CHAT_TYPE_PRIVATE: FindStr := '<col=800080>';
+    CHAT_TYPE_SYSTEM: FindStr := 'blk';
+    CHAT_TYPE_ALL: FindStr := 'all';
+    else
+    begin
+      srl_Warn('GetChatMessages', ToStr(ChatType)+' is not a valid chat type.',
+               warn_AllVersions);
+      Exit;
+    end;
+  end;
+  SetArrayLength(Result, 102);
+  for I := 279 downto 180 do
+  begin
+    s := R_GetInterfaceText(137, I);
+    if (s <> '') and ((Pos(FindStr, s) <> 0) or (FindStr = 'blk') or (FindStr = 'all')) then
+    begin
+      s := Replace(s, '<img=3>', ''); //quick chat
+      Tmp := s;
+      s := R_TrimHTML(s);
+      if ((FindStr = 'blk') and (Tmp <> s)) then Continue;
+      if NoName and (FindStr = '<col=0000ff>') then
+        Delete(s, 1, Pos(':', s)+1);
+      Result[L] := s;
+      Inc(L);
+    end;
+  end;
+  if Visible then
+    if L > 8 then
+      L := 8;
+  SetArrayLength(Result, L);
+end;
+
+{*******************************************************************************
+function R_ChatBoxTextExists(ChatType: Integer; Text: string): Boolean;
+By: lordsaturn
+Description: Returns true if text exists and is visible in the chatbox according
+to 'ChatType'.
+*******************************************************************************}
+function R_ChatBoxTextExists(ChatType: Integer; Text: string): Boolean;
+var
+  s : TStringArray;
+  I, H : integer;
+begin
+  S := R_GetChatMessages(ChatType, True, True);
+  H := High(S);
+  for I := 0 to H do
+  begin
+    Result := (Pos(Text, S[I]) <> 0);
+    if Result then Exit;
+  end;
+end;
+
+{*******************************************************************************
+function R_GetChatBoxLine(Line: integer): string;
+By: lordsaturn
+Description: Returns the text in the given line of the chatbox (1 = top, 8 = bottom)
+*******************************************************************************}
+function R_GetChatBoxLine(Line: integer): string;
+
+var
+  S : TStringArray;
+
+begin
+  if (Line < 1) or (Line > 8) then
+  begin
+    srl_Warn('GetChatBoxLine', 'The paramater ''Line'' must be between 1 and 8.', warn_AllVersions);
+    Exit;
+  end;
+  s := R_GetChatMessages(CHAT_TYPE_ALL, True, False);
+  Result := s[8-line];
+end;
+
+{*******************************************************************************
+function R_LastChatMessage(ChatType: Integer): string;
+By: lordsaturn
+Description: Gets last chat message loaded according to 'ChatType'. (see
+GetChatMessages for a list of chat types)
+*******************************************************************************}
+function R_LastChatMessage(ChatType: Integer): string;
+
+var
+  S : TStringArray;
+
+begin
+  S := R_GetChatMessages(ChatType, False, False);
+  try
+    Result := s[0];
+  except end;
+end;
+
+{*******************************************************************************
+function R_LastChatter: string;
+By: lordsaturn
+Description: Gets the last loaded player to talk.
+*******************************************************************************}
+function R_LastChatter: string;
+var
+  S : TStringArray;
+  P : integer;
+begin
+  S := R_GetChatMessages(CHAT_TYPE_CHATTER, False, False);
+  try
+    Result := S[0];
+  except
+    Result := '';
+    Exit;
+  end;
+  P := Pos(':', Result);
+  if P <> 0 then
+    Delete(Result, P, Length(Result) - P + 1);
+end;
