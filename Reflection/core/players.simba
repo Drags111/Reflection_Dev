@@ -8,10 +8,10 @@ type
 {Holds information related to a player}
   TPlayer = record
     Index, Level, Animation, Height, HPRatio, Interacting,
-    Orientation: integer;// SOUTH = 0; NORTH = 180; CLOCKWISE.
+    Orientation: Integer;// SOUTH = 0; NORTH = 180; CLOCKWISE.
     Tile: TTile;
-    Name: String;
-    Moving, Fighting: boolean;
+    Name: string;
+    Moving, Fighting: Boolean;
     Equipment: array[0..11] of Integer;
   end;
 
@@ -25,7 +25,7 @@ type
     Animation, Speed, LoginIndex, Interacting: Integer;
     HPRatio, Height, Level, Combat, TurnDirection: Integer;
     Name: string;
-    InFight: boolean;
+    InFight: Boolean;
     Experience, Levels: array[0..24] of Integer;
     Equipment: array[0..11] of Integer;
     Orientation: Integer; // SOUTH = 0; NORTH = 180; CLOCKWISE.
@@ -45,7 +45,8 @@ const
 
 {*******************************************************************************
 function NULL_PLAYER: TPlayer;
-Description: Nulls a TPlayer
+By:
+Description: Nulls a TPlayer.
 *******************************************************************************}
 function NULL_PLAYER: TPlayer;
 begin
@@ -62,27 +63,24 @@ begin
   Result.Interacting := NULL_INT;
 end;
 
-{*******************************************************************
-Function R_GetLoginIndex: Integer;
+{*******************************************************************************
+function R_GetLoginIndex: Integer;
 By:
-Description: Uses the LoginIndex hook.
-             Old info: 2 = Logged Out, 4 = Logging Into Lobby, 6 = Lobbby,
-               8 = logging into game, 9 = Logged In. Reaches 10 at
-               some points, but with no significance.
-********************************************************************}
-function R_GetLoginIndex : Integer;
+Description: Returns the value of the LoginIndex field.
+*******************************************************************************}
+function R_GetLoginIndex: Integer;
 begin
   Result := SmartGetFieldInt(0, hook_static_LoginIndex);
 end;
 
 {*******************************************************************************
-Function R_GetAnimation: Integer;
+function R_GetAnimation: Integer;
 By: lordsaturn
-Description: Gets character animation
+Description: Returns your player's animation.
 *******************************************************************************}
 function R_GetAnimation: Integer;
 var
-  MyPlayer : Integer;
+  MyPlayer: Integer;
 begin
   MyPlayer := SmartGetFieldObject(0, hook_static_MyPlayer);
   Result := SmartGetFieldInt(MyPlayer, hook_character_Animation);
@@ -90,22 +88,22 @@ begin
 end;
 
 {*******************************************************************************
-Function R_GetSpeed : integer;
-By: Drags111
-Description: Returns the character speed. 0 = not moving. > 0 = moving.
+function R_GetSpeed: Integer;
+By: drags111
+Description: Returns your player's speed. (0 = not moving. > 0 = moving.)
 *******************************************************************************}
 function R_GetSpeed: Integer;
 var
   MyPlayer: Integer;
 begin
   MyPlayer := SmartGetFieldObject(0, hook_static_MyPlayer);
-  result:= SmartGetFieldInt(MyPlayer, hook_character_Motion);
+  Result := SmartGetFieldInt(MyPlayer, hook_character_Motion);
   SmartFreeObject(MyPlayer);
 end;
 
 {*******************************************************************************
 function R_LoggedIn: Boolean;
-By: Method / Drags111 / Zyt3x
+By: Method, drags111, Zyt3x
 Description: Returns true if you're logged in.
 *******************************************************************************}
 function R_LoggedIn: Boolean;
@@ -114,21 +112,20 @@ begin
 end;
 
 {*******************************************************************************
-Function R_IsPlayerInCombat: boolean;
+function R_IsPlayerInCombat: Boolean;
 By: pyroryan
-Description: Returns true if the player is in combat. A few seconds slow on determining combat status.
+Description: Returns true if your player is in combat. A few seconds slow on determining combat status.
 *******************************************************************************}
-function R_IsPlayerInCombat: boolean;
+function R_IsPlayerInCombat: Boolean;
 var
-  MyPlayer, LoopCycle, CombatEndCycle : Integer;
+  MyPlayer, LoopCycle, CombatEndCycle: Integer;
 begin
   if (R_LoggedIn) then
   begin
     MyPlayer := SmartGetFieldObject(0, hook_static_MyPlayer);
     CombatEndCycle := SmartGetFieldInt(MyPlayer, hook_character_LoopCycleStatus);
     LoopCycle := SmartGetFieldInt(0, hook_static_LoopCycle);
-    if (LoopCycle < CombatEndCycle) then
-      Result := true;
+    if (LoopCycle < CombatEndCycle) then Result := True;
     SmartFreeObject(MyPlayer);
   end;
 end;
@@ -136,7 +133,7 @@ end;
 {*******************************************************************************
 function R_IsIdle: Boolean;
 By: lordsaturn
-Description: Returns true if the your player is idle. (no movement or animation)
+Description: Returns true if your player is idle. (no movement or animation)
 *******************************************************************************}
 function R_IsIdle: Boolean;
 begin
@@ -146,7 +143,7 @@ end;
 {*******************************************************************************
 function R_CharacterMoving: Boolean;
 By: lordsaturn
-Description: Returns true if the your player is moving
+Description: Returns true if your player is moving.
 *******************************************************************************}
 function R_CharacterMoving: Boolean;
 begin
@@ -156,7 +153,7 @@ end;
 {*******************************************************************************
 function R_CharacterAnimating: Boolean;
 By: lordsaturn
-Description: Returns true if the your player is moving
+Description: Returns true if your player is animating.
 *******************************************************************************}
 function R_CharacterAnimating: Boolean;
 begin
@@ -164,22 +161,21 @@ begin
 end;
 
 {*******************************************************************************
-function R_WaitForAnimation(timeout: integer): boolean;
-By: Drags111
+function R_WaitForAnimation(timeout: Integer): Boolean;
+By: drags111
 Description: Waits until your character animates, or the timeout is reached.
 *******************************************************************************}
-function R_WaitForAnimation(Timeout: integer): boolean;
+function R_WaitForAnimation(Timeout: Integer): Boolean;
 var
-  t: integer;
+  t: Integer;
 begin
   MarkTime(t);
   while (R_GetAnimation = -1) do
   begin
-    if(TimeFromMark(t) >= Timeout)then
-      Exit;
-    wait(50+Random(50));
+    if (TimeFromMark(t) >= Timeout) then Exit;
+    Wait(50 + Random(50));
   end;
-  Result := true;
+  Result := True;
 end;
 
 {*******************************************************************************
@@ -189,26 +185,23 @@ Description: Sorts players by distance from you.
 *******************************************************************************}
 function R_SortPlayers(Players: TPlayerArray): TPlayerArray;
 var
-  i,i2, H: integer;
-  tpa: TPointArray;
+  i,i2: integer;
+  TPA: TPointArray;
 begin
-  H := High(Players);
-  if H < 0 then Exit;
-  SetArrayLength(TPA, H+1);
-  SetArrayLength(Result, H+1);
-  for i := 0 to H do
-    TPA[i] := Players[i].Tile;
+  if (High(Players) < 0) then Exit;
+  SetArrayLength(TPA, High(Players) + 1);
+  SetArrayLength(Result, High(Players) + 1);
+  for i := 0 to High(Players) do TPA[i] := Players[i].Tile;
   SortTPAFrom(TPA, R_GetMyPos);
-  for i := 0 to H do
-    for i2 := 0 to H do
-      if (TPA[i].x=Players[i2].Tile.x) and (TPA[i].y=Players[i2].Tile.y) then
-        Result[i] := Players[i2];
+  for i := 0 to High(Players) do
+    for i2 := 0 to High(Players) do
+      if (TPA[i].x = Players[i2].Tile.x) and (TPA[i].y = Players[i2].Tile.y) then Result[i] := Players[i2];
 end;
 
 {*******************************************************************************
-function R_GetAllPlayers: array of TPlayer;
+function R_GetAllPlayers: TPlayerArray;
 By: Widget, lordsaturn, drags111
-Description: Returns all the players on the minimap
+Description: Returns all the players on the minimap.
 *******************************************************************************}
 function R_GetAllPlayers: TPlayerArray;
 var
@@ -232,8 +225,7 @@ begin
     Result[L].Tile.Y := (SmartGetFieldInt(0, hook_static_BaseY) + (SmartGetFieldInt(Player, hook_animable_PixelY) / 512));
     Result[L].Height := iabs(SmartGetFieldInt(Player, hook_character_GetHeight));
     Result[L].Animation := SmartGetFieldInt(Player, hook_character_Animation);
-    Result[L].Fighting := (SmartGetFieldInt(Player, hook_character_LoopCycleStatus) >
-                              SmartGetFieldInt(0, hook_static_LoopCycle));
+    Result[L].Fighting := (SmartGetFieldInt(Player, hook_character_LoopCycleStatus) > SmartGetFieldInt(0, hook_static_LoopCycle));
     Result[L].Moving := (SmartGetFieldInt(Player, hook_character_Motion)>0);
     Result[L].HPRatio := SmartGetFieldInt(Player, hook_character_HPRatio) * 100 / $FF;
     Result[L].Level := SmartGetFieldInt(Player, hook_player_GetLevel);
@@ -252,42 +244,37 @@ end;
 
 {*******************************************************************************
 function R_GetPlayersMulti(TheVarArr: TVariantArray): TPlayerArray;
-By: Drags111/mormonman
+By: drags111, mormonman
 Description: Returns all the players by the variants. (Names or Indexes)
 *******************************************************************************}
 function R_GetPlayersMulti(TheVarArr: TVariantArray): TPlayerArray;
 var
-  vType, i, h, resCounter, Hi, Hig: Integer;
+  vType, i, h, resCounter: Integer;
   Players: TPlayerArray;
-  b: boolean;
+  b: Boolean;
 begin
   Players := R_SortPlayers(R_GetAllPlayers);
   SetLength(Result, Length(Players));
-  Hig := High(TheVarArr);
-  Hi := High(Players);
-  for i := 0 to Hi do
-    for h := 0 to Hig do
+  for i := 0 to High(Players) do
+    for h := 0 to High(TheVarArr) do
     begin
       vType := VarType(TheVarArr[h]);
-      if (vType = varString) then
-        TheVarArr[h] := LowerCase(Trim(TheVarArr[h]));
+      if (vType = varString) then TheVarArr[h] := LowerCase(Trim(TheVarArr[h]));
       case vType of
         varInteger: B := Players[i].Index = TheVarArr[h];
         varString: B := (Pos(TheVarArr[h], LowerCase(Trim(Players[i].Name))) > 0);
         else Exit;
       end;
-      if not B then
-        Continue;
+      if not b then Continue;
       Result[resCounter] := Players[i];
-      inc(resCounter);
+      Inc(resCounter);
     end;
-
   SetLength(Result, resCounter);
 end;
 
 {*******************************************************************************
 function R_GetPlayers(TheVar: Variant): TPlayerArray;
-By: Drags111/mormonman
+By: drags111, mormonman
 Description: Returns all the players by the variant. (Name or Index)
 *******************************************************************************}
 function R_GetPlayers(TheVar: Variant): TPlayerArray;
@@ -296,32 +283,29 @@ begin
 end;
 
 {*******************************************************************************
-function R_GetPlayerMulti(TheVarArr: TVariantArray):TPlayer;
-By: Drags111/mormonman
+function R_GetPlayerMulti(TheVarArr: TVariantArray): TPlayer;
+By: drags111, mormonman
 Description: Gets the closest player that matches the arguments.
 *******************************************************************************}
-function R_GetPlayerMulti(TheVarArr: TVariantArray):TPlayer;
+function R_GetPlayerMulti(TheVarArr: TVariantArray): TPlayer;
 var
   Players: TPlayerArray;
-  i, h, vType, Hi, Hig: Integer;
-  B: Boolean;
+  i, h, vType: Integer;
+  b: Boolean;
 begin
   Result := NULL_PLAYER;
   Players := R_SortPlayers(R_GetAllPlayers);
-  Hi := High(Players);
-  Hig := High(TheVarArr);
-  for i := 0 to Hi do
-    for h := 0 to Hig do
+  for i := 0 to High(Players) do
+    for h := 0 to High(TheVarArr) do
     begin
       vType := VarType(TheVarArr[h]);
-      if (vType = varString) then
-        TheVarArr[h] := LowerCase(TheVarArr[h]);
+      if (vType = varString) then TheVarArr[h] := LowerCase(TheVarArr[h]);
       case (vType) of
         varInteger: B := Players[i].Index = TheVarArr[h];
         varString: B := (Pos(TheVarArr[h], LowerCase(Players[i].Name)) > 0);
         else Continue;
       end;
-      if (B) then
+      if b then
       begin
         Result := Players[i];
         Exit;
@@ -330,11 +314,11 @@ begin
 end;
 
 {*******************************************************************************
-function R_GetPlayer(TheVar: Variant):TPlayer;
-By: Drags111/mormonman
+function R_GetPlayer(TheVar: Variant): TPlayer;
+By: drags111, mormonman
 Description: Gets the closest player that matches the argument.
 *******************************************************************************}
-function R_GetPlayer(TheVar: Variant):TPlayer;
+function R_GetPlayer(TheVar: Variant): TPlayer;
 begin
   Result := R_GetPlayerMulti([TheVar]);
 end;
@@ -342,24 +326,22 @@ end;
 {*******************************************************************************
 function R_GetPlayersByLevelEx(Levels: TIntegerArray): TPlayerArray;
 By: mormonman
-Description: Returns all players with the defined Levels.
+Description: Returns all players with the defined levels.
   *Note - Levels = Combat Levels
 *******************************************************************************}
 function R_GetPlayersByLevelEx(Levels: TIntegerArray): TPlayerArray;
 var
-  i, h, Hi, Hig, resCounter : Integer;
-  Players : TPlayerArray;
+  i, h, resCounter: Integer;
+  Players: TPlayerArray;
 begin
   Players := R_SortPlayers(R_GetAllPlayers);
   SetLength(Result, Length(Players));
-  Hi := High(Players);
-  Hig := High(Levels);
-  for i := 0 to Hi do
-    for h := 0 to Hig do
+  for i := 0 to High(Players) do
+    for h := 0 to High(Levels) do
       if Players[i].Level = Levels[h] then
       begin
         Result[resCounter] := Players[i];
-        inc(resCounter);
+        Inc(resCounter);
       end;
   SetLength(Result, resCounter);
 end;
@@ -367,7 +349,7 @@ end;
 {*******************************************************************************
 function R_GetPlayersByLevel(Level: Integer): TPlayerArray;
 By: mormonman
-Description: Returns all players with the defined Level.
+Description: Returns all players with the defined level.
 *******************************************************************************}
 function R_GetPlayersByLevel(Level: Integer): TPlayerArray;
 begin
@@ -377,29 +359,24 @@ end;
 {*******************************************************************************
 function R_GetPlayerByLevelEx(Levels: TIntegerArray): TPlayer;
 By: mormonman
-Description: Gets the closest player that is one of the Levels.
+Description: Gets the closest player that is one of the levels.
 *******************************************************************************}
 function R_GetPlayerByLevelEx(Levels: TIntegerArray): TPlayer;
 var
-  i, h, Hi, Hig : Integer;
-  Players : TPlayerArray;
+  i, h: Integer;
+  Players: TPlayerArray;
 begin
   Result := NULL_PLAYER;
   Players := R_SortPlayers(R_GetAllPlayers);
-  Hi := High(Players);
-  Hig := High(Levels);
-  for i := 0 to Hi do
-    for h := 0 to Hig do
-      if Players[i].Level = Levels[h] then
-      begin
-        Result := Players[i];
-      end;
+  for i := 0 to High(Players) do
+    for h := 0 to High(Levels) do
+      if Players[i].Level = Levels[h] then Result := Players[i];
 end;
 
 {*******************************************************************************
 function R_GetPlayerByLevel(Level: Integer): TPlayer;
 By: mormonman
-Description: Gets the closest player that is the Level
+Description: Gets the closest player that is the level.
 *******************************************************************************}
 function R_GetPlayerByLevel(Level: Integer): TPlayer;
 begin
@@ -413,10 +390,9 @@ Description: Prints out the array of Players. Mainly for debugging purposes.
 *******************************************************************************}
 procedure R_DumpPlayers(Players: TPlayerArray);
 var
-  i, Hi: integer;
+  i: Integer;
 begin
-  Hi := High(Players);
-  for i := 0 to Hi do
+  for i := 0 to High(Players) do
   begin
     Writeln('Player: '+Players[i].Name);
     Writeln('    '+'Index: '+ ToStr(Players[i].Index));
@@ -435,12 +411,12 @@ end;
 
 {*******************************************************************************
 function R_GetMe: TMe;
-By: Widget, lordsaturn, Drags111
-Description: Returns you
+By: Widget, lordsaturn, drags111
+Description: Returns you.
 *******************************************************************************}
 function R_GetMe: TMe; // Sounds funny =P
 var
-  Player, theName, pdef, i: integer;
+  Player, theName, pdef, i: Integer;
 begin
   try
     Player := SmartGetFieldObject(0, hook_static_MyPlayer);
@@ -473,7 +449,7 @@ end;
 
 {*******************************************************************************
 function R_InteractingWithMe(NPC: TNPC): Boolean;
-By: Drags111
+By: drags111
 Description: Checks if the NPC is currently interacting with your character.
 *******************************************************************************}
 function R_InteractingWithMe(NPC: TNPC): Boolean;
@@ -497,18 +473,18 @@ we are interacting with.
 *******************************************************************************}
 function R_AreWeInteracting(var NPC: TNPC): Boolean;
 var
-  i, index : integer;
-  npcs : TNPCArray;
-  Me : TMe;
-  Player : TPlayer;
+  i, index: Integer;
+  npcs: TNPCArray;
+  Me: TMe;
+  Player: TPlayer;
 begin
   NPC := NULL_NPC;
   Me := R_GetMe;
   npcs := R_GetAllNPCs(False);
-    for i := 0 to length(npcs)-1 do
+    for i := 0 to length(npcs) - 1 do
     begin
       index := npcs[i].Interacting - 32768;
-      if index > 0 then
+      if (index > 0) then
       begin
         Player := R_GetPlayer(index);
         Result := Player.Name = Me.Name;
