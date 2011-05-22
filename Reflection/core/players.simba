@@ -113,19 +113,21 @@ end;
 
 {*******************************************************************************
 function R_IsPlayerInCombat: Boolean;
-By: pyroryan
+By: pyroryan / drags111
 Description: Returns true if your player is in combat. A few seconds slow on determining combat status.
 *******************************************************************************}
 function R_IsPlayerInCombat: Boolean;
 var
   MyPlayer, LoopCycle, CombatEndCycle: Integer;
 begin
-  if (R_LoggedIn) then
-  begin
+  Result := false;
+  if not(R_LoggedIn) then Exit;
+  try
     MyPlayer := SmartGetFieldObject(0, hook_static_MyPlayer);
     CombatEndCycle := SmartGetFieldInt(MyPlayer, hook_character_LoopCycleStatus);
     LoopCycle := SmartGetFieldInt(0, hook_static_LoopCycle);
     if (LoopCycle < CombatEndCycle) then Result := True;
+  finally
     SmartFreeObject(MyPlayer);
   end;
 end;

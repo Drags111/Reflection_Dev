@@ -177,65 +177,46 @@ begin
 end;
 
 {*******************************************************************************
-function R_IsEquippedIDEx(IDs: TIntegerArray): Boolean;
+function R_IsEquippedEx(TheVarArr: TVariantArray): Boolean;
 By: Drags111
-Description: Returns true if there is an item equipped with one of the IDs.
+Description: Returns true if the there is an item equipped with at least one of
+the names or ids you input as TheVarArr.
 *******************************************************************************}
-function R_IsEquippedIDEx(IDs: TIntegerArray): Boolean;
+function R_IsEquippedEx(TheVarArr: TVariantArray): Boolean;
 var
   Equipment: TEquipmentSet;
-  i, k: Integer;
+  i, k, vType: Integer;
+  B: Boolean;
 begin
   Result := False;
   Equipment := R_GetEquipment;
-  for i := High(IDs) downto 0 do
-    for k := 10 downto 0 do
-      if (IDs[i] = Equipment.Items[i].ID) then
-      begin
-        Result := True;
-        Exit;
+
+  for k := 0 to High(Equipment.Items) do
+    for i := 0 to High(TheVarArr) do
+    begin
+      vType := VarType(TheVarArr[i]);
+      if (vType = varString) then
+        TheVarArr[i] := LowerCase(Trim(TheVarArr[i]));
+      case vType of
+        varInteger: B := (Equipment.Items[k].ID = TheVarArr[i]);
+        varString: B := (Pos(TheVarArr[i], LowerCase(Trim(Equipment.Items[k].Name))) > 0);
+        else Exit;
       end;
+      if not B then continue;
+      Result := True;
+      Exit;
+    end;
 end;
 
 {*******************************************************************************
-function R_IsEquippedID(ID: Integer): Boolean;
+function R_IsEquipped(TheVar: Variant): Boolean;
 By: Drags111
-Description: Returns true if there is an item equipped with the ID.
+Description: Returns true if the there is an item equipped with the name or id
+you input as TheVar.
 *******************************************************************************}
-function R_IsEquippedID(ID: Integer): Boolean;
+function R_IsEquipped(TheVar: Variant): Boolean;
 begin
-  Result := R_IsEquippedIDEx([ID]);
-end;
-
-{*******************************************************************************
-function R_IsEquippedNameEx(Names: TStringArray): Boolean;
-By: Drags111
-Description: Returns true if there is an item equipped with one of the Names.
-*******************************************************************************}
-function R_IsEquippedNameEx(Names: TStringArray): Boolean;
-var
-  Equipment: TEquipmentSet;
-  i, z: Integer;
-begin
-  Result := False;
-  Equipment := R_GetEquipment;
-  for i := 0 to 10 do
-    for z := High(Names) downto 0 do
-      if (Pos(Names[z], Equipment.Items[i].Name) > 0) then
-      begin
-        Result := True;
-        Exit;
-      end;
-end;
-
-{*******************************************************************************
-function R_IsEquippedName(Name: string): Boolean;
-By: Drags111
-Description: Returns true if there is an item equipped with the name.
-*******************************************************************************}
-function R_IsEquippedName(Name: string): Boolean;
-begin
-  Result := R_IsEquippedNameEx([Name]);
+  Result := R_IsEquippedEx([TheVar]);
 end;
 
 {*******************************************************************************

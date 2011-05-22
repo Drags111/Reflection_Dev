@@ -331,7 +331,7 @@ function R_getMenuIndex(text: string): Integer;
 By: Timer [Train]
 Description: Returns the index of the desired click.
 *******************************************************************************}
-function R_getMenuIndex(text: string): Integer;
+function R_GetMenuIndex(text: string): Integer;
 var
   menu: TStringArray;
   i: Integer;

@@ -18,7 +18,6 @@ var
 
 procedure R_SetupConstants;
 begin
-  Writeln('This is the working one.');
   SetLength(INTERFACE_TALKS, 21);
   INTERFACE_TALKS := [211, 241, 251, 101, 242, 102, 161, 249, 243,
                       64, 65, 244, 255, 249, 230, 372, 421, 66, 64, 236, 228];

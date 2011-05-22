@@ -1,0 +1,93 @@
+//------------------------------------------------------------------\\
+//--               Simba Reflection Library                       --||
+//--                Deposit Box Routines                          --||
+//------------------------------------------------------------------//
+
+const
+  {Deposit Box}
+  INTERFACE_DEPOSITBOX = 11;
+
+{*******************************************************************************
+function R_DepositBoxScreen: Boolean;
+By: Echo_
+Description: Checks to see if the deposit box is open.
+*******************************************************************************}
+function R_DepositBoxScreen: Boolean;
+begin
+  Result := R_ValidInterface(INTERFACE_DEPOSITBOX);
+end;
+
+{*******************************************************************************
+function R_OpenDepositBox(Location: String): Boolean;
+By: Echo_ / Drags111
+Description: Opens the deposit box at the specified location.
+*******************************************************************************}
+function R_OpenDepositBox(Location: String): Boolean;
+var
+  T: TTile;
+  P: TPoint;
+  Tries: Integer;
+begin
+  Result := R_DepositBoxScreen;
+  if Result then Exit;
+
+  case LowerCase(Location) of
+    'ardougne north', 'and': T := R_Tile(2612, 3333);
+    'ardougne south', 'asd': T := R_Tile(2654, 3280);
+    'catherby', 'ctd' : T := R_Tile(2806, 3439);
+    'draynor', 'dd' : T := R_Tile(3094, 3240);
+    'edgeville', 'ed' : T := R_Tile(3091, 3499);
+    'falador west', 'fwd' : T := R_Tile(2943, 3369);
+    'falador east', 'fed' : T := R_Tile(3017, 3358);
+    'lumbridge', 'ld' : T := R_Tile(3210, 3216);
+    'port khazard', 'pkz' : T := R_Tile(2664, 3159);
+    'seers', 'sed' : T := R_Tile(2730, 3492);
+    'yanille', 'yd' : T := R_Tile(2611, 3088);
+  else
+    begin
+      SRL_Warn('R_OpenDepositBox', 'Unsupported deposit box name.', -1);
+      Exit;
+    end;
+  end;
+  if (R_DistanceFromTile(T) > 3) or not R_TileOnMS(T, 10) then
+  begin
+    if not(R_TileOnMM(T)) then
+    begin
+      SRL_Warn('R_OpenDepositBox', 'Could not find Deposit Box.', Warn_AllVersions);
+      Exit;
+    end;
+    R_WalkToTile(T, 0, 0);
+    Wait(50);
+    R_Flag;
+    Wait(RandomRange(100, 200));
+  end;
+  if not(R_TileOnMS(T, 10)) then
+  begin
+    SetAngle(True);
+    MakeCompass('n');
+    Wait(RandomRange(200, 400));
+    if not(R_TileOnMS(T, 10)) then
+    begin
+      SRL_Warn('R_OpenDepositBox', 'Could not get MS Point.', Warn_AllVersions);
+      Exit;
+    end;
+  end;
+
+  P := R_TileToMS(T, 10);
+  MMouse(P.x - 5, P.y - 5, 11, 11);
+  Wait(RandomRange(200, 300));
+  if R_IsUpText('eposit box') then
+  begin
+    GetMousePos(P.x, P.y);
+    Mouse(P.x, P.y, 0, 0, true);
+    Wait(RandomRange(80, 110));
+    P.x := 0;
+    repeat
+      while(R_GetSpeed > 0)do
+        wait(100+Random(50));
+      Wait(RandomRange(50, 90));
+      Result := R_DepositBoxScreen;
+      Inc(Tries);
+    until Result or (Tries > 40);
+  end;
+end;

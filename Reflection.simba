@@ -14,9 +14,11 @@
 {$i ./Reflection/core/interfaces.simba}
 {$i ./Reflection/core/inventory.simba}
 {$i ./Reflection/core/equipment.simba}
+{$i ./Reflection/core/bank.simba}
 {$i ./Reflection/core/chat.simba}
 
 {$i ./Reflection/misc/items.simba}
+{$i ./Reflection/misc/depositbox.simba}
 
 var R_UpdateKill: boolean;
 

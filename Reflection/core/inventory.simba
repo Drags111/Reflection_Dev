@@ -66,14 +66,6 @@ begin
 end;
 
 {*******************************************************************************
-function TrimItemName(Name: string): String;
-By: Drags111
-Description: Gets rid of the <col=42c3df> crap from the names of items.
-
-REPLACED BY R_TrimHTML;
-*******************************************************************************}
-
-{*******************************************************************************
 function R_GetInvItemAt(slot: integer): TInvItem;
 By: Drags111
 Description: Returns a TInvItem from the specific slot [1-27]. If slot is empty,
