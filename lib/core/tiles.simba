@@ -419,10 +419,3 @@ function R_GetMidTile(Tile1, Tile2: TTile): TTile;
 begin
   Result := R_Tile((Tile1.x+Tile2.x)/2, (Tile1.y+Tile2.y)/2);
 end;
-
-
-
-
-
-
-

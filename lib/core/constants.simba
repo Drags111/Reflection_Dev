@@ -9,22 +9,16 @@ const
   NULL_STRING     = '';
 
 //---                               Variable                                --//
+
 var
-  INTERFACE_TALKS: TIntegerArray; // All of the interfaces for NPCChat.
-  INTERFACE_SELFTALKS: TIntegerArray; // for us chatting to NPCs.
+  R_UpdateKill: Boolean;
+  R_UseDebug: Boolean;
 
 var
   SKILL_STRINGS: TStringArray; // Array of all the skills
 
 procedure R_SetupConstants;
 begin
-  SetLength(INTERFACE_TALKS, 21);
-  INTERFACE_TALKS := [211, 241, 251, 101, 242, 102, 161, 249, 243,
-                      64, 65, 244, 255, 249, 230, 372, 421, 66, 64, 236, 228];
-
-  SetLength(INTERFACE_SELFTALKS, 2);
-  INTERFACE_SELFTALKS := [66, 64];
-
   SKILL_STRINGS := ['attack', 'defence', 'strength', 'hitpoints', 'range',
                     'prayer', 'magic', 'cooking', 'woodcutting', 'fletching',
                     'fishing', 'firemaking', 'crafting', 'smithing', 'mining',
@@ -35,6 +29,7 @@ end;
 
 Procedure R_Debug(Debug, InTags: String);
 begin
+  if not R_UseDebug then Exit;
   If (InTags = '') then
     Writeln('[Reflection] ' + Debug)
   else

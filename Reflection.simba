@@ -1,33 +1,64 @@
+//----------------------------------------------------------------------------//
+//--                          Reflection Library                            --//
+//----------------------------------------------------------------------------//
+//-- by: Drags111, pyroryan, mormonman, Benland100, Method, Echo_, N1ke,    --//
+//--   Nava2, and others! If I forgot your name let me know :)              --//
+//----------------------------------------------------------------------------//
+
 {$DEFINE SMART}
 {$DEFINE REFLECTION}
 
-{$i ./Reflection/core/constants.simba}
-{$i ./Reflection/core/hooks.simba}
-{$i ./Reflection/core/nodes.simba}
-{$i ./Reflection/core/tiles.simba}
-{$i ./Reflection/core/text.simba}
-{$i ./Reflection/core/npcs.simba}
-{$i ./Reflection/core/players.simba}
-{$i ./Reflection/core/mapwalk.simba}
-{$i ./Reflection/core/objects.simba}
-{$i ./Reflection/core/grounditems.simba}
-{$i ./Reflection/core/interfaces.simba}
-{$i ./Reflection/core/inventory.simba}
-{$i ./Reflection/core/equipment.simba}
-{$i ./Reflection/core/bank.simba}
-{$i ./Reflection/core/chat.simba}
+//----------------------------------------------------------------------------//
+//--                      Reflection Core Includes                          --//
+//--                                                                        --//
+//--               Low Level Routines for Basic Function.                   --//
+//----------------------------------------------------------------------------//
+{$i ./lib/core/constants.simba}
+{$i ./lib/core/hooks.simba}
+{$i ./lib/core/nodes.simba}
+{$i ./lib/core/text.simba}
+{$i ./lib/core/tiles.simba}
+{$i ./lib/core/interfaces.simba}
 
-{$i ./Reflection/misc/items.simba}
-{$i ./Reflection/misc/depositbox.simba}
+//----------------------------------------------------------------------------//
+//--                      Reflection Common Includes                        --//
+//--                                                                        --//
+//--     Banking, Walking, Inventory, and other commonly used routines.     --//
+//----------------------------------------------------------------------------//
+{$i ./lib/characters/npcs.simba}
+{$i ./lib/characters/players.simba}
 
-var R_UpdateKill: boolean;
+{$i ./lib/mapwalk/mapwalk.simba}
 
-{*******************************************************************************
-function R_GetCurrentGit(whatKind: string): Integer;
-By: Naike, compressed by Harry
-Description: Gets Hooks.simba information from Harry's server - updated every 10 minutes.
-To-do: Use direct github /raw/, when Simba supports https.
-*******************************************************************************}
+{$i ./lib/ground/objects.simba}
+{$i ./lib/ground/grounditems.simba}
+
+{$i ./lib/inventory/inventory.simba}
+{$i ./lib/inventory/equipment.simba}
+
+{$i ./lib/bank/bank.simba}
+{$i ./lib/bank/depositbox.simba}
+
+{$i ./lib/chat/chat.simba}
+
+{$i ./lib/misc/other.simba}
+{$i ./lib/misc/items.simba}
+
+(*
+R_GetCurrentGit
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetCurrentGit(whatKind: string): Integer;
+
+Gets Hooks.simba information from pyroryan's server.
+
+.. note::
+
+  by Naike, Harry
+
+*)
 function R_GetCurrentGit(whatKind: string): Integer;
 var
   S: String;
@@ -60,15 +91,26 @@ begin
   end;
 end;
 
-{*******************************************************************************
-Procedure R_UpdateHooks(terminate: boolean);
-By: Naike, cleaned up a bit by Harry
-Description: Tries to update to new hooks!
-*******************************************************************************}
+(*
+R_UpdateHooks
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    Procedure R_UpdateHooks(terminate: boolean);
+
+Tries to update to new hooks!
+
+.. note::
+
+  by Naike, Harry
+
+*)
 Procedure R_UpdateHooks(terminate: boolean);
 var
   myFile, ClientRev, RevHook: Integer;
 begin
+  R_UseDebug := True;
   ClientRev := r_GetCurrentGit('clientversion');
   RevHook := r_GetCurrentGit('hookrevision');
   If (ClientRev <= ClientVersion) and (RevHook <= HookRev) then
@@ -92,12 +134,22 @@ begin
   end;
 end;
 
-{*******************************************************************************
-Procedure SetupReflectionEx(Update: Boolean);
-By: Reflection development team
-Description: Sets up reflection constants, and checks if hooks are outdated.
+(*
+SetupReflectionEx
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    Procedure SetupReflectionEx(Update: Boolean);
+
+Sets up reflection constants, and checks if hooks are outdated.
 Will try to update if outdated.
-*******************************************************************************}
+
+.. note::
+
+  by Reflection Dev Team
+
+*)
 Procedure SetupReflectionEx(Update: Boolean);
 begin
   R_SetupConstants;
@@ -114,12 +166,21 @@ begin
   end;
 end;
 
-{*******************************************************************************
-Procedure SetupReflection;
-By: Reflection development team
-Description: Sets up reflection constants, and checks if hooks are outdated.
-Will try to update if outdated.
-*******************************************************************************}
+(*
+SetupReflection
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    Procedure SetupReflection;
+
+Sets up Reflection.
+
+.. note::
+
+  by Reflection Dev Team
+
+*)
 Procedure SetupReflection;
 begin
   SetupReflectionEx(True);
