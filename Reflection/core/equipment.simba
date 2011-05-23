@@ -74,14 +74,14 @@ begin
   try
     inter := SmartGetFieldArrayObject(0, hook_static_GetInterfaces, INTERFACE_EQUIPMENT);
     Child := SmartGetFieldArrayObject(inter, '', (slot * 3) + 8);
-    ID := SmartGetFieldInt(Child, hook_interface_GetID);
-    textbytes := SmartGetFieldObject(Child, hook_interface_GetName);
+    ID := SmartGetFieldInt(Child, hook_interface_GetComponentID);
+    textbytes := SmartGetFieldObject(Child, hook_interface_GetComponentName);
     acts := SmartGetFieldObject(Child, hook_interface_GetActions);
     if (ID > 0) then
     begin
       Result.Id := ID;
       Result.Name := R_TrimHTML(R_GetJavaString(textbytes, 255));
-      Result.Count := SmartGetFieldInt(Child, hook_interface_GetStack);
+      Result.Count := SmartGetFieldInt(Child, hook_interface_GetComponentStackSize);
       Result.IsAmmo := (Result.Count > 1);
 
       try

@@ -85,14 +85,14 @@ begin
   try
     Inventory := R_GetInterface(R_GetInventoryInterfaceIndex, 0);
     Item := SmartGetFieldArrayObject(Inventory, hook_interface_GetChildren, slot-1);
-    Name := SmartGetFieldObject(Item, hook_interface_GetName);
+    Name := SmartGetFieldObject(Item, hook_interface_GetComponentName);
     Actions := SmartGetFieldObject(Item, hook_interface_GetActions);
 
-    ID := SmartGetFieldInt(Item, hook_interface_GetID);
+    ID := SmartGetFieldInt(Item, hook_interface_GetComponentID);
     if(ID > 0)then
     begin
       Result.ID := ID;
-      Result.StackSize := SmartGetFieldInt(Item, hook_interface_GetStack);
+      Result.StackSize := SmartGetFieldInt(Item, hook_interface_GetComponentStackSize);
       Result.Slot := slot;
       Result.Name := R_TrimHTML(R_GetJavaString(Name, 255));
 
@@ -210,7 +210,7 @@ begin
     for i := 0 to 27 do
     begin
       Item := SmartGetFieldArrayObject(Inventory, hook_interface_GetChildren, i);
-      ID := SmartGetFieldInt(Item, hook_interface_GetID);
+      ID := SmartGetFieldInt(Item, hook_interface_GetComponentID);
       if (ID > 0) then
         inc(Result);
 

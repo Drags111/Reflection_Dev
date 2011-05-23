@@ -314,15 +314,15 @@ begin
     Child := R_GetInterface(ParentI, ChildI);
 
     try
-      Name := SmartGetFieldObject(Child, hook_interface_GetName);
+      Name := SmartGetFieldObject(Child, hook_interface_GetComponentName);
       Result.Name := R_GetJavaString(Name, 256);
     finally
       SmartFreeObject(Name);
     end;
 
     Result.Actions := R_GetActions(ParentI, ChildI, -1);
-    Result.ID := SmartGetFieldInt(Child, hook_interface_GetID);
-    Result.Stack := SmartGetFieldInt(Child, hook_interface_GetStack);
+    Result.ID := SmartGetFieldInt(Child, hook_interface_GetComponentID);
+    Result.Stack := SmartGetFieldInt(Child, hook_interface_GetComponentStackSize);
     Result.Text := R_GetInterfaceText(ParentI, ChildI);
     Result.TextureID := SmartGetFieldInt(Child, hook_interface_GetTextureID);
     Result.ModelID := SmartGetFieldInt(Child, hook_interface_GetModelID);
@@ -356,7 +356,7 @@ begin
   try
     Component := R_GetComponent(ParentI, ChildI, CompI);
     try
-      Name := SmartGetFieldObject(Component, hook_interface_GetName);
+      Name := SmartGetFieldObject(Component, hook_interface_GetComponentName);
       Text := SmartGetFieldObject(Component, hook_interface_GetText);
       Result.Name := R_TrimHTML(R_GetJavaString(Name, 255));
       Result.Text := R_TrimHTML(R_GetJavaString(Text, 255));
@@ -366,8 +366,8 @@ begin
     end;
 
     Result.Actions := R_GetActions(ParentI, ChildI, CompI);
-    Result.ID := SmartGetFieldInt(Component, hook_interface_GetID);
-    Result.Stack := SmartGetFieldInt(Component, hook_interface_GetStack);
+    Result.ID := SmartGetFieldInt(Component, hook_interface_GetComponentID);
+    Result.Stack := SmartGetFieldInt(Component, hook_interface_GetComponentStackSize);
     Result.TextureID := SmartGetFieldInt(Component, hook_interface_GetTextureID);
     Result.ModelID := SmartGetFieldInt(Component, hook_interface_GetModelID);
     Result.ModelZoom := SmartGetFieldInt(Component, hook_interface_GetModelZoom);

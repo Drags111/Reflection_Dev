@@ -1,6 +1,6 @@
 const
 ClientVersion = 647;
-HookRev = 6;
+HookRev = 7;
 
 
 {Static Hooks}
@@ -229,22 +229,23 @@ hook_menu_Action = 'z';
 
 {Class Interface}
 class_Interface = 'uaa';
-hook_interface_GetActions = 'D';
+hook_interface_GetTextColor = 'Sc';
+hook_interface_GetModelID = 'Hb';
 hook_interface_GetX = 'Fc';
 hook_interface_GetY = 't';
 hook_interface_GetWidth = 'Dc';
 hook_interface_GetHeight = 'V';
+hook_interface_IsHidden = 'c';
+hook_interface_GetModelZoom = 'kd';
+hook_interface_GetParentID = 'Wc';
+hook_interface_GetID = 'ld';
+hook_interface_GetComponentID = 'Oc';
+hook_interface_GetComponentStackSize = 'n';
+hook_interface_GetActions = 'D';
+hook_interface_GetComponentName = 'y';
 hook_interface_GetText = 'bd';
 hook_interface_GetTextureID = 'ud';
-hook_interface_GetTextColor = 'Sc';
-hook_interface_GetModelID = 'Hb';
-hook_interface_GetModelZoom = 'kd';
-hook_interface_GetName = 'y';
 hook_interface_GetChildren = 'fd';
-hook_interface_GetID = 'Oc';
-hook_interface_GetStack = 'n';
-hook_interface_GetParentID = 'Wc';
-hook_interface_IsHidden = 'c';
 hook_interface_GetBoundsArrayIndex = 'vc';
 hook_interface_GetHorizontalScrollBarSize = 'h';
 hook_interface_GetVerticalScrollBarSize = 'A';
