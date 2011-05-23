@@ -16,20 +16,6 @@ begin
 end;
 
 {*******************************************************************************
-function R_GetNode(nodes, index : Integer) : Integer;
-By: pyroryan
-Description:
-*******************************************************************************}
-function R_GetNode(nodes, index : Integer) : Integer;
-var
-  node : Integer;
-begin
-  node := SmartGetFieldArrayObject(nodes, '', index);
-  Result := SmartGetFieldObject(node, hook_node_Next);
-  SmartFreeObject(node);
-end;
-
-{*******************************************************************************
 function R_GetNodeNext(node : Integer) : Integer;
 By: pyroryan
 Description:
@@ -115,4 +101,35 @@ Description:
 function R_GetArraySize(arrayObject : Integer) : Integer;
 begin
   Result := SmartGetFieldArraySize(arrayObject, '', 1);
+end;
+
+function R_FindNodeByID(nodeCache, id : Integer) : Integer;
+var
+  nodesLength, nodes, tail, cur, next, uid, index : Integer;
+begin
+  if (id < 0) then
+    Exit;
+  nodes := R_GetNodes(nodeCache);
+  if (nodes = 0) then
+    Exit;
+  nodesLength := R_GetArraySize(nodes);
+  index := id and (nodesLength - 1);
+  tail := SmartGetFieldArrayObject(nodes, '', index);
+  if (tail = 0) then
+    Exit;
+  cur := SmartGetFieldObject(tail, hook_node_Next);
+  SmartFreeObject(nodes);
+
+  while (not (SmartIsEqual(tail, cur))) do
+  begin
+    uid := SmartGetFieldLongL(cur, hook_node_GetID);
+    if (uid = id) then
+    begin
+      Result := cur;
+      Exit;
+    end;
+    next := SmartGetFieldObject(cur, hook_node_Next);
+    SmartFreeObject(cur);
+    cur := next;
+  end;
 end;

@@ -333,4 +333,8 @@ hook_grandexchange_GetID = 'g';
 hook_grandexchange_GetPrice = 'e';
 hook_grandexchange_GetTotal = 'b';
 hook_grandexchange_GetTransferred = 'c';
+<<<<<<< HEAD
 hook_grandexchange_GetSpent = 'f';
+=======
+hook_grandexchange_GetSpent = 'f';
+>>>>>>> a138b66afc48294713f4c3464ff0fe0cfbb11a8c

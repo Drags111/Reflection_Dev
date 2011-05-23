@@ -22,6 +22,12 @@ type
     Area: TBox;
   end;
 
+{ObjectDefinition}
+  TRSObjectDef = record
+    name : string;
+    actions : TStringArray;
+  end;
+
 {Array of TRSObject}
   TRSObjectArray = array of TRSObject;
 
@@ -50,6 +56,38 @@ begin
   Result.objType := objType;
   Result.Tile := T;
   Result.Area := A;
+end;
+
+{*******************************************************************************
+function R_NewObjectDef(name: string; actions: TStringArray): TRSObjectDef;
+By: pyroryan
+Description: Returns a new TRSObject with the specified values.
+*******************************************************************************}
+function R_NewObjectDef(obj : TRSObject; objDef : Integer): TRSObjectDef;
+var
+  name : String;
+  actions : TStringArray;
+  javaString, actionsObj, actionsSize, count : Integer;
+begin
+  javaString := SmartGetFieldObject(objDef, hook_objectdef_getName);
+  name := R_GetJavaString(javaString, 256);
+  SmartFreeObject(javaString);
+
+  actionsObj := SmartGetFieldObject(objDef, hook_objectdef_getActions);
+  actionsSize := R_GetArraySize(actionsObj);
+  SmartFreeObject(actionsObj);
+  SetLength(actions, actionsSize);
+  count := 0;
+  while (count < actionsSize) do
+  begin
+    javaString := SmartGetFieldArrayObject(objDef, hook_objectdef_getActions, count);
+    actions[count] := R_GetJavaString(javaString, 256);
+    SmartFreeObject(javaString);
+    count := count + 1;
+  end;
+
+  Result.name := name;
+  Result.actions := actions;
 end;
 
 {*******************************************************************************
@@ -453,6 +491,60 @@ var
 begin
   Temp := R_GetObjectAt(Obj.Tile, Obj.objType);
   Result := (Obj.ID = Temp.ID) and (Obj.objType = Temp.objType) and (Obj.Tile = Temp.Tile);
+end;
+
+{*******************************************************************************
+function R_GetObjectDefinition(Obj: TRSObject): TRSObjectDef;
+By: pyroryan
+Description: Gets the object's definition
+*******************************************************************************}
+function R_GetObjectDefinition(Obj: TRSObject): TRSObjectDef;
+var
+  objDefLoader, mruNodes, nodeCache, node, hard, softref, soft : integer;
+begin
+  try
+    objDefLoader := SmartGetFieldObject(0, hook_static_getObjectDefLoader);
+    mruNodes := SmartGetFieldObject(objDefLoader, hook_objectdefloader_getMRUNodes);
+    nodeCache := SmartGetFieldObject(mruNodes, hook_mrunodes_getNodeCache);
+    SmartFreeObject(objDefLoader);
+    SmartFreeObject(mruNodes);
+    if (nodeCache = 0) then
+      Exit;
+    node := R_FindNodeByID(nodeCache, Obj.ID);
+    SmartFreeObject(nodeCache);
+    if (node = 0) then
+      Exit;
+    hard := SmartGetFieldObject(node, hook_hardreference_getObject); //"Field not Found" may occur
+    if (hard <> 0) then
+    begin
+      Result := R_NewObjectDef(Obj, hard);
+    end else
+    begin
+      softref := SmartGetFieldObject(node, hook_softreference_getReference);
+      soft := SmartGetFieldObject(softref, 'referent');
+      if (soft = 0) then
+        Exit;
+      Result := R_NewObjectDef(Obj, soft);
+    end;
+    SmartFreeObject(node);
+  finally
+    try
+      SmartFreeObject(node);
+    except
+    end;
+    try
+      SmartFreeObject(hard);
+    except
+    end;
+    try
+      SmartFreeObject(softref);
+    except
+    end;
+    try
+      SmartFreeObject(soft);
+    except
+    end;
+  end;
 end;
 
 {*******************************************************************************
