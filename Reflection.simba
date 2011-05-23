@@ -83,7 +83,7 @@ begin
   begin
     Writeln('[Reflection] You''re using outdated hooks (version ' + ToStr(ClientVersion) + '.' + ToStr(HookRev) + '); updating you to version' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '!');
     Writeln('[Reflection] If you manually fixed your hooks, please make sure hookrevision values are greater than or equal to the online hooks to prevent overwriting.');
-    myFile := RewriteFile(AppPath + 'includes\reflection\core\hooks.simba', False);
+    myFile := RewriteFile(AppPath + 'includes\Reflection_Dev\Reflection\core\hooks.simba', False);
     WriteFileString(myFile, GetPage('http://pyroryan.net46.net/reflection/Hooks.simba'));
     CloseFile(myFile);
     Writeln('[Reflection] Updated you to ' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '; please restart your script!');

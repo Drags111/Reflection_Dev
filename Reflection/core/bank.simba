@@ -695,6 +695,57 @@ begin
   end;
 end;
 
+function R_WithdrawX(TheVar: Variant; Amount: Integer): Boolean;
+var
+  Item: TBankItem;
+  Itm: TChildComponent;
+  Inv, t: Integer;
+begin
+  Result := False;
+  if not R_BankScreen then Exit;
+  if not R_ItemExistsInBank(TheVar, Item) then
+  begin
+    R_Debug('Item not found in bank.', 'R_WithdrawX');
+    Exit;
+  end;
+
+  if not R_ScrollToIndex(Item.Slot)then
+  begin
+    R_Debug('Could not scroll to item.', 'R_WithdrawX');
+    Exit;
+  end;
+
+  Inv := R_InvCount;
+  Itm := R_GetChildComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Item.Slot);
+  MouseBox(Itm.X, Itm.Y, Itm.Bounds.X2, Itm.Bounds.Y2, 2);
+  Result := R_WaitOption('Withdraw-X', 3000);
+
+  MarkTime(t);
+  while(R_GetInterfaceText(752, 4) <> 'Enter amount:')do
+  begin
+    if(TimeFromMark(t) > 5000)then
+    begin
+      Result := False;
+      R_Debug('Could not enter amount.', 'R_WithdrawX');
+      Exit;
+    end;
+    wait(50+Random(50));
+  end;
+
+  wait(500+Random(1000));
+  TypeSend(ToStr(Amount));
+  MarkTime(t);
+  while(R_InvCount = Inv)do
+  begin
+    if(TimeFromMark(T) > 5000)then
+    begin
+      Result := False;
+      R_Debug('Error withdrawing item.', 'R_WithdrawX');
+      Exit;
+    end;
+  end;
+end;
+
 {*******************************************************************************
 Function R_OpenBankBooth(Bank : String): Boolean;
 By: ss23 & TheGuyWhoGotOn

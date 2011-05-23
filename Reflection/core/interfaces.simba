@@ -208,16 +208,16 @@ begin
       inter := R_GetInterface(Parent, Child);
     PID := SmartGetFieldInt(inter, hook_interface_GetParentID);
 
-    if(PID > 0)then //if it has a parent.
+    if(PID > 0)then
     begin
       Result := R_GetAbsolutePos(PID shr 16, PID and $FFFF, -1);
     end else
     begin
-      BoundsIndex := SmartGetFieldInt(inter, hook_interface_BoundsArrayIndex);//The index in the BoundsArray where our bounds are stored.
-      BoundsObject := SmartGetFieldArrayObject(0, hook_static_InterfaceBoundsArray, BoundsIndex); //Pulls our bounds out of the array
+      BoundsIndex := SmartGetFieldInt(inter, hook_interface_GetBoundsArrayIndex);
+      BoundsObject := SmartGetFieldArrayObject(0, hook_static_GetInterfaceBoundsArray, BoundsIndex);
       if(BoundsObject > 0)then
       begin
-        Result.x := SmartGetFieldInt(BoundsObject, 'x'); //Extracts the usable x and y coords.
+        Result.x := SmartGetFieldInt(BoundsObject, 'x');
         Result.y := SmartGetFieldInt(BoundsObject, 'y');
       end;
     end;
@@ -225,10 +225,10 @@ begin
     rx := SmartGetFieldInt(inter, hook_interface_GetX) + Result.x;
     ry := SmartGetFieldInt(inter, hook_interface_GetY) + Result.y;
 
-    if(SmartGetFieldInt(inter, 'h') <> 0)then  //if HorizontalBarSize <> 0
-      rx := rx - SmartGetFieldInt(inter, 'k'); //add to the offset from HorizontalBarPosition
-    if(SmartGetFieldInt(inter, 'A') <> 0)then  //if VerticalBarSize <> 0
-      ry := ry - SmartGetFieldInt(inter, 'a'); //add to the offset from VerticalBarPosition
+    if(SmartGetFieldInt(inter, hook_interface_GetHorizontalScrollBarSize) <> 0)then
+      rx := rx - SmartGetFieldInt(inter, hook_interface_GetHorizontalScrollBarPosition);
+    if(SmartGetFieldInt(inter, hook_interface_GetVerticalScrollBarSize) <> 0)then
+      ry := ry - SmartGetFieldInt(inter, hook_interface_GetVerticalScrollBarPosition);
 
     Result := Point(rx, ry);
 
