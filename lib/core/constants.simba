@@ -17,7 +17,22 @@ var
   Description: Whether or not to display debugging during run-time. }
   R_UseDebug: Boolean;
 
-procedure R_SetupConstants;
+(*
+R_SetupGlobals
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_SetupGlobals;
+
+Sets up variables that need to be declared.
+
+.. note::
+
+  by Naike, Harry
+
+*)
+procedure R_SetupGlobals;
 begin
   R_UseDebug := True;
 end;

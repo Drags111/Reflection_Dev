@@ -1,7 +1,10 @@
-//------------------------------------------------------------------\\
-//--               Simba Reflection Library                       --||
-//--                     Text Routines                            --||
-//------------------------------------------------------------------//
+(*
+Menu
+====
+
+Contains routines for menu option handling ('Chop Tree', for example).
+
+*)
 
 {*******************************************************************************
 function R_IsMenuOpen: boolean;
@@ -42,135 +45,138 @@ Description: part 1 for Actions. part 2 for Options. Supports tabbed menus.
 *******************************************************************************}
 function R_GetMenuItemsPart(part : Integer) : TStringArray;
 var
-  itemsList : TStringArray;
+  ItemList : TStringArray;
   item : String;
-  count, nodeSubList, groupNode, subMenu, menuItemNode : Integer;
+  Count, nodeSubList, groupNode, subMenu, menuItemNode : Integer;
   last, lastTwo, nodeList, javaString : Integer;
 begin
-  count := R_GetMenuCount;
-  //R_Debug(ToStr(count), 'MenuCount');
-  SetLength(itemsList, count);
-  count := 0; //Prepare for use as index
+  SetLength(ItemList, R_GetMenuCount);
+  Count := 0;
 
-  if (R_IsMenuTabbed) then
+  //--------------------------------------------------------------------------//
+  // When there are too many options in the menu, it will start to tab them   //
+  // so we want to check if the menu is tabbed or not. That will determine    //
+  // what we need to do.                                                      //
+  //--------------------------------------------------------------------------//
+  if(R_IsMenuTabbed)then
   begin
-    nodeSubList := SmartGetFieldObject(0, hook_static_getCollapsedMenuItems);
-    //R_Debug(ToStr(nodeSubList), 'nodeSubList');
-    groupNode := R_getNodeSubHead(nodeSubList);
-    //R_Debug(ToStr(groupNode), 'groupNode');
-    while (groupNode <> 0) do
-    begin
-      subMenu := SmartGetFieldObject(groupNode, hook_MenuGroupNode_getNodeSubListItems);
-      //R_Debug(ToStr(subMenu), 'subMenu');
-      if (subMenu = 0) then
+
+    try
+      //------------------------------------------------------------------------//
+      // Grab the nodeList for the tabbed menu items.                           //
+      //------------------------------------------------------------------------//
+      NodeSubList := SmartGetFieldObject(0, hook_static_GetCollapsedMenuItems);
+      GroupNode := R_GetNodeSubHead(NodeSubList);
+
+      //------------------------------------------------------------------------//
+      // While we still have nodes that exist, we want to loop through till we  //
+      // have hit every grouping.                                               //
+      // Example:                                                               //
+      //      "Zezima(Level 1) >"                                               //
+      //      "Drags111(Level 200) >"                                           //
+      //      ...etc.                                                           //
+      //------------------------------------------------------------------------//
+      while(GroupNode <> 0)do
       begin
-        break;
-      end;
-      menuItemNode := R_getNodeSubHead(subMenu);
-      //R_Debug(ToStr(menuItemNode), 'menuItemNode');
-      while (menuItemNode <> 0) do
-      begin
-        if (part = 1) then
+
+        {Get the sub menu of each tab.}
+        SubMenu := SmartGetFieldObject(GroupNode, hook_MenuGroupNode_GetNodeSubListItems);
+        if (SubMenu = 0) then
+          break;
+
+        MenuItemNode := R_GetNodeSubHead(SubMenu);
+
+        //----------------------------------------------------------------------//
+        // While there are options/actions to be filtered through               //
+        // Example:                                                             //
+        //            "Follow Zezima"                                           //
+        //            "Trade With Zezima"                                       //
+        //----------------------------------------------------------------------//
+        while (MenuItemNode <> 0) do
         begin
-          javaString := SmartGetFieldObject(menuItemNode, hook_menu_Action);
-          if (javaString = 0) then
+          case Part of
+            1: JavaString := SmartGetFieldObject(menuItemNode, hook_menu_Action);
+            2: JavaString := SmartGetFieldObject(menuItemNode, hook_menu_Option);
+          end;
+          {if we've reached the end of the list}
+          if (JavaString = 0) then
           begin
-            //writeln('Stopping, the string is null');
-            SmartFreeObject(javaString);
+            R_FreeObject(JavaString);
             break;
           end;
-          item := R_GetJavaString(javaString, 256);
-          SmartFreeObject(javaString);
-          //R_Debug(item, 'Menu');
-          itemsList[count] := R_TrimHTML(item);
-          //R_Debug(ToStr(itemsList), 'itemsList');
-          count := count + 1;
+
+          Item := R_GetJavaString(javaString, 256);
+          ItemList[Count] := R_TrimHTML(item);
+          Inc(Count);
+
+          {Switch to the next option/action.}
+          LastTwo := MenuItemNode;
+          MenuItemNode := R_GetNodeSubNext(lastTwo);
+
+          R_FreeObjects([JavaString, LastTwo]);
         end;
-        if (part = 2) then
-        begin
-          javaString := SmartGetFieldObject(menuItemNode, hook_menu_Option);
-          if (javaString = 0) then
-          begin
-            //writeln('Stopping, the string is null');
-            SmartFreeObject(javaString);
-            break;
-          end;
-          item := R_GetJavaString(javaString, 256);
-          SmartFreeObject(javaString);
-          //R_Debug(item, 'Menu');
-          itemsList[count] := R_TrimHTML(item);
-          //R_Debug(ToStr(itemsList), 'itemsList');
-          count := count + 1;
-        end;
-        //Count
-        lastTwo := menuItemNode;
-        menuItemNode := R_getNodeSubNext(lastTwo);
-        SmartFreeObject(lastTwo);
-        //R_Debug(ToStr(menuItemNode), 'nextNode');
+
+        {Switch to the next tab}
+        Last := GroupNode;
+        GroupNode := R_GetNodeSubNext(Last);
+
+        R_FreeObjects([Last, SubMenu, MenuItemNode]);
       end;
-      //Count
-      last := groupNode;
-      groupNode := R_getNodeSubNext(last);
-      SmartFreeObject(last);
-      //R_Debug(ToStr(groupNode), 'nextGroupNode');
-      SmartFreeObject(subMenu);
-      SmartFreeObject(menuItemNode);
+    finally
+      {In case something goes wrong in any of the steps, we want to
+       make sure everything gets released properly.}
+      R_FreeObjects([GroupNode, NodeSubList, Last, SubMenu, MenuItemNode,
+                     JavaString, LastTwo]);
     end;
-    SmartFreeObject(groupNode);
-    SmartFreeObject(nodeSubList);
   end else
-  begin //Not tabbed
-    nodeList := SmartGetFieldObject(0, hook_static_MenuNodeList);
-    //R_Debug(ToStr(nodeList), 'nodeList');
-    menuItemNode := R_getNodeHead(nodeList);
-    //R_Debug(ToStr(menuItemNode), 'menuItemNode');
-    while (menuItemNode <> 0) do
-    begin
-      if (part = 1) then
+
+  //--------------------------------------------------------------------------//
+  // This section is for normal menus (not tabbed).                           //
+  // Like above, loops through each node and its actions/options.             //
+  //--------------------------------------------------------------------------//
+  begin
+    try
+      NodeList := SmartGetFieldObject(0, hook_static_MenuNodeList);
+      MenuItemNode := R_GetNodeHead(NodeList);
+
+      //----------------------------------------------------------------------//
+      // While there are options/actions to be filtered through               //
+      // Example:                                                             //
+      //            "Follow Zezima"                                           //
+      //            "Trade With Zezima"                                       //
+      //----------------------------------------------------------------------//
+      while (MenuItemNode <> 0) do
       begin
-        javaString := SmartGetFieldObject(menuItemNode, hook_menu_Action);
-        //R_Debug(ToStr(javaString), 'javaString');
-        if (javaString = 0) then
+        case Part of
+          1: JavaString := SmartGetFieldObject(MenuItemNode, hook_menu_Action);
+          2: JavaString := SmartGetFieldObject(menuItemNode, hook_menu_Option);
+        end;
+        {if we've reached the end of the list}
+        if (JavaString = 0) then
         begin
-          //writeln('Stopping, the string is null');
-          SmartFreeObject(javaString);
+          R_FreeObject(JavaString);
           break;
         end;
-        item := R_GetJavaString(javaString, 256);
-        SmartFreeObject(javaString);
-        //R_Debug(ToStr(item), 'item');
-        itemsList[count] := R_TrimHTML(item);
-        //R_Debug(ToStr(itemsList), 'itemsList');
-        count := count + 1;
+
+        Item := R_GetJavaString(JavaString, 256);
+        SmartFreeObject(JavaString);
+        ItemList[count] := R_TrimHTML(Item);
+        Inc(Count);
+
+        {Switch to the next option/action.}
+        Last := MenuItemNode;
+        MenuItemNode := R_GetNodeNext(Last);
+
+        R_FreeObjects([JavaString, Last]);
       end;
-      if (part = 2) then
-      begin
-        javaString := SmartGetFieldObject(menuItemNode, hook_menu_Option);
-        //R_Debug(ToStr(javaString), 'javaString');
-        if (javaString = 0) then
-        begin
-          //writeln('Stopping, the string is null');
-          SmartFreeObject(javaString);
-          break;
-        end;
-        item := R_GetJavaString(javaString, 256);
-        SmartFreeObject(javaString);
-        //R_Debug(ToStr(item), 'item');
-        itemsList[count] := R_TrimHTML(item);
-        //R_Debug(ToStr(itemsList), 'itemsList');
-        count := count + 1;
-      end;
-      //Count
-      last := menuItemNode;
-      menuItemNode := R_getNodeNext(last);
-      SmartFreeObject(last);
-      //R_Debug(ToStr(menuItemNode), 'nextNode');
+    finally
+      {In case something goes wrong in any of the steps, we want to
+         make sure everything gets released properly.}
+      R_FreeObjects([MenuItemNode, NodeList, JavaString, Last]);
     end;
-    SmartFreeObject(menuItemNode);
-    SmartFreeObject(nodeList);
   end;
-  SetLength(itemsList, count);
-  Result := itemsList;
+  SetLength(ItemList, Count);
+  Result := ItemList;
 end;
 
 {*******************************************************************************
@@ -469,75 +475,6 @@ Description: Chooses the option "Option" from the Right Click menu, returns
 function R_ChooseOption(Option : String) : Boolean;
 begin
   Result := R_ChooseOptionMulti([Option]);
-end;
-
-{*******************************************************************************
-function R_ChooseOptionDual(AboveOptionFragment, BelowOptionFragment: String; ChooseAboveOption: Boolean): Boolean;
-By: Cstrike, copied mainly from Drags111
-Description: Checks for two paired text that should be next to each other.
-Useful for fishing when you have Net/Harpoon versus Cage/Harpoon and you are
-trying to 'harpoon'. If the texts aren't next to each other, will return false.
-ChooseTopOption = true means it will choose AboveOption, false = BelowOption.
-*******************************************************************************}
-function R_ChooseOptionDual(AboveOptionFragment, BelowOptionFragment: String; ChooseAboveOption: Boolean): Boolean;
-var
-  i, xOff, yOff, t: Integer;
-  P : TPoint;
-  MenuOptions: TStringArray;
-begin
-  Result := False;
-  if not R_IsMenuOpen then
-  begin
-    MarkTime(t);
-    while (TimeFromMark(t) < 1000) do
-      wait (50);
-    if not R_IsMenuOpen then Exit;
-  end;
-  P := Point(SmartGetFieldInt(0, hook_static_MenuX) + 4, SmartGetFieldInt(0, hook_static_MenuY) + 4);
-  MenuOptions := R_GetMenuText;
-  if (high(MenuOptions) < 1) then
-  begin
-    Writeln('MenuOptions size is not large enough (<2 options), returning false and exiting R_ChooseOptionDual');
-    Exit;
-  end;
-  if ChooseAboveOption then // Choose top option
-  begin
-    for i := 0 to High(MenuOptions) - 1 do
-    begin
-      if (Pos(Lowercase(AboveOptionFragment), Lowercase(MenuOptions[i])) <> 0) and (pos(Lowercase(BelowOptionFragment), Lowercase(MenuOptions[(i+1)])) <> 0) then
-      begin
-        xOff := RandomRange(4, 4 + Random(Length(MenuOptions[i]) * 4 - 4));
-        yOff := 21 + (16 * i) + RandomRange(2, 10);
-        Mouse(P.x + xOff, P.y + yOff, 0, 0, True);
-        Wait(RandomRange(80, 100));
-        Result := not R_IsMenuOpen;
-        Exit;
-      end;
-    end;
-  end else // Else choose bottom option
-  begin
-    for i := 1 to High(MenuOptions) do
-    begin
-      if (Pos(Lowercase(BelowOptionFragment), Lowercase(MenuOptions[i])) <> 0) and (pos(Lowercase(AboveOptionFragment), Lowercase(MenuOptions[(i-1)])) <> 0) then
-      begin
-        xOff := RandomRange(4, 4 + Random(Length(MenuOptions[i]) * 4 - 4));
-        yOff := 21 + (16 * i) + RandomRange(2, 10);
-        Mouse(P.x + xOff, P.y + yOff, 0, 0, True);
-        Wait(RandomRange(80, 100));
-        Result := not R_IsMenuOpen;
-        Exit;
-      end;
-    end;
-  end;
-  // If it falls through...
-  case Random(2) of
-    0: R_ChooseOptionMulti(['Cancel']);
-    1: while R_IsMenuOpen do
-       begin
-         MMouse(Random(MSX2), Random(MSY2), 0, 0);
-         Wait(RandomRange(100, 200));
-       end;
-  end;
 end;
 
 {*******************************************************************************

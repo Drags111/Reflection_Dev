@@ -9,7 +9,7 @@ other places.
 
 (*
 R_LatestRevision
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 .. code-block:: pascal
 
@@ -92,6 +92,57 @@ begin
     WriteLn('[Reflection] Updated you to ' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '; please restart your script!');
     TerminateScript;
   end;
+end;
+
+(*
+R_FreeObjects
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_FreeObjects(Objects: TIntegerArray);
+
+Properly frees multiple objects using a try-catch statement.
+
+.. note::
+
+  by Drags111
+
+Example:
+  R_FreeObjects([ThisNode, ThatNode, TheOtherNode]);
+
+*)
+procedure R_FreeObjects(Objects: TIntegerArray);
+var
+  I: Integer;
+begin
+  for I := 0 to High(Objects) do
+  begin
+    try
+      SmartFreeObject(Objects[i]);
+    except
+    end;
+  end;
+end;
+
+(*
+R_FreeObject
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_FreeObject(Obj: Integer);
+
+Properly frees an object using a try-catch statement.
+
+.. note::
+
+  by Drags111
+
+*)
+procedure R_FreeObject(Obj: Integer);
+begin
+  R_FreeObjects([Obj]);
 end;
 
 (*
