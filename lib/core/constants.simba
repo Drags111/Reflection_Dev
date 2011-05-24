@@ -1,30 +1,25 @@
-//------------------------------------------------------------------\\
-//--               Simba Reflection Library                       --||
-//--                  Constants Routines                          --||
-//------------------------------------------------------------------//
+(*
+Constants
+=========
 
-//---                               Constants                               --//
+Contains all globally used constants and variables.
+
+*)
+
+{ const NULL_INT, NULL_STRING;
+  Description: Our constants for "null" values. }
 const
   NULL_INT        = -1;
   NULL_STRING     = '';
 
-//---                               Variable                                --//
-
 var
-  R_UpdateKill: Boolean;
+{ var R_UseDebug
+  Description: Whether or not to display debugging during run-time. }
   R_UseDebug: Boolean;
-
-var
-  SKILL_STRINGS: TStringArray; // Array of all the skills
 
 procedure R_SetupConstants;
 begin
-  SKILL_STRINGS := ['attack', 'defence', 'strength', 'hitpoints', 'range',
-                    'prayer', 'magic', 'cooking', 'woodcutting', 'fletching',
-                    'fishing', 'firemaking', 'crafting', 'smithing', 'mining',
-                    'herblore', 'agility', 'thieving', 'slayer', 'farming',
-                    'runecrafting', 'hunter', 'construction', 'summoning',
-                    'dungeoneering'];
+  R_UseDebug := True;
 end;
 
 Procedure R_Debug(Debug, InTags: String);

@@ -4,42 +4,6 @@
 //------------------------------------------------------------------//
 
 {*******************************************************************************
-function R_TrimHTML(S : string): string;
-By: lordsaturn, fixed by pyroryan
-Description: Removes the HTML junk from a string.
-*******************************************************************************}
-function R_TrimHTML(S : string): string;
-var
-  P, P2, PLength: integer;
-  Temp: string;
-begin
-  P := Pos('<', S);
-  P2 := Pos('>', S);
-  Result := S;
-  PLength := P2 - P + 1;
-  while (P <> 0) and (P2 <> 0) do
-  begin
-    Delete(Result, P, PLength);
-    P := Pos('<', Result);
-    Temp := Result;
-    Delete(Temp, 1, P - 1);
-    PLength := Pos('>', Temp);
-  end;
-end;
-
-{*******************************************************************************
-function R_GetJavaString(javaString: integer; maxLength: integer): string;
-By: BenLand100
-Description: Returns a string from a javaString with a specified  maxLength. Do
-             not let it overflow, bad things will happen.
-*******************************************************************************}
-function R_GetJavaString(javaString: integer; maxLength: integer): string;
-begin
-  SetLength(result, maxLength);
-  SetLength(result, SmartStringFromString(javaString, result));
-end;
-
-{*******************************************************************************
 function R_IsMenuOpen: boolean;
 By: BenLand100
 Description: Returns true if the menu is displayed

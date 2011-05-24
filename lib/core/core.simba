@@ -1,0 +1,213 @@
+(*
+Core
+====
+
+Contains routines necessary for function that couldn't be filed in
+other places.
+
+*)
+
+(*
+R_LatestRevision
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_LatestRevision(WhatKind: string): Integer;
+
+Gets Hooks.simba information from pyroryan's server.
+
+.. note::
+
+  by Naike, Harry
+
+*)
+function R_LatestRevision(WhatKind: string): Integer;
+var
+  S: String;
+  I: Integer;
+begin
+  case whatKind of
+    'clientversion':
+    begin
+      S := GetPage('http://pyroryan.net46.net/reflection/Hooks.simba');
+      I := Pos('ClientVersion', S);
+      Delete(S, 1, I+15);
+      S := Copy(S, 1, Pos(';', S)-1);
+      Result := StrToIntDef(S, -1);
+      if Result = -1 then
+        WriteLn('[Reflection] Failed to get Hook Revision!');
+    end;
+
+    'hookrevision':
+    begin
+      S := GetPage('http://pyroryan.net46.net/reflection/Hooks.simba');
+      I := Pos('HookRev', S);
+      Delete(S, 1, I+9);
+      S := Copy(S, 1, Pos(';', S)-1);
+      Result := StrToIntDef(S, -1);
+      if Result = -1 then
+        WriteLn('[Reflection] Failed to get Hook Revision!');
+    end;
+    else
+      WriteLn('[Reflection] r_GetCurrentGit - invalid option!');
+  end;
+end;
+
+(*
+R_UpdateHooks
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    Procedure R_UpdateHooks(Terminate: boolean);
+
+Tries to update to new hooks!
+
+.. note::
+
+  by Naike, Harry
+
+*)
+Procedure R_UpdateHooks;
+var
+  MyFile, ClientRev, RevHook: Integer;
+begin
+  ClientRev := R_LatestRevision('clientversion');
+  RevHook := R_LatestRevision('hookrevision');
+  If (ClientRev <= ClientVersion) and (RevHook <= HookRev) then
+  begin
+    if(SmartGetFieldInt(0, hook_static_LoginIndex) = -1) then
+    begin
+      WriteLn('[Reflection] No new hooks have been uploaded yet; please be patient!');
+      TerminateScript;
+    end;
+  end else
+  begin
+    WriteLn('[Reflection] You''re using outdated hooks (version ' + ToStr(ClientVersion) + '.' + ToStr(HookRev) + '); updating you to version' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '!');
+    WriteLn('[Reflection] If you manually fixed your hooks, please make sure hookrevision values are greater than or equal to the online hooks to prevent overwriting.');
+    MyFile := RewriteFile(AppPath + 'includes\Reflection_Dev\Reflection\core\hooks.simba', False);
+    WriteFileString(MyFile, GetPage('http://pyroryan.net46.net/reflection/Hooks.simba'));
+    CloseFile(MyFile);
+    WriteLn('[Reflection] Updated you to ' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '; please restart your script!');
+    TerminateScript;
+  end;
+end;
+
+(*
+R_TrimHTML
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_TrimHTML(S : string): string;
+
+Removes the HTML junk from a string.
+
+.. note::
+
+  by lordsaturn, pyroryan
+
+*)
+function R_TrimHTML(S : string): string;
+var
+  P, P2, PLength: integer;
+  Temp: string;
+begin
+  P := Pos('<', S);
+  P2 := Pos('>', S);
+  Result := S;
+  PLength := P2 - P + 1;
+  while (P <> 0) and (P2 <> 0) do
+  begin
+    Delete(Result, P, PLength);
+    P := Pos('<', Result);
+    Temp := Result;
+    Delete(Temp, 1, P - 1);
+    PLength := Pos('>', Temp);
+  end;
+end;
+
+(*
+R_GetJavaString
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetJavaString(javaString: integer; maxLength: integer): string;
+
+Returns a string from a javaString with a specified  maxLength. Do not let it
+overflow, bad things will happen.
+
+.. note::
+
+  by BenLand100
+
+*)
+function R_GetJavaString(javaString: integer; maxLength: integer): string;
+begin
+  SetLength(result, maxLength);
+  SetLength(result, SmartStringFromString(javaString, result));
+end;
+
+(*
+R_GetSettingArray
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetSettingArray: TIntegerArray;
+
+Retrives the Settings array from the client.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetSettingArray: TIntegerArray;
+var
+  SettingArray, Data, DL, i: Integer;
+begin
+  try
+    SettingArray := SmartGetFieldObject(0, hook_static_GetSettings);
+    Data := SmartGetFieldObject(SettingArray, hook_settingarray_GetData);
+
+    DL := SmartGetFieldArraySize(Data, '', 1);
+    SetLength(Result, DL);
+    for i := 0 to DL-1 do
+      Result[i] := SmartGetFieldArrayInt(data, '', i);
+  finally
+    SmartFreeObject(Data);
+    SmartFreeOBject(SettingArray);
+  end;
+end;
+
+(*
+R_GetSetting
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetSetting(Setting: Integer): Integer;
+
+Gets the setting value at the specified index.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetSetting(Setting: Integer): Integer;
+var
+  SA: TIntegerArray;
+begin
+  SA := R_GetSettingArray;
+  if(Setting < Length(SA))then
+    Result := SA[Setting]
+  else
+  begin
+    R_Debug('Incorrect setting index passed to GetSetting', 'R_GetSetting');
+    Result := -1;
+  end;
+end;

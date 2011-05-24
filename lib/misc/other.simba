@@ -42,50 +42,6 @@ begin
 end;
 
 {*******************************************************************************
-function R_GetSettingArray: TIntegerArray;
-By: Drags111
-Description: Returns an int array for the runescape Settings Array.
-*******************************************************************************}
-function R_GetSettingArray: TIntegerArray;
-var
-  SettingArray, Data, DL, i: Integer;
-begin
-  try
-    SettingArray := SmartGetFieldObject(0, hook_static_GetSettings);
-    Data := SmartGetFieldObject(SettingArray, hook_settingarray_GetData);
-
-    DL := SmartGetFieldArraySize(Data, '', 1);
-    SetLength(Result, DL);
-    for i := 0 to DL-1 do
-      Result[i] := SmartGetFieldArrayInt(data, '', i);
-  finally
-    SmartFreeObject(Data);
-    SmartFreeOBject(SettingArray);
-  end;
-end;
-
-{*******************************************************************************
-function R_GetSetting(Setting: Integer): Integer;
-By: Drags111
-Description: Gets the int setting value at the specified index. Used in some
-            antirandoms. (demon).
-Returns -1 and warns if failed
-*******************************************************************************}
-function R_GetSetting(Setting: Integer): Integer;
-var
-  SA: TIntegerArray;
-begin
-  SA := R_GetSettingArray;
-  if(Setting < Length(SA))then
-    Result := SA[Setting]
-  else
-  begin
-    srl_Warn('GetSetting', 'Incorrect setting index passed to GetSetting', warn_AllVersions);
-    Result := -1;
-  end;
-end;
-
-{*******************************************************************************
 function R_GetCrossHairColor: Integer;
 By: pyroryan
 Description: Each crosshair stays up for about 500 milliseconds
