@@ -1,69 +1,80 @@
-//------------------------------------------------------------------\\
-//--               Simba Reflection Library                       --||
-//--                  Interface Routines                          --||
-//------------------------------------------------------------------//
+(*
+Interfaces
+==========
 
+The Interfaces include contains routines regarding interfaces in the game
+such as the inventory, bank, some randoms, etc.
 
-{  Names for each piece are as follows:
+Hierarchy for Interfaces are as follows:
 
   Interface
         |
-     Child [or Interface Component]  < GetInterfaceComponent here
+     Child [or TChild]
            |
-         Component [Or child component]  < GetChildComponent here
-}
+         Component [Or TChildComponent]
+*)
 
-type
-{Contains informations pertaining to Interface Components [aka child]}
-  TInterfaceComponent = record
-    Actions: TStringArray;
-    ID, ParentID, Stack: Integer;
-    TextureID, ModelID, ModelZoom: Integer;
-    RelativeX, RelativeY, Width, Height: Integer;
-    X, Y: Integer;
-    Bounds: TBox;
-    Text, Name: String;
-    IsHidden: Boolean;
-  end;
+(*
+R_ValidInterface
+~~~~~~~~~~~~~~~~
 
-type
-{Contains informations pertaining to Interface Child Components}
-  TChildComponent = record
-    Actions: TStringArray;
-    ID, ParentID, Stack: Integer;
-    TextureID, ModelID, ModelZoom: Integer;
-    RelativeX, RelativeY, Width, Height: Integer;
-    X, Y: Integer;
-    Bounds: TBox;
-    Text, Name: String;
-    IsHidden: Boolean;
-  end;
+.. code-block:: pascal
 
-{*******************************************************************************
-function R_ValidInterface(idx: Integer): Boolean;
-By:
-Description: Returns true if the interface is valid.
-*******************************************************************************}
+    function R_ValidInterface(idx: Integer): Boolean;
+
+Returns true if the interface is valid.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_ValidInterface(idx: Integer): Boolean;
 begin
   Result := SmartGetFieldArrayBoolean(0, hook_static_ValidInterfaces, idx);
 end;
 
-{*******************************************************************************
-Function R_GetInterface(Index, ChildIndex: Integer): Integer;
-By: Bobarkinator
-Description: Returns the interface of InterfaceCache[Index][ChildIndex].
-*******************************************************************************}
+(*
+R_GetInterface
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInterface(Index, ChildIndex: Integer): Integer;
+
+Returns the interface of InterfaceCache[Index][ChildIndex].
+
+.. note::
+
+  by Bobarkinator
+
+*)
 function R_GetInterface(Index, ChildIndex: Integer): Integer;
 begin
   Result := SmartGetFieldArray2DObject(0, hook_static_GetInterfaces, Index, ChildIndex);
 end;
 
+
 {*******************************************************************************
 function R_GetComponent(Index, ChildIndex, Component: Integer): Integer;
 By: Drags111
-Description: Returns the component of the interface.
+Description: Returns the component of the child.
 *******************************************************************************}
+(*
+R_GetComponent
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetComponent(Index, ChildIndex, Component: Integer): Integer;
+
+Returns the component of the child.
+
+.. note::
+
+  by Bobarkinator
+
+*)
 function R_GetComponent(Index, ChildIndex, Component: Integer): Integer;
 var
   Parent: Integer;
@@ -106,11 +117,11 @@ begin
 end;
 
 {*******************************************************************************
-function R_GetValidInterfaceComponents(ParentI : Integer): TIntegerArray;
+function R_GetValidChildren(ParentI : Integer): TIntegerArray;
 By: pyroryan/Drags111
 Description: Returns all the components in the parent interface.
 *******************************************************************************}
-function R_GetValidInterfaceComponents(ParentI : Integer): TIntegerArray;
+function R_GetValidChildren(ParentI : Integer): TIntegerArray;
 var
   Interfaces, c, path: integer; //Children, i, iface,
 begin
@@ -134,11 +145,11 @@ begin
 end;
 
 {*******************************************************************************
-function R_GetValidChildComponents(ParentI, ChildI: Integer): TIntegerArray;
+function R_GetValidComponents(ParentI, ChildI: Integer): TIntegerArray;
 By: mormonman/Drags111
 Description: Returns all the components in the parent-->child interface.
 *******************************************************************************}
-function R_GetValidChildComponents(ParentI, ChildI: Integer): TIntegerArray;
+function R_GetValidComponents(ParentI, ChildI: Integer): TIntegerArray;
 var
   I, c, Path: Integer;
 begin
@@ -300,12 +311,12 @@ begin
 end;
 
 {*******************************************************************************
-function R_GetInterfaceComponent(ParentI, ChildI: Integer): TInterfaceComponent;
+function R_GetChild(ParentI, ChildI: Integer): TChild;
 By: Drags111
 Description: Gets all Interface Component information and stores in a
-  TInterfaceComponent.
+  TChild.
 *******************************************************************************}
-function R_GetInterfaceComponent(ParentI, ChildI: Integer): TInterfaceComponent;
+function R_GetChild(ParentI, ChildI: Integer): TChild;
 var
   Child, i, Name: Integer;
   P: TPoint;
@@ -346,7 +357,7 @@ end;
 function R_GetChildComponent(ParentI, ChildI, CompI: Integer): TChildComponent;
 By: Drags111
 Description: Gets all Interface Component information and stores in a
-  TInterfaceComponent.
+  TChild.
 *******************************************************************************}
 function R_GetChildComponent(ParentI, ChildI, CompI: Integer): TChildComponent;
 var

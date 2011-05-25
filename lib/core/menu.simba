@@ -46,9 +46,9 @@ Description: part 1 for Actions. part 2 for Options. Supports tabbed menus.
 function R_GetMenuItemsPart(part : Integer) : TStringArray;
 var
   ItemList : TStringArray;
-  item : String;
-  Count, nodeSubList, groupNode, subMenu, menuItemNode : Integer;
-  last, lastTwo, nodeList, javaString : Integer;
+  Item : String;
+  Count, NodeSubList, GroupNode, SubMenu, MenuItemNode : Integer;
+  Last, LastTwo, NodeList, JavaString : Integer;
 begin
   SetLength(ItemList, R_GetMenuCount);
   Count := 0;

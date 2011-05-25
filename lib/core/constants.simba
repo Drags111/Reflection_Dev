@@ -12,14 +12,34 @@ const
   NULL_INT        = -1;
   NULL_STRING     = '';
 
-var
-{ var R_UseDebug
+{ var R_UseDebug: Boolean;
   Description: Whether or not to display debugging during run-time. }
+var
   R_UseDebug: Boolean;
+
+{ type TChild;
+  Contains informations pertaining to Interface Children}
+type
+  TChild = record
+    Actions: TStringArray;
+    ID, ParentID, Stack: Integer;
+    TextureID, ModelID, ModelZoom: Integer;
+    RelativeX, RelativeY, Width, Height: Integer;
+    X, Y: Integer;
+    Bounds: TBox;
+    Text, Name: String;
+    IsHidden: Boolean;
+  end;
+
+{ type TChildComponent;
+  Contains informations pertaining to Interface Children Components. Same as
+  TChild but different name for referencing purposes.}
+type
+  TChildComponent = TChild;
 
 (*
 R_SetupGlobals
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 .. code-block:: pascal
 
@@ -29,7 +49,7 @@ Sets up variables that need to be declared.
 
 .. note::
 
-  by Naike, Harry
+  by Drags111
 
 *)
 procedure R_SetupGlobals;
