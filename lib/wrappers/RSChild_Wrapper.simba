@@ -1,0 +1,209 @@
+(*
+RSChild_Wrapper
+===============
+
+The wrapper class for Interfaces. Contains all functions necessary to retrieving
+interface information.
+
+*)
+
+function RSChild_GetID(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetComponentID);
+end;
+
+function RSChild_GetStack(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetComponentStackSize);
+end;
+
+function RSChild_GetTextureID(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetTextureID);
+end;
+
+function RSChild_GetModelID(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetModelID);
+end;
+
+function RSChild_GetModelZoom(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetModelZoom);
+end;
+
+function RSChild_GetRelativeX(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetX);
+end;
+
+function RSChild_GetRelativeY(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetY);
+end;
+
+function RSChild_GetWidth(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetWidth);
+end;
+
+function RSChild_GetHeight(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetHeight);
+end;
+
+function RSChild_GetText(Obj: Integer): String;
+var
+  TextObj: Integer;
+begin
+  try
+    TextObj := SmartGetFieldObject(Obj, hook_interface_GetText);
+    Result := R_TrimHTML(R_GetJavaString(TextObj, 255));
+  finally
+    R_FreeObject(TextObj);
+  end;
+end;
+
+function RSChild_GetName(Obj: Integer): String;
+var
+  NameObj: Integer;
+begin
+  try
+    NameObj := SmartGetFieldObject(Obj, hook_interface_GetComponentName);
+    Result := R_TrimHTML(R_GetJavaString(NameObj, 256));
+  finally
+    R_FreeObject(NameObj);
+  end;
+end;
+
+function RSChild_GetIsHidden(Obj: Integer): Boolean;
+begin
+  Result := SmartGetFieldBoolean(Obj, hook_interface_IsHidden);
+end;
+
+function RSChild_GetParent(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetParent);
+end;
+
+function RSChild_GetVScrollSize(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetVerticalScrollBarSize);
+end;
+
+function RSChild_GetVScrollPosition(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetVerticalScrollBarPosition);
+end;
+
+function RSChild_GetVThumbSize(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetVerticalScrollBarThumbSize);
+end;
+
+function RSChild_GetHScrollSize(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetHorizontalScrollBarSize);
+end;
+
+function RSChild_GetHScrollPosition(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetHorizontalScrollBarPosition);
+end;
+
+function RSChild_GetHThumbSize(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetHorizontalScrollBarThumbSize);
+end;
+
+function RSChild_GetBoundsArrayIndex(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetBoundsArrayIndex);
+end;
+
+function RSChild_GetDismissBounds(Obj: Integer): Boolean;
+begin
+  //dt.d is pyro's suggested hook for the dissmissBounds array.
+  Result := SmartGetFieldArrayBoolean(0, 'dt.d', RSChild_GetBoundsArrayIndex(Obj))
+end;
+
+function RSChild_GetBaseInfo(Obj: Integer): TRSChild;
+begin
+  with Result do
+  begin
+    ID := RSChild_GetID(Obj);
+    Parent := RSChild_GetParent(Obj);
+    Stack := RSChild_GetStack(Obj);
+    TextureID := RSChild_GetTextureID(Obj);
+    ModelID := RSChild_GetModelID(Obj);
+    ModelZoom := RSChild_GetModelZoom(Obj);
+    RelativeX := RSChild_GetRelativeX(Obj);
+    RelativeY := RSChild_GetRelativeY(Obj);
+    Width := RSChild_GetWidth(Obj);
+    Height := RSChild_GetHeight(Obj);
+    Text := RSChild_GetText(Obj);
+    Name := RSChild_GetName(Obj);
+    IsHidden := RSChild_GetIsHidden(Obj);
+    VScrollSize := RSChild_GetVScrollSize(Obj);
+    VScrollPosition := RSChild_GetVScrollPosition(Obj);
+    VThumbSize := RSChild_GetVThumbSize(Obj);
+    HScrollSize := RSChild_GetHScrollSize(Obj);
+    HScrollPosition := RSChild_GetHScrollPosition(Obj);
+    HThumbSize := RSChild_GetHThumbSize(Obj);
+    BoundsArrayIndex := RSChild_GetBoundsArrayIndex(Obj);
+  end;
+end;
+
+function RSChild_GetAbsolutePos(Obj: Integer): TPoint;
+var
+  X, Y, ParentID, BoundIndex: Integer;
+  ParentObj, Bounds: Integer;
+  ParentPoint: TPoint;
+begin
+  X := RSChild_GetRelativeX(Obj);
+  Y := RSChild_GetRelativeY(Obj);
+  ParentID := RSChild_GetParent(Obj);
+
+
+  if(ParentID > 0)then
+  begin
+    try
+      ParentObj := SmartGetFieldArray2DObject(0, hook_static_GetInterfaces, ParentID shr 16, ParentID and $FFFF);
+
+      ParentPoint := RSChild_GetAbsolutePos(ParentObj);
+
+      X := X + ParentPoint.x;
+      Y := Y + ParentPoint.y;
+
+      if(RSChild_GetHScrollSize(ParentObj) <> 0)then
+        X := X - RSChild_GetHScrollPosition(ParentObj);
+      if(RSChild_GetVScrollSize(ParentObj) <> 0)then
+        Y := Y - RSChild_GetVScrollPosition(ParentObj);
+    finally
+      R_FreeObject(ParentObj);
+    end;
+  end else
+  begin
+    BoundIndex := RSChild_GetBoundsArrayIndex(Obj);
+    Bounds := SmartGetFieldArrayObject(0, hook_static_GetInterfaceBoundsArray, BoundIndex);
+    if((Bounds > 0) and (not RSChild_GetDismissBounds(Obj)))then
+    begin
+      Result := Point(SmartGetFieldInt(Bounds, 'x'),
+                      SmartGetFieldInt(Bounds, 'y'));
+      R_FreeObject(Bounds);
+      Exit;
+    end;
+    R_FreeObject(Bounds);
+  end;
+  Result := Point(X, Y);
+end;
+
+
+
+
+
+
+
+
+
+

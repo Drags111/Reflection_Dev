@@ -51,7 +51,7 @@ begin
   SetArrayLength(Result, 102);
   for I := 279 downto 180 do
   begin
-    s := R_GetInterfaceText(137, I);
+    s := R_GetChildRefText(137, I);
     if (s <> '') and ((Pos(FindStr, s) <> 0) or (FindStr = 'blk') or (FindStr = 'all')) then
     begin
       s := Replace(s, '<img=3>', ''); //quick chat

@@ -16,6 +16,7 @@
 {$i ./lib/core/constants.simba}
 {$i ./lib/core/hooks.simba}
 {$i ./lib/core/core.simba}
+{$i ./lib/wrappers/wrappers.simba}
 {$i ./lib/core/nodes.simba}
 {$i ./lib/core/menu.simba}
 {$i ./lib/core/tiles.simba}

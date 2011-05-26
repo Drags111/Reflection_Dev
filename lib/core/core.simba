@@ -142,7 +142,10 @@ Properly frees an object using a try-catch statement.
 *)
 procedure R_FreeObject(Obj: Integer);
 begin
-  R_FreeObjects([Obj]);
+  try
+    SmartFreeObject(Obj);
+  except
+  end;
 end;
 
 (*

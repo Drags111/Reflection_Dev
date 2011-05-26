@@ -17,25 +17,28 @@ const
 var
   R_UseDebug: Boolean;
 
-{ type TChild;
+{ type TRSChild;
   Contains informations pertaining to Interface Children}
 type
-  TChild = record
+  TRSChild = record
     Actions: TStringArray;
-    ID, ParentID, Stack: Integer;
+    ID, Parent, Stack: Integer;
     TextureID, ModelID, ModelZoom: Integer;
     RelativeX, RelativeY, Width, Height: Integer;
     X, Y: Integer;
     Bounds: TBox;
     Text, Name: String;
     IsHidden: Boolean;
+    VScrollSize, VScrollPosition, VThumbSize: Integer;
+    HScrollSize, HScrollPosition, HThumbSize: Integer;
+    BoundsArrayIndex: Integer;
   end;
 
-{ type TChildComponent;
+{ type TRSComponent;
   Contains informations pertaining to Interface Children Components. Same as
-  TChild but different name for referencing purposes.}
+  TRSChild but different name for referencing purposes.}
 type
-  TChildComponent = TChild;
+  TRSComponent = TRSChild;
 
 (*
 R_SetupGlobals

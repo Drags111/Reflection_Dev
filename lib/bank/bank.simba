@@ -86,7 +86,7 @@ Description: Inputs the bank pin using reflection!
 function R_InPin(Pin: String): Boolean;
 var
   i, t: integer;
-  Button: TChild;
+  Button: TRSChild;
   CurrNum: Integer;
 begin
   Result := False;
@@ -116,7 +116,7 @@ begin
                Button.Bounds.X2, Button.Bounds.Y2, 1);
 
       MarkTime(t);
-      while(R_GetInterfaceText(INTERFACE_PINSCREEN, i) = '?')do
+      while(R_GetChildRefText(INTERFACE_PINSCREEN, i) = '?')do
       begin
         if(TimeFromMark(t) > 5000)then
           break;
@@ -147,7 +147,7 @@ Description: Closes the bank screen.
 *******************************************************************************}
 procedure R_CloseBank;
 var
-  Btn: TChild;
+  Btn: TRSChild;
   Time: Integer;
 begin
   if not R_BankScreen then Exit;
@@ -169,7 +169,7 @@ Description: Gets the number of bank tabs.
 *******************************************************************************}
 function R_GetBankTabs: Integer;
 var
-  Tab: TChild;
+  Tab: TRSChild;
   i, Index, c: Integer;
 begin
   if not R_BankScreen then Exit;
@@ -197,7 +197,7 @@ Description: Returns which bank tab you are currntly on.
 *******************************************************************************}
 function R_CurrentBankTab: Integer;
 var
-  Tab: TChild;
+  Tab: TRSChild;
   i: Integer;
 begin
   Result := -1;
@@ -222,7 +222,7 @@ Description: Clicks the specified bank tab.
 *******************************************************************************}
 function R_ClickBankTab(Tab: Integer): Boolean;
 var
-  TheTab: TChild;
+  TheTab: TRSChild;
   t1, t2: integer;
 begin
   Result := False
@@ -263,7 +263,7 @@ Options are as follows:
 *******************************************************************************}
 procedure R_QuickDeposit(Which: String);
 var
-  Btn: TChild;
+  Btn: TRSChild;
   Index: Integer;
 begin
   if not R_BankScreen then Exit;
@@ -410,7 +410,7 @@ Description: Returns all Bank Items.
 function R_GetAllBankItems: TBankItemArray;
 var
   c, slot: Integer;
-  Item: TChildComponent;
+  Item: TRSComponent;
 begin
   if not R_BankScreen then Exit;
   SetLength(Result, INTERFACE_BANK_SLOTS_MAX + 1);
@@ -500,7 +500,7 @@ is completely viewable. To be used for withdrawing.
 *******************************************************************************}
 function R_ScrollToIndex(Index: Integer): Boolean;
 var
-  Item, Up, Dn: TChildComponent;
+  Item, Up, Dn: TRSComponent;
   P1, P2: TPoint;
   B: TBox;
   Dir: String;
@@ -573,7 +573,7 @@ function R_WithdrawItemsEx(TheVarArr: TVariantArray; All: Boolean): Boolean;
 var
   Items: TBankItemArray;
   TempItem: TBankItem;
-  Item: TChildComponent;
+  Item: TRSComponent;
   i, x, y, Inv, t: Integer;
 begin
   if not R_BankScreen then Exit;
@@ -657,7 +657,7 @@ option. Results true if Item was successfully withdrew.
 function R_WithdrawAllButOne(TheVar: Variant): Boolean;
 var
   Item: TBankItem;
-  Itm: TChildComponent;
+  Itm: TRSComponent;
   Inv, t: Integer;
 begin
   Result := False;
@@ -698,7 +698,7 @@ end;
 function R_WithdrawX(TheVar: Variant; Amount: Integer): Boolean;
 var
   Item: TBankItem;
-  Itm: TChildComponent;
+  Itm: TRSComponent;
   Inv, t: Integer;
 begin
   Result := False;
@@ -721,7 +721,7 @@ begin
   Result := R_WaitOption('Withdraw-X', 3000);
 
   MarkTime(t);
-  while(R_GetInterfaceText(752, 4) <> 'Enter amount:')do
+  while(R_GetChildRefText(752, 4) <> 'Enter amount:')do
   begin
     if(TimeFromMark(t) > 5000)then
     begin
