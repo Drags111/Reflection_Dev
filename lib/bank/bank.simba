@@ -194,7 +194,7 @@ Description: Clicks the specified bank tab.
 function R_ClickBankTab(Tab: Integer): Boolean;
 var
   TheTab: TRSChild;
-  t1, t2: integer;
+  T1, T2: integer;
 begin
   Result := False
   if not R_BankScreen then Exit;
@@ -205,16 +205,16 @@ begin
     Exit;
   end;
 
-  MarkTime(t1);
+  MarkTime(T1);
   while not (R_CurrentBankTab = Tab) do
   begin
-    if(TimeFromMark(t1) > 10000)then Break;
+    if(TimeFromMark(T1) > 10000)then Break;
     TheTab := R_GetRSChild(INTERFACE_BANK, 62 - ((Tab-1) * 2));
-    MouseBox(TheTab.X, TheTab.Y, TheTab.Bounds.X2, TheTab.Bounds.Y2, 1);
-    MarkTime(t2);
+    R_MouseChild(TheTab, 1);
+    MarkTime(T2);
     while not (R_CurrentBankTab = Tab) do
     begin
-      if(TimeFromMark(t2) > 3000)then
+      if(TimeFromMark(T2) > 3000)then
         break;
       wait(50+Random(50));
     end;
@@ -245,7 +245,7 @@ begin
   end;
 
   Btn := R_GetRSChild(INTERFACE_BANK, Index);
-  MouseBox(Btn.X, Btn.Y, Btn.Bounds.X2, Btn.Bounds.Y2, 1);
+  R_MouseChild(Btn, 1);
   wait(200+Random(500));
 end;
 
@@ -261,11 +261,11 @@ var
 begin
   if not R_BankScreen then Exit;
   MarkTime(T);
-  while (R_ItemSlotExists(Slot) and (TimeFromMark(T) < 6000)) do
+  while(R_ItemSlotExists(Slot) and (TimeFromMark(T) < 6000))do
   begin
     MMouseItem(Slot);
     Wait(40 + random(40));
-    if (R_OptionExists('All')) then
+    if(R_OptionExists('All')) then
     begin
       MouseItem(Slot, False);
       Wait(40 + random(40));
@@ -507,8 +507,8 @@ begin
     end;
 
     case dir of
-      'up':   MouseBox(Up.Bounds.X1, Up.Bounds.Y1, Up.Bounds.X2, Up.Bounds.Y2, 3);
-      'down': MouseBox(Dn.Bounds.X1, Dn.Bounds.Y1, Dn.Bounds.X2, Dn.Bounds.Y2, 3);
+      'up':   R_MouseChild(Up, 3);
+      'down': R_MouseChild(Dn, 3);
     end;
     GetMousePos(x, y);
     HoldMouse(x, y, 1);
@@ -570,7 +570,7 @@ begin
       continue;
     end;
     Item := R_GetRSComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, TempItem.Slot);
-    MouseBox(Item.X, Item.Y, Item.Bounds.X2, Item.Bounds.Y2, 3);
+    R_MouseChild(Item, 3);
     GetMousePos(x, y);
     Inv := R_InvCount;
 
@@ -647,7 +647,7 @@ begin
 
   Inv := R_InvCount;
   Itm := R_GetRSComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Item.Slot);
-  MouseBox(Itm.X, Itm.Y, Itm.Bounds.X2, Itm.Bounds.Y2, 2);
+  R_MouseChild(Itm, 2);
   Result := R_WaitOption('Withdraw-All but one', 3000);
   if(Result)then
   begin
@@ -688,7 +688,7 @@ begin
 
   Inv := R_InvCount;
   Itm := R_GetRSComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Item.Slot);
-  MouseBox(Itm.X, Itm.Y, Itm.Bounds.X2, Itm.Bounds.Y2, 2);
+  R_MouseChild(Itm, 2);
   Result := R_WaitOption('Withdraw-X', 3000);
 
   MarkTime(t);
