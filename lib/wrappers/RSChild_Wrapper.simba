@@ -63,7 +63,7 @@ var
 begin
   try
     TextObj := SmartGetFieldObject(Obj, hook_interface_GetText);
-    Result := R_TrimHTML(R_GetJavaString(TextObj, 255));
+    Result := R_TrimHTML(R_GetJavaString(TextObj, 512));
   finally
     R_FreeObject(TextObj);
   end;
@@ -75,7 +75,7 @@ var
 begin
   try
     NameObj := SmartGetFieldObject(Obj, hook_interface_GetComponentName);
-    Result := R_TrimHTML(R_GetJavaString(NameObj, 256));
+    Result := R_TrimHTML(R_GetJavaString(NameObj, 512));
   finally
     R_FreeObject(NameObj);
   end;
@@ -191,7 +191,7 @@ begin
   begin
     BoundIndex := RSChild_GetBoundsArrayIndex(Obj);
     Bounds := SmartGetFieldArrayObject(0, hook_static_GetInterfaceBoundsArray, BoundIndex);
-    if((Bounds > 0) and (not RSChild_GetDismissBounds(Obj)))then
+    if((Bounds > 0) and (RSChild_GetDismissBounds(Obj)))then
     begin
       Result := Point(SmartGetFieldInt(Bounds, 'x'),
                       SmartGetFieldInt(Bounds, 'y'));
@@ -203,6 +203,37 @@ begin
   Result := Point(X, Y);
 end;
 
+function RSChild_GetActions(Obj: Integer): TStringArray;
+var
+  NumActions, I, Action, C: Integer;
+  Temp: String;
+begin
+  NumActions := SmartGetFieldArraySize(Obj, Hook_Interface_GetActions, 1);
+  if (NumActions <= 0)then
+    Exit;
+
+  C := 0;
+  SetLength(Result, NumActions);
+
+  for I := 0 to NumActions-1 do
+  begin
+    try
+      Action := SmartGetFieldArrayObject(Obj, hook_interface_GetActions, I);
+      if(Action = 0)then
+        continue;
+      Temp := R_TrimHTML(R_GetJavaString(Action, 512));
+      if(Temp <> '')then
+      begin
+        Result[C] := Temp;
+        Inc(C);
+      end;
+    finally
+      R_FreeObject(Action);
+    end;
+  end;
+  SetLength(Result, c);
+end;
+
 function RSChild_GetBaseInfo(Obj: Integer): TRSChild;
 var
   P: TPoint;
@@ -210,6 +241,7 @@ begin
   P := RSChild_GetAbsolutePos(Obj);
   with Result do
   begin
+    Actions := RSChild_GetActions(Obj);
     ID := RSChild_GetComponentID(Obj);
     Parent := RSChild_GetParentID(Obj);
     Stack := RSChild_GetComponentStackSize(Obj);
@@ -232,7 +264,7 @@ begin
     BoundsArrayIndex := RSChild_GetBoundsArrayIndex(Obj);
     X := P.x;
     Y := P.y;
-    Bounds := IntToBox(X, Y, X+Width, X+Height);
+    Bounds := IntToBox(X, Y, X+Width, Y+Height);
   end;
 end;
 

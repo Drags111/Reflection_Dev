@@ -12,6 +12,28 @@ const
   NULL_INT        = -1;
   NULL_STRING     = '';
 
+  {bank}
+  INTERFACE_BANK = 762;
+  INTERFACE_BANK_BTN_CLOSE = 43;
+  INTERFACE_BANK_BTN_DEPOSITBAG = 33;
+  INTERFACE_BANK_BTN_DEPOSITEQUIP = 35;
+  INTERFACE_BANK_BTN_DEPOSITBEAST = 37;
+
+  {Slots}
+  INTERFACE_BANK_SLOTS = 93;
+  INTERFACE_BANK_SLOTS_MAX = 515;
+  INTERFACE_BANK_SCROLLBAR = 114;
+  INTERFACE_BANK_SCROLLBAR_BAR = 1;
+  INTERFACE_BANK_SCROLLBAR_BARTOP = 2;
+  INTERFACE_BANK_SCROLLBAR_BARBOT = 3;
+  INTERFACE_BANK_SCROLLBAR_UP = 4;
+  INTERFACE_BANK_SCROLLBAR_DOWN = 5;
+
+  {Pinscreen}
+  INTERFACE_PINSCREEN = 13;
+
+  TEXTURE_BANKTABSELECTED = 1419;
+
 { var R_UseDebug: Boolean;
   Description: Whether or not to display debugging during run-time. }
 var
@@ -39,6 +61,19 @@ type
   TRSChild but different name for referencing purposes.}
 type
   TRSComponent = TRSChild;
+
+{ type TBankItem;
+  Contains informations pertaining to bank items. }
+type
+  TBankItem = Record
+    ID, Slot, StackSize: Integer;
+    Name: String;
+  end;
+
+{ type TBankItemArray;
+  An array of bank items. }
+type
+  TBankItemArray = array of TBankItem;
 
 (*
 R_SetupGlobals

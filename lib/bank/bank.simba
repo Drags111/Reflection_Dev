@@ -1,38 +1,10 @@
-//------------------------------------------------------------------\\
-//--               Simba Reflection Library                       --||
-//--                    Bank Routines                             --||
-//------------------------------------------------------------------//
+(*
+Bank
+====
 
-const
-  {bank}
-  INTERFACE_BANK = 762;
-  INTERFACE_BANK_BTN_CLOSE = 43;
-  INTERFACE_BANK_BTN_DEPOSITBAG = 33;
-  INTERFACE_BANK_BTN_DEPOSITEQUIP = 35;
-  INTERFACE_BANK_BTN_DEPOSITBEAST = 37;
+Contains routines necessary for bank withdrawing, depositing, etc.
 
-  {Slots}
-  INTERFACE_BANK_SLOTS = 93;
-  INTERFACE_BANK_SLOTS_MAX = 515;
-
-  {Scrollbar}
-  INTERFACE_BANK_SCROLLBAR = 114;
-  INTERFACE_BANK_SCROLLBAR_BAR = 1;
-  INTERFACE_BANK_SCROLLBAR_BARTOP = 2;
-  INTERFACE_BANK_SCROLLBAR_BARBOT = 3;
-  INTERFACE_BANK_SCROLLBAR_UP = 4;
-  INTERFACE_BANK_SCROLLBAR_DOWN = 5;
-
-  {Pinscreen}
-  INTERFACE_PINSCREEN = 13;
-
-Type
-  TBankItem = Record
-    ID, Slot, StackSize: Integer;
-    Name: String;
-  end;
-
-  TBankItemArray = array of TBankItem;
+*)
 
 {*******************************************************************************
 function NULL_TBANKITEM: TBankItem;
@@ -85,7 +57,7 @@ Description: Inputs the bank pin using reflection!
 *******************************************************************************}
 function R_InPin(Pin: String): Boolean;
 var
-  i, t: integer;
+  I, T: integer;
   Button: TRSChild;
   CurrNum: Integer;
 begin
@@ -106,19 +78,18 @@ begin
 
   while(R_PinScreen)do
   begin
-    for i := 1 to 4 do
+    for I := 1 to 4 do
     begin
       if not R_PinScreen then
         break;
-      CurrNum := StrToInt(Pin[i]);
-      Button := R_GeTChild(INTERFACE_PINSCREEN, CurrNum + 6);
-      MouseBox(Button.Bounds.X1, Button.Bounds.Y1,
-               Button.Bounds.X2, Button.Bounds.Y2, 1);
+      CurrNum := StrToInt(Pin[I]);
+      Button := R_GetRSChild(INTERFACE_PINSCREEN, CurrNum + 6);
+      R_MouseChild(Button, 1);
 
-      MarkTime(t);
-      while(R_GetChildRefText(INTERFACE_PINSCREEN, i) = '?')do
+      MarkTime(T);
+      while(R_GetInterfaceText(INTERFACE_PINSCREEN, I) = '?')do
       begin
-        if(TimeFromMark(t) > 5000)then
+        if(TimeFromMark(T) > 5000)then
           break;
         wait(100+Random(100));
       end;
@@ -126,11 +97,11 @@ begin
       wait(1000+Random(1000));
     end;
 
-    MarkTime(t);
+    MarkTime(T);
     while not R_BankScreen do
     begin
       wait(100+Random(100));
-      if(TimeFromMark(t) > 5000)then
+      if(TimeFromMark(T) > 5000)then
         break;
     end;
 
@@ -151,8 +122,8 @@ var
   Time: Integer;
 begin
   if not R_BankScreen then Exit;
-  Btn := R_GeTChild(INTERFACE_BANK, INTERFACE_BANK_BTN_CLOSE);
-  MouseBox(Btn.X, Btn.Y, Btn.Bounds.X2, Btn.Bounds.Y2, 1);
+  Btn := R_GetRSChild(INTERFACE_BANK, INTERFACE_BANK_BTN_CLOSE);
+  R_MouseChild(Btn, 1);
   MarkTime(Time);
 
   while(R_BankScreen)do
@@ -170,24 +141,24 @@ Description: Gets the number of bank tabs.
 function R_GetBankTabs: Integer;
 var
   Tab: TRSChild;
-  i, Index, c: Integer;
+  I, Index, C: Integer;
 begin
   if not R_BankScreen then Exit;
 
   Result := 0;
-  c := 1;
+  C := 1;
   Index := 60;
 
-  for i := 2 to 9 do
+  for I := 2 to 9 do
   begin
-    Tab := R_GeTChild(INTERFACE_BANK, Index);
+    Tab := R_GetRSChild(INTERFACE_BANK, Index);
     if(Length(Tab.Actions) < 2)then
-      break;
-    Inc(c);
+      Break;
+    Inc(C);
     Index := Index - 2;
   end;
 
-  Result := c;
+  Result := C;
 end;
 
 {*******************************************************************************
@@ -198,16 +169,16 @@ Description: Returns which bank tab you are currntly on.
 function R_CurrentBankTab: Integer;
 var
   Tab: TRSChild;
-  i: Integer;
+  I: Integer;
 begin
   Result := -1;
   if not R_BankScreen then Exit;
-  for i := 0 to 8 do
+  for I := 0 to 8 do
   begin
-    Tab := R_GeTChild(INTERFACE_BANK, 62 - (i * 2));
-    if (Tab.TextureID = 1419) then
+    Tab := R_GetRSChild(INTERFACE_BANK, 62 - (I * 2));
+    if (Tab.TextureID = TEXTURE_BANKTABSELECTED) then
     begin
-      Result := i;
+      Result := I;
       Break;
     end;
   end;
@@ -238,7 +209,7 @@ begin
   while not (R_CurrentBankTab = Tab) do
   begin
     if(TimeFromMark(t1) > 10000)then Break;
-    TheTab := R_GeTChild(INTERFACE_BANK, 62 - ((Tab-1) * 2));
+    TheTab := R_GetRSChild(INTERFACE_BANK, 62 - ((Tab-1) * 2));
     MouseBox(TheTab.X, TheTab.Y, TheTab.Bounds.X2, TheTab.Bounds.Y2, 1);
     MarkTime(t2);
     while not (R_CurrentBankTab = Tab) do
@@ -273,7 +244,7 @@ begin
     'beasts', 'bob': Index := INTERFACE_BANK_BTN_DEPOSITBEAST;
   end;
 
-  Btn := R_GeTChild(INTERFACE_BANK, Index);
+  Btn := R_GetRSChild(INTERFACE_BANK, Index);
   MouseBox(Btn.X, Btn.Y, Btn.Bounds.X2, Btn.Bounds.Y2, 1);
   wait(200+Random(500));
 end;
@@ -416,7 +387,7 @@ begin
   SetLength(Result, INTERFACE_BANK_SLOTS_MAX + 1);
   for slot := 0 to INTERFACE_BANK_SLOTS_MAX do
   begin
-    Item := R_GeTChildComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, slot);
+    Item := R_GetRSComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, slot);
     if (Item.ID > 0) then
     begin
       Result[c] := R_NewBankItem(Item.ID, slot, Item.Stack, Item.Name);
@@ -510,10 +481,10 @@ begin
   if not R_BankScreen then
     Exit;
 
-  Item := R_GeTChildComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Index);
-  Dn := R_GeTChildComponent(INTERFACE_BANK, INTERFACE_BANK_SCROLLBAR,
+  Item := R_GetRSComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Index);
+  Dn := R_GetRSComponent(INTERFACE_BANK, INTERFACE_BANK_SCROLLBAR,
                             INTERFACE_BANK_SCROLLBAR_DOWN);
-  Up := R_GeTChildComponent(INTERFACE_BANK, INTERFACE_BANK_SCROLLBAR,
+  Up := R_GetRSComponent(INTERFACE_BANK, INTERFACE_BANK_SCROLLBAR,
                             INTERFACE_BANK_SCROLLBAR_UP);
   B := IntToBox(MBX1, MBY1, MBX2, MBY2);
   P1 := Point(Item.Bounds.X1, Item.Bounds.Y1);
@@ -548,7 +519,7 @@ begin
       if(TimeFromMark(t) > 10000)then
         break;
       wait(100+Random(50));
-      Item := R_GeTChildComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Index);
+      Item := R_GetRSComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Index);
       P1 := Point(Item.Bounds.X1, Item.Bounds.Y1);
       P2 := Point(Item.Bounds.X2, Item.Bounds.Y2);
     end;
@@ -598,7 +569,7 @@ begin
       R_Debug('Unable to scroll to '+Items[i].Name, 'R_WithdrawItemsEx');
       continue;
     end;
-    Item := R_GeTChildComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, TempItem.Slot);
+    Item := R_GetRSComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, TempItem.Slot);
     MouseBox(Item.X, Item.Y, Item.Bounds.X2, Item.Bounds.Y2, 3);
     GetMousePos(x, y);
     Inv := R_InvCount;
@@ -675,7 +646,7 @@ begin
   end;
 
   Inv := R_InvCount;
-  Itm := R_GeTChildComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Item.Slot);
+  Itm := R_GetRSComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Item.Slot);
   MouseBox(Itm.X, Itm.Y, Itm.Bounds.X2, Itm.Bounds.Y2, 2);
   Result := R_WaitOption('Withdraw-All but one', 3000);
   if(Result)then
@@ -716,12 +687,12 @@ begin
   end;
 
   Inv := R_InvCount;
-  Itm := R_GeTChildComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Item.Slot);
+  Itm := R_GetRSComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Item.Slot);
   MouseBox(Itm.X, Itm.Y, Itm.Bounds.X2, Itm.Bounds.Y2, 2);
   Result := R_WaitOption('Withdraw-X', 3000);
 
   MarkTime(t);
-  while(R_GetChildRefText(752, 4) <> 'Enter amount:')do
+  while(R_GetInterfaceText(752, 4) <> 'Enter amount:')do
   begin
     if(TimeFromMark(t) > 5000)then
     begin
