@@ -1,6 +1,6 @@
 const
 ClientVersion = 650;
-HookRev = 3;
+HookRev = 4;
 
 
 {Static Hooks}
@@ -38,7 +38,7 @@ hook_static_IsMenuTabbed = 'oq.m';
 hook_static_GetInterfaces = 'sw.s';
 hook_static_ValidInterfaces = 'bi.u';
 hook_static_GetInterfaceBoundsArray = 'tda.g';
-hook_static_InterfaceUseBounds = 'pc.a';
+hook_static_InterfaceDismissBounds = 'pc.a';
 hook_static_InterfaceNC = 'sja.m';
 hook_static_GetSettings = 'uca.k';
 hook_static_GroundItemCache = 'tea.e';

@@ -89,6 +89,7 @@ end;
 function RSChild_GetParentID(Obj: Integer): Integer;
 var
   ParentID, MainID, InterfaceNC, Nodes, Tail, Node, ID, Next : Integer;
+  NodesSize, index : Integer;
 begin
   ParentID := SmartGetFieldInt(Obj, hook_interface_GetParentID);
   if (ParentID <> -1) then
@@ -96,25 +97,30 @@ begin
     Result := ParentID;
     Exit;
   end;
-  MainID := RSChild_GetID(Obj) shr 16;
+  MainID := trunc(RSChild_GetID(Obj) div 65536);
   InterfaceNC := SmartGetFieldObject(0, hook_static_InterfaceNC);
   if (InterfaceNC = 0) then
     Exit;
   Nodes := SmartGetFieldObject(InterfaceNC, hook_nodecache_GetNodes);
+  NodesSize := R_GetArraySize(Nodes);
   R_FreeObject(InterfaceNC);
-  Tail := SmartGetFieldArrayObject(Nodes, '', 0);
-  Node := R_GetNodeNext(Tail);
-  while (not (SmartIsEqual(Tail, Node))) do
+  for index := 0 to (NodesSize - 1) do
   begin
-    ID := SmartGetFieldInt(Node, hook_interfacenode_GetID);
-    if (MainID = ID) then
+    Tail := SmartGetFieldArrayObject(Nodes, '', index);
+    Node := R_GetNodeNext(Tail);
+    while (not (SmartIsEqual(Tail, Node))) do
     begin
-      Result := R_GetNodeID(Node);
-      Break;
+      ID := SmartGetFieldInt(Node, hook_interfacenode_GetID);
+      if (MainID = ID) then
+      begin
+        Result := R_GetNodeID(Node);
+        R_FreeObjects([Next, Node, Nodes, Tail]);
+        Exit;
+      end;
+      Next := R_GetNodeNext(Node);
+      R_FreeObject(Node);
+      Node := Next;
     end;
-    Next := R_GetNodeNext(Node);
-    R_FreeObject(Node);
-    Node := Next;
   end;
   R_FreeObjects([Next, Node, Nodes, Tail]);
 end;
@@ -156,7 +162,7 @@ end;
 
 function RSChild_GetUseBounds(Obj: Integer): Boolean;
 begin
-  Result := SmartGetFieldArrayBoolean(0, hook_static_InterfaceUseBounds, RSChild_GetBoundsArrayIndex(Obj))
+  Result := not SmartGetFieldArrayBoolean(0, hook_static_InterfaceDismissBounds, RSChild_GetBoundsArrayIndex(Obj));
 end;
 
 function RSChild_GetAbsolutePos(Obj: Integer): TPoint;
