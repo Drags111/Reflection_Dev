@@ -88,38 +88,36 @@ end;
 
 function RSChild_GetParentID(Obj: Integer): Integer;
 var
-  parentID, mainID, ifaceNC, nodes, tail, node, ID, next : Integer;
+  ParentID, MainID, InterfaceNC, Nodes, Tail, Node, ID, Next : Integer;
 begin
-  parentID := SmartGetFieldInt(Obj, hook_interface_GetParentID);
-  if (parentID <> -1) then
+  ParentID := SmartGetFieldInt(Obj, hook_interface_GetParentID);
+  if (ParentID <> -1) then
   begin
-    Result := parentID;
+    Result := ParentID;
     Exit;
   end;
-  mainID := RSChild_GetID(Obj) shr 16; //TODO check that shr is ">>>"/logical/unsigned bit shift
-  ifaceNC := SmartGetFieldObject(0, hook_static_InterfaceNC);
-  if (ifaceNC = 0) then
+  MainID := RSChild_GetID(Obj) shr 16;
+  InterfaceNC := SmartGetFieldObject(0, hook_static_InterfaceNC);
+  if (InterfaceNC = 0) then
     Exit;
-  nodes := SmartGetFieldObject(ifaceNC, hook_nodecache_GetNodes);
-  R_FreeObject(ifaceNC);
-  tail := SmartGetFieldArrayObject(nodes, '', 0);
-  node := R_GetNodeNext(tail);
-  while (not (SmartIsEqual(tail, node))) do
+  Nodes := SmartGetFieldObject(InterfaceNC, hook_nodecache_GetNodes);
+  R_FreeObject(InterfaceNC);
+  Tail := SmartGetFieldArrayObject(Nodes, '', 0);
+  Node := R_GetNodeNext(Tail);
+  while (not (SmartIsEqual(Tail, Node))) do
   begin
-    ID := SmartGetFieldInt(node, hook_interfacenode_GetID);
-    if (mainID = ID) then
+    ID := SmartGetFieldInt(Node, hook_interfacenode_GetID);
+    if (MainID = ID) then
     begin
-      Result := R_GetNodeID(node);
+      Result := R_GetNodeID(Node);
+      R_FreeObjects([Next, Node, Nodes, Tail]);
       Break;
     end;
-    next := R_GetNodeNext(node);
-    SmartFreeObject(node);
-    node := next;
+    Next := R_GetNodeNext(Node);
+    R_FreeObject(Node);
+    Node := Next;
   end;
-  R_FreeObject(next);
-  R_FreeObject(node);
-  R_FreeObject(nodes);
-  R_FreeObject(tail);
+  R_FreeObjects([Next, Node, Nodes, Tail]);
 end;
 
 function RSChild_GetVScrollSize(Obj: Integer): Integer;
@@ -159,35 +157,7 @@ end;
 
 function RSChild_GetDismissBounds(Obj: Integer): Boolean;
 begin
-  //dt.d is pyro's suggested hook for the dissmissBounds array for #648.
-  Result := SmartGetFieldArrayBoolean(0, 'dt.d', RSChild_GetBoundsArrayIndex(Obj))
-end;
-
-function RSChild_GetBaseInfo(Obj: Integer): TRSChild;
-begin
-  with Result do
-  begin
-    ID := RSChild_GetComponentID(Obj);
-    Parent := RSChild_GetParentID(Obj);
-    Stack := RSChild_GetComponentStackSize(Obj);
-    TextureID := RSChild_GetTextureID(Obj);
-    ModelID := RSChild_GetModelID(Obj);
-    ModelZoom := RSChild_GetModelZoom(Obj);
-    RelativeX := RSChild_GetRelativeX(Obj);
-    RelativeY := RSChild_GetRelativeY(Obj);
-    Width := RSChild_GetWidth(Obj);
-    Height := RSChild_GetHeight(Obj);
-    Text := RSChild_GetText(Obj);
-    Name := RSChild_GetName(Obj);
-    IsHidden := RSChild_GetIsHidden(Obj);
-    VScrollSize := RSChild_GetVScrollSize(Obj);
-    VScrollPosition := RSChild_GetVScrollPosition(Obj);
-    VThumbSize := RSChild_GetVThumbSize(Obj);
-    HScrollSize := RSChild_GetHScrollSize(Obj);
-    HScrollPosition := RSChild_GetHScrollPosition(Obj);
-    HThumbSize := RSChild_GetHThumbSize(Obj);
-    BoundsArrayIndex := RSChild_GetBoundsArrayIndex(Obj);
-  end;
+  Result := SmartGetFieldArrayBoolean(0, hook_static_DismissBounds, RSChild_GetBoundsArrayIndex(Obj))
 end;
 
 function RSChild_GetAbsolutePos(Obj: Integer): TPoint;
@@ -232,6 +202,39 @@ begin
     R_FreeObject(Bounds);
   end;
   Result := Point(X, Y);
+end;
+
+function RSChild_GetBaseInfo(Obj: Integer): TRSChild;
+var
+  P: TPoint;
+begin
+  P := RSChild_GetAbsolutePos(Obj);
+  with Result do
+  begin
+    ID := RSChild_GetComponentID(Obj);
+    Parent := RSChild_GetParentID(Obj);
+    Stack := RSChild_GetComponentStackSize(Obj);
+    TextureID := RSChild_GetTextureID(Obj);
+    ModelID := RSChild_GetModelID(Obj);
+    ModelZoom := RSChild_GetModelZoom(Obj);
+    RelativeX := RSChild_GetRelativeX(Obj);
+    RelativeY := RSChild_GetRelativeY(Obj);
+    Width := RSChild_GetWidth(Obj);
+    Height := RSChild_GetHeight(Obj);
+    Text := RSChild_GetText(Obj);
+    Name := RSChild_GetName(Obj);
+    IsHidden := RSChild_GetIsHidden(Obj);
+    VScrollSize := RSChild_GetVScrollSize(Obj);
+    VScrollPosition := RSChild_GetVScrollPosition(Obj);
+    VThumbSize := RSChild_GetVThumbSize(Obj);
+    HScrollSize := RSChild_GetHScrollSize(Obj);
+    HScrollPosition := RSChild_GetHScrollPosition(Obj);
+    HThumbSize := RSChild_GetHThumbSize(Obj);
+    BoundsArrayIndex := RSChild_GetBoundsArrayIndex(Obj);
+    X := P.x;
+    Y := P.y;
+    Bounds := IntToBox(X, Y, X+Width, X+Height);
+  end;
 end;
 
 
