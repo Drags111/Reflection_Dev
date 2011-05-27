@@ -154,9 +154,9 @@ begin
   Result := SmartGetFieldInt(Obj, hook_interface_GetBoundsArrayIndex);
 end;
 
-function RSChild_GetDismissBounds(Obj: Integer): Boolean;
+function RSChild_GetUseBounds(Obj: Integer): Boolean;
 begin
-  Result := SmartGetFieldArrayBoolean(0, hook_static_DismissBounds, RSChild_GetBoundsArrayIndex(Obj))
+  Result := SmartGetFieldArrayBoolean(0, hook_static_InterfaceUseBounds, RSChild_GetBoundsArrayIndex(Obj))
 end;
 
 function RSChild_GetAbsolutePos(Obj: Integer): TPoint;
@@ -191,7 +191,7 @@ begin
   begin
     BoundIndex := RSChild_GetBoundsArrayIndex(Obj);
     Bounds := SmartGetFieldArrayObject(0, hook_static_GetInterfaceBoundsArray, BoundIndex);
-    if((Bounds > 0) and (RSChild_GetDismissBounds(Obj)))then
+    if((Bounds > 0) and (RSChild_GetUseBounds(Obj)))then
     begin
       Result := Point(SmartGetFieldInt(Bounds, 'x'),
                       SmartGetFieldInt(Bounds, 'y'));
