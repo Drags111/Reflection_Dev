@@ -285,7 +285,7 @@ begin
       Width := SmartGetFieldInt(Child, hook_interface_GetWidth);
       Height := SmartGetFieldInt(Child, hook_interface_GetHeight);
       IsHidden := SmartGetFieldBoolean(Child, hook_interface_IsHidden);
-      Parent := SmartGetFieldInt(Child, hook_interface_GetParent);
+      Parent := SmartGetFieldInt(Child, hook_interface_GetParentID);
       VScrollSize := SmartGetFieldInt(Child, hook_interface_GetVerticalScrollBarSize);
       VScrollPosition := SmartGetFieldInt(Child, hook_interface_GetVerticalScrollBarPosition);
       VThumbSize := SmartGetFieldInt(Child, hook_interface_GetVerticalScrollBarThumbSize);
@@ -338,7 +338,7 @@ begin
     Result.Width := SmartGetFieldInt(Component, hook_interface_GetWidth);
     Result.Height := SmartGetFieldInt(Component, hook_interface_GetHeight);
     Result.IsHidden := SmartGetFieldBoolean(Component, hook_interface_IsHidden);
-    Result.Parent := SmartGetFieldInt(Component, hook_interface_GetParent);
+    Result.Parent := SmartGetFieldInt(Component, hook_interface_GetParentID);
     //P := R_GetAbsolutePos(ParentI, ChildI, CompI);
     Result.Bounds := IntToBox(P.x, P.y, P.x+Result.Width, P.y+Result.Height);
     Result.X := P.x;

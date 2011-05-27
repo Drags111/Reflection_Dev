@@ -7,4 +7,5 @@ Includes the `wrapper` package
 
 *)
 
+{$include_once ./nodes_Wrapper.simba}
 {$include_once ./RSChild_Wrapper.simba}

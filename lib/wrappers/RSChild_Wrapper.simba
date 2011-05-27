@@ -9,10 +9,15 @@ interface information.
 
 function RSChild_GetID(Obj: Integer): Integer;
 begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetID);
+end;
+
+function RSChild_GetComponentID(Obj: Integer): Integer;
+begin
   Result := SmartGetFieldInt(Obj, hook_interface_GetComponentID);
 end;
 
-function RSChild_GetStack(Obj: Integer): Integer;
+function RSChild_GetComponentStackSize(Obj: Integer): Integer;
 begin
   Result := SmartGetFieldInt(Obj, hook_interface_GetComponentStackSize);
 end;
@@ -81,9 +86,40 @@ begin
   Result := SmartGetFieldBoolean(Obj, hook_interface_IsHidden);
 end;
 
-function RSChild_GetParent(Obj: Integer): Integer;
+function RSChild_GetParentID(Obj: Integer): Integer;
+var
+  parentID, mainID, ifaceNC, nodes, tail, node, ID, next : Integer;
 begin
-  Result := SmartGetFieldInt(Obj, hook_interface_GetParent);
+  parentID := SmartGetFieldInt(Obj, hook_interface_GetParentID);
+  if (parentID <> -1) then
+  begin
+    Result := parentID;
+    Exit;
+  end;
+  mainID := RSChild_GetID(Obj) shr 16; //TODO check that shr is ">>>"/logical/unsigned bit shift
+  ifaceNC := SmartGetFieldObject(0, hook_static_InterfaceNC);
+  if (ifaceNC = 0) then
+    Exit;
+  nodes := SmartGetFieldObject(ifaceNC, hook_nodecache_GetNodes);
+  R_FreeObject(ifaceNC);
+  tail := SmartGetFieldArrayObject(nodes, '', 0);
+  node := R_GetNodeNext(tail);
+  while (not (SmartIsEqual(tail, node))) do
+  begin
+    ID := SmartGetFieldInt(node, hook_interfacenode_GetID);
+    if (mainID = ID) then
+    begin
+      Result := R_GetNodeID(node);
+      Break;
+    end;
+    next := R_GetNodeNext(node);
+    SmartFreeObject(node);
+    node := next;
+  end;
+  R_FreeObject(next);
+  R_FreeObject(node);
+  R_FreeObject(nodes);
+  R_FreeObject(tail);
 end;
 
 function RSChild_GetVScrollSize(Obj: Integer): Integer;
@@ -123,7 +159,7 @@ end;
 
 function RSChild_GetDismissBounds(Obj: Integer): Boolean;
 begin
-  //dt.d is pyro's suggested hook for the dissmissBounds array.
+  //dt.d is pyro's suggested hook for the dissmissBounds array for #648.
   Result := SmartGetFieldArrayBoolean(0, 'dt.d', RSChild_GetBoundsArrayIndex(Obj))
 end;
 
@@ -131,9 +167,9 @@ function RSChild_GetBaseInfo(Obj: Integer): TRSChild;
 begin
   with Result do
   begin
-    ID := RSChild_GetID(Obj);
-    Parent := RSChild_GetParent(Obj);
-    Stack := RSChild_GetStack(Obj);
+    ID := RSChild_GetComponentID(Obj);
+    Parent := RSChild_GetParentID(Obj);
+    Stack := RSChild_GetComponentStackSize(Obj);
     TextureID := RSChild_GetTextureID(Obj);
     ModelID := RSChild_GetModelID(Obj);
     ModelZoom := RSChild_GetModelZoom(Obj);
@@ -162,7 +198,7 @@ var
 begin
   X := RSChild_GetRelativeX(Obj);
   Y := RSChild_GetRelativeY(Obj);
-  ParentID := RSChild_GetParent(Obj);
+  ParentID := RSChild_GetParentID(Obj);
 
 
   if(ParentID > 0)then
