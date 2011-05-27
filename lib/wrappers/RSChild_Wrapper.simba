@@ -110,7 +110,6 @@ begin
     if (MainID = ID) then
     begin
       Result := R_GetNodeID(Node);
-      R_FreeObjects([Next, Node, Nodes, Tail]);
       Break;
     end;
     Next := R_GetNodeNext(Node);
