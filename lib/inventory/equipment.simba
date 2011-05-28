@@ -7,20 +7,6 @@
 const
   INTERFACE_EQUIPMENT  = 387;
 
-{Constants associated with the position in the array of the TEquiptmentSet}
-const
-  EQUIPMENT_HELMET     = 0;
-  EQUIPMENT_CAPE       = 1;
-  EQUIPMENT_NECKLACE   = 2;
-  EQUIPMENT_WEAPON     = 3;
-  EQUIPMENT_TORSO      = 4;
-  EQUIPMENT_SHIELD     = 5;
-  EQUIPMENT_LEGS       = 6;
-  EQUIPMENT_GLOVES     = 7;
-  EQUIPMENT_BOOTS      = 8;
-  EQUIPMENT_RING       = 9;
-  EQUIPMENT_AMMO       = 10;
-
 //---                          Records                            --//
 
 type

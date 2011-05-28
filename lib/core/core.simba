@@ -86,7 +86,7 @@ begin
   begin
     WriteLn('[Reflection] You''re using outdated hooks (version ' + ToStr(ClientVersion) + '.' + ToStr(HookRev) + '); updating you to version' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '!');
     WriteLn('[Reflection] If you manually fixed your hooks, please make sure hookrevision values are greater than or equal to the online hooks to prevent overwriting.');
-    MyFile := RewriteFile(AppPath + 'includes\Reflection_Dev\Reflection\core\hooks.simba', False);
+    MyFile := RewriteFile(AppPath + 'includes/Reflection_Dev/lib/core/hooks.simba', False);
     WriteFileString(MyFile, GetPage('http://pyroryan.net46.net/reflection/Hooks.simba'));
     CloseFile(MyFile);
     WriteLn('[Reflection] Updated you to ' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '; please restart your script!');
@@ -264,4 +264,27 @@ begin
     R_Debug('Incorrect setting index passed to GetSetting', 'R_GetSetting');
     Result := -1;
   end;
+end;
+
+(*
+function R_LoggedIn: Boolean;
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_LoggedIn: Boolean;
+
+Returns true if you're logged in.
+
+.. note::
+
+  by Method, drags111, Zyt3x
+
+*)
+function R_LoggedIn: Boolean;
+var
+  LoginIndex: Integer;
+begin
+  LoginIndex := SmartGetFieldInt(0, hook_static_LoginIndex);
+  Result := (LoginIndex = 10) or (LoginIndex = 11);
 end;

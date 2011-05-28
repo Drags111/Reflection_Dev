@@ -1,0 +1,313 @@
+function Client_GetLoginIndex: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_LoginIndex);
+end;
+
+function Client_GetChatLines: Integer;
+begin
+  //Result := SmartGetFieldObject(0, hook_static_GetChatLines); <-WHAT DOES THIS RETURN?
+end;
+
+function Client_GetCameraYaw: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_CameraYaw);
+end;
+
+function Client_GetMyPlayer: Integer;
+begin
+  Result := SmartGetFieldObject(0, hook_static_MyPlayer);
+end;
+
+function Client_GetBaseX: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_BaseX);
+end;
+
+function Client_GetBaseY: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_BaseY);
+end;
+
+function Client_GetNPCIndexArray(Index: Integer): Integer;
+begin
+  Result := SmartGetFieldArrayInt(0, hook_static_NPCIndexArray, Index);
+end;
+
+function Client_GetLoopCycle: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_LoopCycle);
+end;
+
+function Client_GetNPCNC: Integer; // <----
+begin
+  Result := SmartGetFieldObject(0, hook_static_GetNPCNC);
+end;
+
+function Client_GetItemDefLoader: Integer;
+begin
+  Result := SmartGetFieldObject(0, hook_static_GetItemDefLoader);// <----
+end;
+
+function Client_GetObjectDefLoader: Integer;
+begin
+  Result := SmartGetFieldObject(0, hook_static_GetObjectDefLoader); // <----
+end;
+
+function Client_GetNPCNodes(Index: Integer): Integer;
+begin
+  Result := SmartGetFieldArrayObject(0, hook_static_NPCNodes, Index);
+end;
+
+function Client_GetNPCCount: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_NPCCount);
+end;
+
+function Client_GetGroundSettingsArray(Plane, X, Y: Integer): Integer;
+begin
+  Result := SmartGetFieldArray3DByte(0, hook_static_GroundSettingsArray, Plane, X, Y);
+end;
+
+function Client_GetLoadedPlane: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_LoadedPlane);
+end;
+
+function Client_GetPlaneArray(Index: Integer): Integer;
+begin
+  Result := SmartGetFieldArrayObject(0, hook_static_PlaneArray, Index);
+end;
+
+ function Client_GetToolkit: Integer;
+begin
+  Result := SmartGetFieldObject(0, hook_static_Toolkit);
+end;
+
+function Client_GetCollapsedMenuItems: Integer;
+begin
+  Result := SmartGetFieldObject(0, hook_static_GetCollapsedMenuItems);
+end;
+
+function Client_GetMenuOptionCount: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_MenuOptionCount);
+end;
+
+function Client_GetMenuCollapsedOptionsCount: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_MenuCollapsedOptionsCount);
+end;
+
+function Client_GetMenuX: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_MenuX);
+end;
+
+function Client_GetMenuY: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_MenuY);
+end;
+
+function Client_GetMenuWidth: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_MenuWidth);
+end;
+
+function Client_GetMenuHeight: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_MenuHeight);
+end;
+
+function Client_GetMenuX2: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_MenuX2);
+end;
+
+function Client_GetMenuY2: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_MenuY2);
+end;
+
+function Client_GetMenuWidth2: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_MenuWidth2);
+end;
+
+function Client_GetMenuHeight2: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_MenuHeight2);
+end;
+
+function Client_GetMenuNodeList: Integer;
+begin
+  Result := SmartGetFieldObject(0, hook_static_MenuNodeList);
+end;
+
+function Client_GetMenuOpen: Boolean;
+begin
+  Result := SmartGetFieldBoolean(0, hook_static_MenuOpen);
+end;
+
+function Client_GetIsMenuTabbed: Boolean;
+begin
+  Result := SmartGetFieldBoolean(0, hook_static_IsMenuTabbed);
+end;
+
+function Client_GetInterfaces: Integer;
+begin
+  Result := SmartGetFieldObject(0, hook_static_GetInterfaces);
+end;
+
+function Client_GetValidInterfaces(Index: Integer): Boolean;
+begin
+  Result := SmartGetFieldArrayBoolean(0, hook_static_ValidInterfaces, Index);
+end;
+
+function Client_GetInterfaceBoundsArray(Index: Integer): Integer;
+begin
+  Result := SmartGetFieldArrayObject(0, hook_static_GetInterfaceBoundsArray, Index);
+end;
+
+function Client_GetInterfaceDismissBounds(Index: Integer): Boolean;
+begin
+  Result := SmartGetFieldArrayBoolean(0, hook_static_InterfaceDismissBounds, Index);
+end;
+
+function Client_GetInterfaceNC: Integer;
+begin
+  Result := SmartGetFieldObject(0, hook_static_InterfaceNC);
+end;
+
+function Client_GetSettings: Integer;
+begin
+  Result := SmartGetFieldObject(0, hook_static_GetSettings);
+end;
+
+function Client_GetGroundItemCache: Integer;
+begin
+  Result := SmartGetFieldObject(0, hook_static_GroundItemCache);
+end;
+
+function Client_GetGetGroundDataArray(Plane: Integer): Integer;
+begin
+  Result := SmartGetFieldArrayObject(0, hook_static_GetGroundDataArray, Plane);
+end;
+
+function Client_GetSkillExperiences(Index: Integer): Integer;
+begin
+  Result := SmartGetFieldArrayInt(0, hook_static_GetSkillExperiences, Index);
+end;
+
+function Client_GetSkillLevels(Index: Integer): Integer;
+begin
+  Result := SmartGetFieldArrayInt(0, hook_static_GetSkillLevels, Index);
+end;
+
+function Client_GetMapAngle: Extended;
+begin
+  Result := SmartGetFieldFloat(0, hook_static_MapAngle);
+end;
+
+function Client_GetDestX: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_DestX);
+end;
+
+function Client_GetDestY: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_DestY);
+end;
+
+function Client_GetPlayerCount: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_PlayerCount);
+end;
+
+function Client_GetPlayerIndexArray(Index: Integer): Integer;
+begin
+  Result := SmartGetFieldArrayInt(0, hook_static_PlayerIndexArray, Index);
+end;
+
+function Client_GetPlayers(Index: Integer): Integer;
+begin
+  Result := SmartGetFieldArrayObject(0, hook_static_GetPlayers, Index);
+end;
+
+function Client_GetCamPosX: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_CamPosX);
+end;
+
+function Client_GetCamPosY: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_CamPosY);
+end;
+
+function Client_GetGroundTiles(Plane, X, Y: Integer): Integer;
+begin
+  Result := SmartGetFieldArray3DObject(0, hook_static_GroundTiles, Plane, X, Y);
+end;
+
+function Client_GetCrossHairColor: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_GetCrossHairColor);
+end;
+
+function Client_GetClient: TRSClient;
+begin
+  with Result do
+  begin
+    LoginIndex := @Client_GetLoginIndex;
+    ChatLines := @Client_GetChatLines;
+    CameraYaw := @Client_GetCameraYaw;
+    MyPlayer := @Client_GetMyPlayer;
+    BaseX := @Client_GetBaseX;
+    BaseY := @Client_GetBaseY;
+    NPCIndexArray := @Client_GetNPCIndexArray;
+    LoopCycle := @Client_GetLoopCycle;
+    NPCNC := @Client_GetNPCNC;
+    ItemDefLoader := @Client_GetItemDefLoader;
+    ObjectDefLoader := @Client_GetObjectDefLoader;
+    NPCNodes := @Client_GetNPCNodes;
+    NPCCount := @Client_GetNPCCount;
+    GroundSettingsArray := @Client_GetGroundSettingsArray;
+    LoadedPlane := @Client_GetLoadedPlane;
+    PlaneArray := @Client_GetPlaneArray;
+    Toolkit := @Client_GetToolkit;
+    CollapsedMenuItems := @Client_GetCollapsedMenuItems;
+    MenuOptionCount := @Client_GetMenuOptionCount;
+    MenuCollapsedOptionsCount := @Client_GetMenuCollapsedOptionsCount;
+    MenuX := @Client_GetMenuX;
+    MenuY := @Client_GetMenuY;
+    MenuWidth := @Client_GetMenuWidth;
+    MenuHeight := @Client_GetMenuHeight;
+    MenuX2 := @Client_GetMenuX2;
+    MenuY2 := @Client_GetMenuY2;
+    MenuWidth2 := @Client_GetMenuWidth2;
+    MenuHeight2 := @Client_GetMenuHeight2;
+    MenuNodeList := @Client_GetMenuNodeList;
+    ObjectDefLoader := @Client_GetObjectDefLoader;
+    MenuOpen := @Client_GetMenuOpen;
+    IsMenuTabbed := @Client_GetIsMenuTabbed;
+    Interfaces := @Client_GetInterfaces;
+    ValidInterfaces := @Client_GetValidInterfaces;
+    InterfaceBoundsArray := @Client_GetInterfaceBoundsArray;
+    InterfaceDismissBounds := @Client_GetInterfaceDismissBounds;
+    InterfaceNC := @Client_GetInterfaceNC;
+    Settings := @Client_GetSettings;
+    GroundItemCache := @Client_GetGroundItemCache;
+    GetGroundDataArray := @Client_GetGetGroundDataArray;
+    SkillExperiences := @Client_GetSkillExperiences;
+    SkillLevels := @Client_GetSkillLevels;
+    MapAngle := @Client_GetMapAngle;
+    DestX := @Client_GetDestX;
+    DestY := @Client_GetDestY;
+    PlayerCount := @Client_GetPlayerCount;
+    PlayerIndexArray := @Client_GetPlayerIndexArray;
+    Players := @Client_GetPlayers;
+    CamPosX := @Client_GetCamPosX;
+    CamPosY := @Client_GetCamPosY;
+    GroundTiles := @Client_GetGroundTiles;
+    CrossHairColor := @Client_GetCrossHairColor;
+  end;
+end;

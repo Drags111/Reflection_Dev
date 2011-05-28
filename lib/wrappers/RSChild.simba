@@ -1,6 +1,6 @@
 (*
-RSChild_Wrapper
-===============
+RSChild
+=======
 
 The wrapper class for Interfaces. Contains all functions necessary to retrieving
 interface information.

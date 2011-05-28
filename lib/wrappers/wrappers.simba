@@ -1,5 +1,4 @@
 (*
-
 Wrappers.simba
 ==============
 
@@ -7,5 +6,8 @@ Includes the `wrapper` package
 
 *)
 
-{$include_once ./Nodes_Wrapper.simba}
-{$include_once ./RSChild_Wrapper.simba}
+{$include_once ./Client.simba}
+{$include_once ./RSNode.simba}
+{$include_once ./RSChild.simba}
+{$include_once ./RSCharacter.simba}
+{$include_once ./RSPlayer.simba}

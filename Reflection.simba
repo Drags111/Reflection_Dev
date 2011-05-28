@@ -65,4 +65,5 @@ Procedure SetupReflection;
 begin
   R_UpdateHooks;
   R_SetupGlobals;
+  Client := Client_GetClient;
 end;

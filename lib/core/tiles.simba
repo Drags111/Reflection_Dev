@@ -38,34 +38,6 @@ the range [0,16384], with 0 being North and increasing counter-clockwise. The
 math for converting a Tile into a "minimap" coordinate is provided in TileToMM.
 ==============================================================================}
 
-
-//---                                Records                                --//
-
-type
-{Stores the rotation matrix used by the client to render to the main
- screen, along with offsets.}
-  TRenderData = record
-    xOff,xX,xY,xZ : extended;
-    yOff,yX,yY,yZ : extended;
-    zOff,zX,zY,zZ : extended;
-  end;
-
-{Stores information about the rendered world including ranges
- for acceptable values, and scaling factors.}
-  TRender = record
-    xScale,yScale : extended;
-    xMin,xMax : extended;
-    yMin,ymax : extended;
-    zMax,zMin : extended;
-  end;
-
-{equivlent to a TPoint, but signifies a global tile position in the
- Runescape client. Not to be used for any other purpose.}
-  TTile = TPoint;
-
-{Same as TTile, but in an array.}
-  TTileArray = array of TTile;
-
 {*******************************************************************************
 function R_Tile(X, Y: Integer): TTile;
 by: Drags111

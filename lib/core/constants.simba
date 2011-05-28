@@ -34,10 +34,52 @@ const
 
   TEXTURE_BANKTABSELECTED = 1419;
 
+  {Constant used to get the item ID of player's equipment.}
+  EQUIPMENT_CONSTANT = 1073741824;
+
+  {Equipment slot numbers}
+  EQUIPMENT_HELMET     = 0;
+  EQUIPMENT_CAPE       = 1;
+  EQUIPMENT_NECKLACE   = 2;
+  EQUIPMENT_WEAPON     = 3;
+  EQUIPMENT_TORSO      = 4;
+  EQUIPMENT_SHIELD     = 5;
+  EQUIPMENT_LEGS       = 6;
+  EQUIPMENT_GLOVES     = 7;
+  EQUIPMENT_BOOTS      = 8;
+  EQUIPMENT_RING       = 9;
+  EQUIPMENT_AMMO       = 10;
+
 { var R_UseDebug: Boolean;
   Description: Whether or not to display debugging during run-time. }
 var
   R_UseDebug: Boolean;
+  R_ContinueIfOutdated: Boolean;
+
+type
+{Stores the rotation matrix used by the client to render to the main
+ screen, along with offsets.}
+  TRenderData = record
+    xOff,xX,xY,xZ : extended;
+    yOff,yX,yY,yZ : extended;
+    zOff,zX,zY,zZ : extended;
+  end;
+
+{Stores information about the rendered world including ranges
+ for acceptable values, and scaling factors.}
+  TRender = record
+    xScale,yScale : extended;
+    xMin,xMax : extended;
+    yMin,ymax : extended;
+    zMax,zMin : extended;
+  end;
+
+{equivlent to a TPoint, but signifies a global tile position in the
+ Runescape client. Not to be used for any other purpose.}
+  TTile = TPoint;
+
+{Same as TTile, but in an array.}
+  TTileArray = array of TTile;
 
 { type TRSChild;
   Contains informations pertaining to Interface Children}
@@ -62,6 +104,21 @@ type
 type
   TRSComponent = TRSChild;
 
+type
+  TRSPlayer = record
+    Tile: TTile;
+    Name: String;
+    Index, Level, Team, Height: Integer;
+    Animation, Motion, HPRatio: Integer;
+    InCombat: Boolean;
+    WalkQueueX, WalkQueueY: Integer;
+    Interacting, Orientation: Integer;
+  end;
+
+type
+  {Array of TRSPlayer}
+  TRSPlayerArray = array of TRSPlayer;
+
 { type TBankItem;
   Contains informations pertaining to bank items. }
 type
@@ -74,6 +131,66 @@ type
   An array of bank items. }
 type
   TBankItemArray = array of TBankItem;
+
+{ type TRSClient;
+  Contains function pointers to all of the static hooks. }
+type
+  TRSClient = record
+    LoginIndex: function: Integer;
+    ChatLines: function: Integer;
+    CameraYaw: function: Integer;
+    MyPlayer: function: Integer;
+    BaseX: function: Integer;
+    BaseY: function: Integer;
+    NPCIndexArray: function(Index: Integer): Integer;
+    LoopCycle: function: Integer;
+    NPCNC: function: Integer;
+    ItemDefLoader: function: Integer;
+    ObjectDefLoader: function: Integer;
+    NPCNodes: function(Index: Integer): Integer;
+    NPCCount: function: Integer;
+    GroundSettingsArray: function(Plane, X, Y: Integer): Integer;
+    LoadedPlane: function: Integer;
+    PlaneArray: function(Index: Integer): Integer;
+    Toolkit: function: Integer;
+    CollapsedMenuItems: function: Integer;
+    MenuOptionCount: function: Integer;
+    MenuCollapsedOptionsCount: function: Integer;
+    MenuX: function: Integer;
+    MenuY: function: Integer;
+    MenuWidth: function: Integer;
+    MenuHeight: function: Integer;
+    MenuX2: function: Integer;
+    MenuY2: function: Integer;
+    MenuWidth2: function: Integer;
+    MenuHeight2: function: Integer;
+    MenuNodeList: function: Integer;
+    MenuOpen: function: Boolean;
+    IsMenuTabbed: function: Boolean;
+    Interfaces: function: Integer;
+    ValidInterfaces: function(Index: Integer): Boolean;
+    InterfaceBoundsArray: function(Index: Integer): Integer;
+    InterfaceDismissBounds: function(Index: Integer): Boolean;
+    InterfaceNC: function: Integer;
+    Settings: function: Integer;
+    GroundItemCache: function: Integer;
+    GetGroundDataArray: function(Plane: Integer): Integer;
+    SkillExperiences: function(Index: Integer): Integer;
+    SkillLevels: function(Index: Integer): Integer;
+    MapAngle: function: Extended;
+    DestX: function: Integer;
+    DestY: function: Integer;
+    PlayerCount: function: Integer;
+    PlayerIndexArray: function(Index: Integer): Integer;
+    Players: function(Index: Integer): Integer;
+    CamPosX: function: Integer;
+    CamPosY: function: Integer;
+    GroundTiles: function(Plane, X, Y: Integer): Integer;
+    CrossHairColor: function: Integer;
+  end;
+
+var
+  Client: TRSClient;
 
 (*
 R_SetupGlobals

@@ -416,7 +416,7 @@ begin
   end;
   BItems := R_GetAllBankItems;
   resCounter := 0;
-  SetLength(ItemArray, High(BItems) + 1);
+  SetLength(ItemArray, Length(BItems));
   for i := 0 to High(BItems) do
     for h := 0 to High(TheVarArr) do
     begin
