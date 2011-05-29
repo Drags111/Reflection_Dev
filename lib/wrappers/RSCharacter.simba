@@ -39,7 +39,7 @@ end;
 
 function RSCharacter_GetHPRatio(Obj: Integer): Integer;
 begin
-  Result := SmartGetFieldInt(Obj, hook_character_HPRatio);
+  Result := SmartGetFieldInt(Obj, hook_character_HPRatio) * 100 / $FF;
 end;
 
 function RSCharacter_GetInteracting(Obj: Integer): Integer;
@@ -49,7 +49,7 @@ end;
 
 function RSCharacter_GetHeight(Obj: Integer): Integer;
 begin
-  Result := SmartGetFieldInt(Obj, hook_character_GetHeight);
+  Result := IAbs(SmartGetFieldInt(Obj, hook_character_GetHeight));
 end;
 
 function RSCharacter_GetInCombat(Obj: Integer): Boolean;
@@ -61,6 +61,6 @@ end;
 
 function RSCharacter_GetOrientation(Obj: Integer): Integer;
 begin
-  Result := SmartGetFieldInt(Obj, hook_character_Orientation);
+  Result := Round(FixD(180 + (SmartGetFieldInt(Obj, hook_character_Orientation)* 45) / 2048));
 end;
 

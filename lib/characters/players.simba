@@ -331,18 +331,17 @@ function R_InteractingWithMe(NPC: TNPC): Boolean;
 By: drags111
 Description: Checks if the NPC is currently interacting with your character.
 *******************************************************************************}
-{function R_InteractingWithMe(NPC: TNPC): Boolean;
+function R_InteractingWithMe(NPC: TNPC): Boolean;
 var
-  Me: TMe;
-  Player: TPlayer;
-  PIdx: integer;
+  Me, Player: TRSPlayer;
+  PlayerIndex: integer;
 begin
   NPC := R_GetNPC(NPC.ID);
   Me := R_GetMe;
-  PIdx := (NPC.Interacting - 32768);
-  Player := R_GetPlayer(PIdx);
+  PlayerIndex := (NPC.Interacting - 32768);
+  Player := R_GetPlayer(PlayerIndex);
   Result := (Player.Name = Me.Name);
-end;      }
+end;
 
 {*******************************************************************************
 function R_AreWeInteracting(var NPC: TNPC): Boolean;
@@ -350,44 +349,32 @@ By: mormonman
 Description: Returns true if we are interacting. If we are, then it returns npc
 we are interacting with.
 *******************************************************************************}
-{function R_AreWeInteracting(var NPC: TNPC): Boolean;
+function R_AreWeInteracting(var NPC: TNPC): Boolean;
 var
-  i, index: Integer;
-  npcs: TNPCArray;
-  Me: TMe;
-  Player: TPlayer;
+  I, Index: Integer;
+  NPCs: TNPCArray;
+  Me, Player: TRSPlayer;
 begin
   NPC := NULL_NPC;
   Me := R_GetMe;
-  npcs := R_GetAllNPCs(False);
-    for i := 0 to length(npcs) - 1 do
+  NPCs := R_GetAllNPCs(False);
+    for I := 0 to High(NPCs) do
     begin
-      index := npcs[i].Interacting - 32768;
-      if (index > 0) then
+      Index := NPCS[I].Interacting - 32768;
+      if (Index > 0) then
       begin
-        Player := R_GetPlayer(index);
+        Player := R_GetPlayer(Index);
         Result := Player.Name = Me.Name;
         if Result then
         begin
-          NPC := npcs[i];
+          NPC := NPCs[I];
           Exit;
         end;
       end;
     end;
 end;
 
-type
-  TRSPlayer = record
-    Tile: TTile;
-    Name: String;
-    Index, Level, Team, Height: Integer;
-    Animation, Motion, HPRatio: Integer;
-    InCombat: Boolean;
-    WalkQueueX, WalkQueueY: Integer;
-    Interacting, Orientation: Integer;
-  end;}
-
-procedure DumpPlayers(Players: TRSPlayerArray);
+procedure R_DumpPlayers(Players: TRSPlayerArray);
 var
   I: Integer;
 begin

@@ -4,20 +4,7 @@
 //------------------------------------------------------------------//
 
 //---                      Records                                --//
-type
-{Holds information related to an NPC}
-  TNPC = record
-    Index, ID, Level, Animation, Height, HPRatio, Interacting,
-    Orientation: integer;// SOUTH = 0; NORTH = 180; CLOCKWISE.
-    Tile, LocTile: TTile;
-    Pixel: TPoint;//Pixel position on tile
-    Name: String;
-    Actions: TStringArray;
-    Moving, Fighting: boolean;
-  end;
 
-{Array of TNPC}
-  TNPCArray = array of TNPC;
 
 
 {*******************************************************************************
@@ -26,20 +13,24 @@ Description: Nulls a TNPC
 *******************************************************************************}
 function NULL_NPC: TNPC;
 begin
-  Result.Index := NULL_INT;
-  Result.ID := NULL_INT;
-  Result.Name := NULL_STRING;
-  Result.Actions := [];
-  Result.Tile := NULL_TILE;
-  Result.LocTile := NULL_TILE;
-  Result.Moving := False;
-  Result.Animation := NULL_INT;
-  Result.Height := NULL_INT;
-  Result.HPRatio := NULL_INT;
-  Result.Fighting := False;
-  Result.Orientation := NULL_INT;
-  Result.Level := NULL_INT;
-  Result.Interacting := NULL_INT;
+  with Result do
+  begin
+    Tile := NULL_TILE;
+    Name := NULL_STRING;
+    Index := NULL_INT;
+    Level := NULL_INT;
+    ID := NULL_INT;
+    Height := NULL_INT;
+    Animation := NULL_INT;
+    Motion := NULL_INT;
+    HPRatio := NULL_INT;
+    InCombat := False;
+    WalkQueueX := NULL_INT;
+    WalkQueueY := NULL_INT;
+    Interacting := NULL_INT;
+    Orientation := NULL_INT;
+    Actions := [];
+  end;
 end;
 
 {*******************************************************************************
@@ -66,31 +57,6 @@ begin
 end;
 
 {*******************************************************************************
-function R_GetNPCActionArray(NPCDef: integer): TStringArray;
-By: Drags111
-Description: Gets the Action (String) Array according to the NPC Def.
-             Used in GetNPC functions
-*******************************************************************************}
-function R_GetNPCActionArray(NPCDef: integer): TStringArray;
-var
-  i, c, bytes: integer;
-begin
-  SetLength(Result, 11);
-  c := 0;
-  for i := 0 to 10 do
-  begin
-    bytes := SmartGetFieldArrayObject(NPCDef, hook_npcdef_GetActions, i);
-    if(bytes > 0)then
-    begin
-      Result[c] := R_GetJavaString(bytes, 255);
-      inc(c);
-    end;
-    SmartFreeObject(bytes);
-  end;
-  SetLength(Result, c);
-end;
-
-{*******************************************************************************
 function R_GetAllNPCs(Null: Boolean): TNPCArray;
 By: Drags111
 Description: Stores all the loaded NPCs into an array of TNPC. If Null = True
@@ -98,53 +64,30 @@ then it will include Null NPCs.
 *******************************************************************************}
 function R_GetAllNPCs(Null: Boolean):array of TNPC;
 var
-  i, c, NumNPCs, Index, TheNPC, TheNPCDef, TheBytes, TheNPCNode: integer;
+  I, C, NumNPCs, Index, TheNPC, TheNPCNode, NPCDef: integer;
   Base: TTile;
 begin
-  NumNPCs := SmartGetFieldInt(0,hook_static_NPCCount);
+  NumNPCs := Client.NPCCount();
   if (NumNPCs < 1) then Exit;
-  SetArrayLength(Result,NumNPCs);
-  for i := 0 to (NumNPCs-1) do
+  SetArrayLength(Result, NumNPCs);
+  for I := 0 to (NumNPCs-1) do
   try
-    Index := SmartGetFieldArrayInt(0, hook_static_NPCIndexArray, i);
-    TheNPCNode := SmartGetFieldArrayObject(0, hook_static_NPCNodes, i);
+    Index := Client.NPCIndexArray(I);
+    TheNPCNode := Client.NPCNodes(I);
     TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
-    TheNPCDef := SmartGetFieldObject(TheNPC, hook_npc_NPCDef);
-    TheBytes := SmartGetFieldObject(TheNPCDef, hook_npcdef_GetName);
+    NPCDef := RSPNC_GetNPCDef(TheNPC);
 
-    if((not Null) and (lowercase(trim(R_GetJavaString(TheBytes, 255))) = 'null'))then
+    if(not Null) and (Lowercase(Trim(RSNPC_GetName(NPCDef))) = 'null')then
       continue;
-    Result[c].Index := Index;
-    Result[c].ID := SmartGetFieldInt(TheNPCDef, hook_npcdef_GetID);
-    Result[c].Name := R_GetJavaString(TheBytes, 255);
-    Result[c].Actions := R_GetNPCActionArray(TheNPCDef);
-    //*****Tile and RealTile are the same thing? Should one be Loc tile?******\\
-    Base.X := SmartGetFieldInt(0, hook_static_BaseX);
-    Base.Y := SmartGetFieldInt(0, hook_static_BaseY)
-    Result[c].Tile.X := (Base.X + (SmartGetFieldInt(TheNPC, hook_animable_PixelX) / 512));
-    Result[c].Tile.Y := (Base.Y + (SmartGetFieldInt(TheNPC, hook_animable_PixelY) / 512));
-    Result[c].LocTile.X := (SmartGetFieldInt(TheNPC, hook_animable_PixelX) - Base.X) / 512;
-    Result[c].LocTile.Y := (SmartGetFieldInt(TheNPC, hook_animable_PixelY) - Base.X) / 512;
-    Result[c].Pixel.X := SmartGetFieldInt(TheNPC, hook_animable_PixelX) mod 512; //??
-    Result[c].Pixel.Y := SmartGetFieldInt(TheNPC, hook_animable_PixelY) mod 512; //??
-    Result[c].Moving := (SmartGetFieldInt(TheNPC, hook_character_Motion)>0);
-    Result[c].Animation := SmartGetFieldInt(TheNPC, hook_character_Animation);
-    Result[c].Height := iabs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
-    Result[c].HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
-    Result[c].Fighting := (SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus) >
-                              SmartGetFieldInt(0, hook_static_LoopCycle));
-    Result[c].Orientation := Round(FixD(180 + (SmartGetFieldInt(TheNPC, hook_character_Orientation)* 45) / 2048));
-    Result[c].Level := SmartGetFieldInt(TheNPCDef, hook_npcdef_GetLevel);
-    Result[c].Interacting := SmartGetFieldInt(TheNPC, hook_character_GetInteracting);
-    Inc(c);
+
+    Result[C] := RSNPC_GetBaseInfo(TheNPC);
+    Result[C].Index := Index;
+    Inc(C);
 
   finally
-    SmartFreeObject(TheNPCNode);
-    SmartFreeObject(TheNPC);
-    SmartFreeObject(TheNPCDef);
-    SmartFreeObject(TheBytes);
+    R_FreeObjects([TheNPCNode, TheNPC, NPCDef]);
   end;
-  SetLength(Result, c);
+  SetLength(Result, C);
 end;
 
 {*******************************************************************************
@@ -300,59 +243,31 @@ function R_GetNPCsAt(T: TTile): TNPCArray;
 By: Drags111
 Description: Returns an array of the NPCs at the given tile
 *******************************************************************************}
-function R_GetNPCsAt(T: TTile): TNPCArray;
+function R_GetNPCsAt(Tile: TTile): TNPCArray;
 var
-  i, h, c: Integer;
-  Index, TheNPCNode, TheNPC, TheNPCDef, TheBytes: Integer;
-  tmp_tile : TTile;
+  I, h, c: Integer;
+  Index, TheNPCNode, TheNPC: Integer;
+  NPCTile : TTile;
 begin
-  h := SmartGetFieldInt(0, hook_static_NPCCount);
-  SetLength(Result, h);
-  Dec(h);
-  for i := 0 to h do
+  H := Client.NPCCount();
+  SetLength(Result, H);
+  Dec(H);
+  for I := 0 to H do
   try
-    Index := SmartGetFieldArrayInt(0, hook_static_NPCIndexArray, i);
-    TheNPCNode := SmartGetFieldArrayObject(0, hook_static_NPCNodes, i);
+    Index := Client.NPCIndexArray(I);
+    TheNPCNode := Client.NPCNodes(I);
     TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
-    tmp_tile := R_Tile(
-           SmartGetFieldInt(0,hook_static_BaseX) +
-            SmartGetFieldInt(TheNPC, hook_animable_PixelX) / 512,
-           SmartGetFieldInt(0,hook_static_BaseY) +
-            SmartGetFieldInt(TheNPC, hook_animable_PixelY) / 512);
+    NPCTile := RSCharacter_GetTile(TheNPC);
 
-    if (tmp_tile = t) then
+    if (NPCTile = Tile) then
     begin
-      //***********MEMORY LEAK FOUND*****************\\
-      // [.]TheNPCDef and TheBytes were never freed.  \\
-      // [.]Found 5/13/11 Drags111.
-      TheNPCDef := SmartGetFieldObject(TheNPC, hook_npc_NPCDef);
-      TheBytes := SmartGetFieldObject(TheNPCDef, hook_npcdef_GetName);
-      Result[c].Index := Index;
-      Result[c].ID := SmartGetFieldInt(TheNPCDef, hook_npcdef_GetID);
-      Result[c].Name := R_GetJavaString(TheBytes, 255);
-      Result[c].Actions := R_GetNPCActionArray(TheNPCDef);
-      Result[c].Tile.X := (SmartGetFieldInt(0, hook_static_BaseX) + (SmartGetFieldInt(TheNPC, hook_animable_PixelX) / 512));
-      Result[c].Tile.Y := (SmartGetFieldInt(0, hook_static_BaseY) + (SmartGetFieldInt(TheNPC, hook_animable_PixelY) / 512));
-      Result[c].LocTile.X := (SmartGetFieldInt(TheNPC, hook_animable_PixelX) - SmartGetFieldInt(TheNPC, hook_animable_PixelX)) / 512;
-      Result[c].LocTile.Y := (SmartGetFieldInt(TheNPC, hook_animable_PixelY) - SmartGetFieldInt(TheNPC, hook_animable_PixelY)) / 512;
-      Result[c].Moving := (SmartGetFieldInt(TheNPC, hook_character_Motion)>0);
-      Result[c].Animation := SmartGetFieldInt(TheNPC, hook_character_Animation);
-      Result[c].Height := iabs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
-      Result[c].HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
-      Result[c].Fighting := (SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus) >
-                              SmartGetFieldInt(0, hook_static_LoopCycle));
-      Result[c].Orientation := Round(FixD(180 + (SmartGetFieldInt(TheNPC, hook_character_Orientation)* 45) / 2048));
-      Result[c].Level := SmartGetFieldInt(TheNPCDef, hook_npcdef_GetLevel);
-      Result[c].Interacting := SmartGetFieldInt(TheNPC, hook_character_GetInteracting);
-      Inc(c);
+      Result[C] := RSNPC_GetBaseInfo(TheNPC);
+      Result[C].Index := Index;
     end;
   finally
-    SmartFreeObject(TheNPCNode);
-    SmartFreeObject(TheNPC);
-    SmartFreeObject(TheNPCDef);
-    SmartFreeObject(TheBytes);
+    R_FreeObjects([TheNPCNode, TheNPC]);
   end;
-  SetLength(Result, c);
+  SetLength(Result, C);
 end;
 
 {*******************************************************************************
@@ -459,24 +374,25 @@ Description: Prints out the array of NPCs. Mainly for debugging purposes.
 *******************************************************************************}
 procedure R_DumpNPCs(NPCs: TNPCArray);
 var
-  i, Hi: integer;
+  I: Integer;
 begin
-  Hi := High(NPCs);
-  for i := 0 to Hi do
-  begin
-    Writeln('NPC: '+NPCs[i].Name);
-    Writeln('    '+'Index: '+ ToStr(NPCs[i].Index));
-    Writeln('    '+'ID: '+ToStr(NPCs[i].ID));
-    Writeln('    '+'Actions: '+ ToStr(NPCs[i].Actions));
-    Writeln('    '+'Tile: '+ ToStr(NPCs[i].Tile));
-    Writeln('    '+'LocTile: '+ ToStr(NPCs[i].LocTile));
-    Writeln('    '+'Animation: '+ ToStr(NPCs[i].Animation));
-    Writeln('    '+'Height: '+ ToStr(NPCs[i].Height));
-    Writeln('    '+'Fighting: '+ ToStr(NPCs[i].Fighting));
-    Writeln('    '+'IsMoving: '+ ToStr(NPCs[i].Moving));
-    Writeln('    '+'HPRatio: '+ ToStr(NPCs[i].HPRatio));
-    Writeln('    '+'Level: '+ ToStr(NPCs[i].Level));
-    Writeln('    '+'Orientation: '+ ToStr(NPCs[i].Orientation));
-    Writeln('    '+'Interacting: '+ ToStr(NPCs[i].Interacting));
-  end;
+  for I := 0 to High(NPCs) do
+    with NPCs[I] do
+    begin
+      Writeln('NPC: ' + Name);
+      Writeln('    Tile: ' + ToStr(Tile));
+      Writeln('    ID: ' + ToStr(ID));
+      Writeln('    Index: ' + ToStr(Index));
+      Writeln('    Combat Level: ' + ToStr(Level));
+      Writeln('    Height: ' + ToStr(Height));
+      Writeln('    Animation: ' + ToStr(Animation));
+      Writeln('    Motion: ' + ToStr(Motion));
+      Writeln('    HPRatio: ' + ToStr(HPRatio));
+      Writeln('    InCombat: ' + ToStr(InCombat));
+      Writeln('    WalkQueueX: ' + ToStr(WalkQueueX));
+      Writeln('    WalkQueueY: ' + ToStr(WalkQueueY));
+      Writeln('    Interacting: ' + ToStr(Interacting));
+      Writeln('    Orientation: ' + ToStr(Orientation));
+      Writeln('    Actions: '+ ToStr(Actions));
+    end;
 end;

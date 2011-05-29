@@ -115,6 +115,19 @@ type
     Interacting, Orientation: Integer;
   end;
 
+  TNPC = record
+    Tile: TTile;
+    Name: String;
+    Index, Level, ID, Height: Integer;
+    Animation, Motion, HPRatio: Integer;
+    InCombat: Boolean;
+    WalkQueueX, WalkQueueY: Integer;
+    Interacting, Orientation: integer;
+    Actions: TStringArray;
+  end;
+
+  TNPCArray = array of TNPC;
+
 type
   {Array of TRSPlayer}
   TRSPlayerArray = array of TRSPlayer;
