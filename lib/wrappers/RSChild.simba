@@ -98,7 +98,7 @@ begin
     Exit;
   end;
   MainID := trunc(RSChild_GetID(Obj) div 65536);
-  InterfaceNC := SmartGetFieldObject(0, hook_static_InterfaceNC);
+  InterfaceNC := Client.InterfaceNC();
   if (InterfaceNC = 0) then
     Exit;
   Nodes := SmartGetFieldObject(InterfaceNC, hook_nodecache_GetNodes);
@@ -162,7 +162,7 @@ end;
 
 function RSChild_GetUseBounds(Obj: Integer): Boolean;
 begin
-  Result := not SmartGetFieldArrayBoolean(0, hook_static_InterfaceDismissBounds, RSChild_GetBoundsArrayIndex(Obj));
+  Result := not Client.InterfaceDismissBounds(RSChild_GetBoundsArrayIndex(Obj));
 end;
 
 function RSChild_GetAbsolutePos(Obj: Integer): TPoint;
@@ -196,7 +196,7 @@ begin
   end else
   begin
     BoundIndex := RSChild_GetBoundsArrayIndex(Obj);
-    Bounds := SmartGetFieldArrayObject(0, hook_static_GetInterfaceBoundsArray, BoundIndex);
+    Bounds := Client.InterfaceBoundsArray(BoundIndex);
     if((Bounds > 0) and (RSChild_GetUseBounds(Obj)))then
     begin
       Result := Point(SmartGetFieldInt(Bounds, 'x'),

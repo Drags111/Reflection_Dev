@@ -73,46 +73,6 @@ begin
 end;
 
 {*******************************************************************************
-function R_GetMyPos: TTile;
-By: BenLand100
-Description: Returns the global tile position of your player.
-*******************************************************************************}
-function R_GetMyPos: TTile;
-var
-  me: Integer;
-begin
-  me := SmartGetFieldObject(0, hook_static_MyPlayer);
-  Result.x := SmartGetFieldInt(0, hook_static_BaseX) + SmartGetFieldInt(me, hook_animable_PixelX) / 512;
-  Result.y := SmartGetFieldInt(0, hook_static_BaseY) + SmartGetFieldInt(me, hook_animable_PixelY) / 512;
-  SmartFreeObject(me);
-end;
-
-{*******************************************************************************
-function R_GetPlaneIndex : Integer;
-By: lordsaturn
-Description: Returns loaded plane index
-*******************************************************************************}
-function R_GetPlaneIndex : Integer;
-begin
-  Result := SmartGetFieldInt(0,hook_static_LoadedPlane);
-end;
-
-{*******************************************************************************
-function R_GetMyLocPos: TTile;
-By: BenLand100
-Description: Returns the local tile position of your player.
-*******************************************************************************}
-function R_GetMyLocPos: TTile;
-var
-  me: Integer;
-begin
-  me := SmartGetFieldObject(0, hook_static_MyPlayer);
-  Result.x := (SmartGetFieldInt(me, hook_animable_PixelX) - SmartGetFieldInt(0, hook_static_BaseX)) / 512;
-  Result.y := (SmartGetFieldInt(me, hook_animable_PixelY) - SmartGetFieldInt(0, hook_static_BaseY)) / 512;
-  SmartFreeObject(me);
-end;
-
-{*******************************************************************************
 procedure R_UpdateRenderInfo(var Render : TRender; var RenderData : TRenderData);
 By: Benland100
 Description: Fills a pair of TRender and TRenderData structures with data.
@@ -124,7 +84,7 @@ begin
   MarkTime(t);
   while ((RenderData.zX <= 0) and (RenderData.zY <= 0) and (TimeFromMark(t) < 10000)) do
   begin
-    tk := SmartGetFieldObject(0, hook_static_Toolkit);
+    tk := Client.Toolkit();
     vp := SmartGetFieldObject(tk, hook_sdtoolkit_Viewport);
     with RenderData do
     begin
@@ -152,8 +112,7 @@ begin
   	zMin := SmartGetFieldInt(tk, hook_sdtoolkit_zMin);
       zMax := SmartGetFieldInt(tk, hook_sdtoolkit_zMax);
     end;
-    SmartFreeObject(tk);
-    SmartFreeObject(vp);
+    R_FreeObjects([tk, vp]);
   end;
 end;
 
@@ -202,24 +161,24 @@ function R_GetTileHeight(tile: TTile) : integer;
 var
   x, y, CurPlane, PlaneInstance : integer;
 begin
-  x:= tile.x - SmartGetFieldInt(0,hook_static_BaseX);
-  y:= tile.y - SmartGetFieldInt(0,hook_static_BaseY);
+  x := tile.x - Client.BaseX();
+  y := tile.y - Client.BaseY();
   if ((x < 0) or (x > 104) or (y < 0) or (y > 104)) then
   begin
     result := 0;
     exit;
   end;
-  CurPlane:= SmartGetFieldInt(0,hook_static_LoadedPlane);
-  if ((CurPlane < 3) and ((SmartGetFieldArray3DByte(0,hook_static_GroundSettingsArray,1,x,y) and 2) <> 0)) then
+  CurPlane:= Client.LoadedPlane();
+  if ((CurPlane < 3) and ((Client.GroundSettingsArray(1, x, y) and 2) <> 0)) then
     CurPlane:= CurPlane + 1;
-  PlaneInstance := SmartGetFieldArrayObject(0,hook_static_PlaneArray,CurPlane);
-  result:= (SmartGetFieldArray2DInt(PlaneInstance,hook_sdplane_TileHeights,x,y) +
-            SmartGetFieldArray2DInt(PlaneInstance,hook_sdplane_TileHeights,x + 1,y) +
-            SmartGetFieldArray2DInt(PlaneInstance,hook_sdplane_TileHeights,x,y + 1) +
-            SmartGetFieldArray2DInt(PlaneInstance,hook_sdplane_TileHeights,x + 1,y + 1)) / 4;
+  PlaneInstance := Client.PlaneArray(CurPlane);
+  result:= (SmartGetFieldArray2DInt(PlaneInstance, hook_sdplane_TileHeights, x, y) +
+            SmartGetFieldArray2DInt(PlaneInstance, hook_sdplane_TileHeights, x + 1, y) +
+            SmartGetFieldArray2DInt(PlaneInstance, hook_sdplane_TileHeights, x, y + 1) +
+            SmartGetFieldArray2DInt(PlaneInstance, hook_sdplane_TileHeights, x + 1, y + 1)) / 4;
   if(Result = -1)then
     writeln('****************TileHight hooks are incorrect.*****************');
-  SmartFreeObject(PlaneInstance);
+  R_FreeObject(PlaneInstance);
 end;
 
 {*******************************************************************************
@@ -229,7 +188,7 @@ Description: Converts a TPoint to a TTile.
 *******************************************************************************}
 function R_PointToTile(P: TPoint): TTile;
 begin
-  Result := R_Tile(p.x, p.y);
+  Result := R_Tile(P.x, P.y);
 end;
 
 {*******************************************************************************
@@ -292,9 +251,9 @@ function R_TileToMSEx(tile: TTile; offx, offy : extended; height : integer) : TP
 var
   pixelX, pixelY, pixelZ: extended;
 begin
-  pixelX:= (tile.x - SmartGetFieldInt(0,hook_static_BaseX) + offX) * 512.0;
+  pixelX:= (tile.x - Client.BaseX() + offX) * 512.0;
   pixelY:= R_GetTileHeight(tile) - height;
-  pixelZ:= (tile.y - SmartGetFieldInt(0,hook_static_BaseY) + offY) * 512.0;
+  pixelZ:= (tile.y - Client.BaseY() + offY) * 512.0;
   Result := R_World3DToScreen(pixelX, pixelY, pixelZ);
   if not PointInBox(Result, IntToBox(MSX1, MSY1, MSX2, MSY2))then
   begin

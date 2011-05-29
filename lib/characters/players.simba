@@ -38,7 +38,7 @@ function R_GetAnimation: Integer;
 var
   MyPlayer: Integer;
 begin
-  MyPlayer := Client_GetMyPlayer;
+  MyPlayer := Client.MyPlayer();
   Result := RSCharacter_GetAnimation(MyPlayer);
   R_FreeObject(MyPlayer);
 end;
@@ -52,7 +52,7 @@ function R_GetSpeed: Integer;
 var
   MyPlayer: Integer;
 begin
-  MyPlayer := Client_GetMyPlayer;
+  MyPlayer := Client.MyPlayer();
   Result := RSCharacter_GetMotion(MyPlayer);
   R_FreeObject(MyPlayer);
 end;
@@ -96,7 +96,7 @@ function R_InCombat: Boolean;
 var
   MyPlayer: Integer;
 begin
-  MyPlayer := Client_GetMyPlayer;
+  MyPlayer := Client.MyPlayer();
   Result := RSCharacter_GetInCombat(MyPlayer);
   R_FreeObject(MyPlayer);
 end;
@@ -150,13 +150,13 @@ function R_GetAllPlayers: TRSPlayerArray;
 var
   I, Count, IndexPos, Player: integer;
 begin
-  Count := Client_GetPlayerCount;
+  Count := Client.PlayerCount();
   SetArrayLength(Result, Count);
   if Count < 1 then Exit;
   for I := 0 to Count-1 do
   try
-    IndexPos := Client_GetPlayerIndexArray(I);
-    Player := Client_GetPlayers(IndexPos);
+    IndexPos := Client.PlayerIndexArray(I);
+    Player := Client.Players(IndexPos);
     Result[I].Index := IndexPos;
     Result[I] := RSPlayer_GetBaseInfo(Player);
   finally
@@ -319,7 +319,7 @@ var
   Player: Integer;
 begin
   try
-    Player := Client_GetMyPlayer;
+    Player := Client.MyPlayer();
     Result := RSPlayer_GetBaseInfo(Player);
   finally
     R_FreeObject(Player);
@@ -374,4 +374,39 @@ begin
         end;
       end;
     end;
-end;      }
+end;
+
+type
+  TRSPlayer = record
+    Tile: TTile;
+    Name: String;
+    Index, Level, Team, Height: Integer;
+    Animation, Motion, HPRatio: Integer;
+    InCombat: Boolean;
+    WalkQueueX, WalkQueueY: Integer;
+    Interacting, Orientation: Integer;
+  end;}
+
+procedure DumpPlayers(Players: TRSPlayerArray);
+var
+  I: Integer;
+begin
+  for I := 0 to High(Players) do
+    with Players[I] do
+    begin
+      Writeln('Player: ' + Name);
+      Writeln('    Tile: ' + ToStr(Tile));
+      Writeln('    Index: ' + ToStr(Index));
+      Writeln('    Combat Level: ' + ToStr(Level));
+      Writeln('    Team: ' + ToStr(Team));
+      Writeln('    Height: ' + ToStr(Height));
+      Writeln('    Animation: ' + ToStr(Animation));
+      Writeln('    Motion: ' + ToStr(Motion));
+      Writeln('    HPRatio: ' + ToStr(HPRatio));
+      Writeln('    InCombat: ' + ToStr(InCombat));
+      Writeln('    WalkQueueX: ' + ToStr(WalkQueueX));
+      Writeln('    WalkQueueY: ' + ToStr(WalkQueueY));
+      Writeln('    Interacting: ' + ToStr(Interacting));
+      Writeln('    Orientation: ' + ToStr(Orientation));
+    end;
+end;

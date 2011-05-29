@@ -63,7 +63,7 @@ Sets up Reflection.
 *)
 Procedure SetupReflection;
 begin
+  Client := Client_GetClient;
   R_UpdateHooks;
   R_SetupGlobals;
-  Client := Client_GetClient;
 end;

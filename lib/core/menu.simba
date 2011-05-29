@@ -1,573 +1,541 @@
-(*
+{*
 Menu
 ====
 
-Contains routines for menu option handling ('Chop Tree', for example).
+All routines related to the menu option selectings.
+
+*}
+
+(*
+R_GetMenuItems
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMenuItems: TStringArray;
+
+Returns a string array of all of the options in a non-tabbed menu.
+
+.. note::
+
+  by Drags111/Pyroryan
 
 *)
-
-{*******************************************************************************
-function R_IsMenuOpen: boolean;
-By: BenLand100
-Description: Returns true if the menu is displayed
-*******************************************************************************}
-function R_IsMenuOpen: boolean;
-begin
-  result:= SmartGetFieldBoolean(0, hook_static_MenuOpen);
-end;
-
-{*******************************************************************************
-function R_IsMenuTabbed: boolean;
-By: pyroryan
-Description: Returns true if the menu is tabbed
-*******************************************************************************}
-function R_IsMenuTabbed: boolean;
-begin
-  Result := SmartGetFieldBoolean(0, hook_static_IsMenuTabbed);
-end;
-
-{*******************************************************************************
-function R_GetMenuCount: integer;
-By: BenLand100
-Description: Returns the number of menu items
-*******************************************************************************}
-function R_GetMenuCount: integer;
-begin
-  Result := SmartGetFieldInt(0, hook_static_MenuOptionCount);
-end;
-
-{*******************************************************************************
-function R_GetMenuItemsPart(part : Integer) : Integer;
-By: pyroryan
-Description: part 1 for Actions. part 2 for Options. Supports tabbed menus.
-             Tabbed menus: First part is options (part = 2)
-                           Second part is actions (part = 1)
-*******************************************************************************}
-function R_GetMenuItemsPart(part : Integer) : TStringArray;
+function R_GetMenuItems: TStringArray;
 var
-  ItemList : TStringArray;
-  Item : String;
-  Count, NodeSubList, GroupNode, SubMenu, MenuItemNode : Integer;
-  Last, LastTwo, NodeList, JavaString : Integer;
+  Option, Action, Count, I: Integer;
+  NodeList, MenuItemNode, Last, Tail: Integer;
+  Item: String;
+  Temp, ItemList: TStringArray;
 begin
-  SetLength(ItemList, R_GetMenuCount);
-  Count := 0;
+  try
+    NodeList := Client.MenuNodeList();
+    MenuItemNode := R_GetNodeHead(NodeList);
 
-  //--------------------------------------------------------------------------//
-  // When there are too many options in the menu, it will start to tab them   //
-  // so we want to check if the menu is tabbed or not. That will determine    //
-  // what we need to do.                                                      //
-  //--------------------------------------------------------------------------//
-  if(R_IsMenuTabbed)then
-  begin
+    while(MenuItemNode <> 0)do
+    begin
+      Action := SmartGetFieldObject(MenuItemNode, hook_menu_Action);
+      Option := SmartGetFieldObject(MenuItemNode, hook_menu_Option);
 
-    try
-      //------------------------------------------------------------------------//
-      // Grab the nodeList for the tabbed menu items.                           //
-      //------------------------------------------------------------------------//
-      NodeSubList := SmartGetFieldObject(0, hook_static_GetCollapsedMenuItems);
-      GroupNode := R_GetNodeSubHead(NodeSubList);
-
-      //------------------------------------------------------------------------//
-      // While we still have nodes that exist, we want to loop through till we  //
-      // have hit every grouping.                                               //
-      // Example:                                                               //
-      //      "Zezima(Level 1) >"                                               //
-      //      "Drags111(Level 200) >"                                           //
-      //      ...etc.                                                           //
-      //------------------------------------------------------------------------//
-      while(GroupNode <> 0)do
+      if(Action = 0) or (Option = 0)then
       begin
-
-        {Get the sub menu of each tab.}
-        SubMenu := SmartGetFieldObject(GroupNode, hook_MenuGroupNode_GetNodeSubListItems);
-        if (SubMenu = 0) then
-          break;
-
-        MenuItemNode := R_GetNodeSubHead(SubMenu);
-
-        //----------------------------------------------------------------------//
-        // While there are options/actions to be filtered through               //
-        // Example:                                                             //
-        //            "Follow Zezima"                                           //
-        //            "Trade With Zezima"                                       //
-        //----------------------------------------------------------------------//
-        while (MenuItemNode <> 0) do
-        begin
-          case Part of
-            1: JavaString := SmartGetFieldObject(menuItemNode, hook_menu_Action);
-            2: JavaString := SmartGetFieldObject(menuItemNode, hook_menu_Option);
-          end;
-          {if we've reached the end of the list}
-          if (JavaString = 0) then
-          begin
-            R_FreeObject(JavaString);
-            break;
-          end;
-
-          Item := R_GetJavaString(javaString, 256);
-          ItemList[Count] := R_TrimHTML(item);
-          Inc(Count);
-
-          {Switch to the next option/action.}
-          LastTwo := MenuItemNode;
-          MenuItemNode := R_GetNodeSubNext(lastTwo);
-
-          R_FreeObjects([JavaString, LastTwo]);
-        end;
-
-        {Switch to the next tab}
-        Last := GroupNode;
-        GroupNode := R_GetNodeSubNext(Last);
-
-        R_FreeObjects([Last, SubMenu, MenuItemNode]);
+        R_FreeObjects([Action, Option]);
+        break;
       end;
-    finally
-      {In case something goes wrong in any of the steps, we want to
-       make sure everything gets released properly.}
-      R_FreeObjects([GroupNode, NodeSubList, Last, SubMenu, MenuItemNode,
-                     JavaString, LastTwo]);
+
+      Item := Trim(R_GetJavaString(Action, 256) + ' ' +
+                   R_GetJavaString(Option, 256));
+      R_FreeObjects([Action, Option]);
+      SetLength(ItemList, Length(ItemList)+1);
+      ItemList[High(ItemList)] := R_TrimHTML(Item);
+
+      Last := MenuItemNode;
+      MenuItemNode := R_GetNodeNext(Last);
+
+      R_FreeObject(Last);
     end;
-  end else
 
-  //--------------------------------------------------------------------------//
-  // This section is for normal menus (not tabbed).                           //
-  // Like above, loops through each node and its actions/options.             //
-  //--------------------------------------------------------------------------//
-  begin
-    try
-      NodeList := SmartGetFieldObject(0, hook_static_MenuNodeList);
-      MenuItemNode := R_GetNodeHead(NodeList);
-
-      //----------------------------------------------------------------------//
-      // While there are options/actions to be filtered through               //
-      // Example:                                                             //
-      //            "Follow Zezima"                                           //
-      //            "Trade With Zezima"                                       //
-      //----------------------------------------------------------------------//
-      while (MenuItemNode <> 0) do
-      begin
-        case Part of
-          1: JavaString := SmartGetFieldObject(MenuItemNode, hook_menu_Action);
-          2: JavaString := SmartGetFieldObject(menuItemNode, hook_menu_Option);
-        end;
-        {if we've reached the end of the list}
-        if (JavaString = 0) then
-        begin
-          R_FreeObject(JavaString);
-          break;
-        end;
-
-        Item := R_GetJavaString(JavaString, 256);
-        SmartFreeObject(JavaString);
-        ItemList[count] := R_TrimHTML(Item);
-        Inc(Count);
-
-        {Switch to the next option/action.}
-        Last := MenuItemNode;
-        MenuItemNode := R_GetNodeNext(Last);
-
-        R_FreeObjects([JavaString, Last]);
-      end;
-    finally
-      {In case something goes wrong in any of the steps, we want to
-         make sure everything gets released properly.}
-      R_FreeObjects([MenuItemNode, NodeList, JavaString, Last]);
-    end;
+  finally
+    R_FreeObjects([MenuItemNode, NodeList, Action, Option, Last, Tail]);
   end;
-  SetLength(ItemList, Count);
+
+  //Have to reverse the array because it loads up backwards...
+  Count := 0;
+  SetLength(Temp, Length(ItemList));
+  for I := 0 to High(ItemList)do
+    Temp[I] := ItemList[I];
+  for I := High(Temp) downto 0 do
+  begin
+    ItemList[Count] := R_TrimHTML(Trim(Lowercase(Temp[I])));
+    Inc(Count);
+  end;
   Result := ItemList;
 end;
 
-{*******************************************************************************
-function R_GetMenuText: TStringArray;
-By: BenLand100
-Description: Dumps the data from the MenuNodeList into a TStringArray
-*******************************************************************************}
-function R_GetMenuText: TStringArray;
+(*
+R_GetMenuItemsTabbed
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMenuItemsTabbed: array of TStringArray;
+
+Returns a  2-dimensional string array of all of the options in a tabbed menu.
+
+.. note::
+
+  by Drags111/Pyroryan
+
+*)
+function R_GetMenuItemsTabbed: array of TStringArray;
 var
-  count, nodeList, head, next, last, javaString: Integer;
-  item: string;
+  Action, Option, Name: Integer;
+  NodeSubList, GroupNode: Integer;
+  SubMenu, MenuItemNode, Last, Last2: Integer;
+  Item: String;
+  Items: TStringArray;
 begin
   try
-    nodeList:= SmartGetFieldObject(0, hook_static_MenuNodeList);
-    head:= SmartGetFieldObject(nodeList, hook_nodelist_Head);
-    //for some reason, the head has null strings, so skip it
-    next:= SmartGetFieldObject(head, hook_node_Next);
-    count:= R_GetMenuCount;
-    SetLength(result,count);
-    repeat
-      javaString:= SmartGetFieldObject(next, hook_menu_Action);
-      if (javaString = 0) then
-      begin
-        //writeln('Stopping, the string is null');
-        SmartFreeObject(javaString);
+    NodeSubList := Client.CollapsedMenuItems();
+    GroupNode := R_GetNodeSubHead(NodeSubList);
+
+    while(GroupNode <> 0)do
+    begin
+      SubMenu := SmartGetFieldObject(GroupNode, hook_MenuGroupNode_GetNodeSubListItems);
+      if (SubMenu <= 0) then
         break;
-      end;
-      item:= R_GetJavaString(javaString,256);
-      SmartFreeObject(javaString);
-      javaString:= SmartGetFieldObject(next, hook_menu_Option);
-      item:= item + ' ' + R_GetJavaString(javaString,256);
-      SmartFreeObject(javaString);
-      result[count-1]:= R_TrimHTML(item);
-      last:= next;
-      next:= SmartGetFieldObject(last, hook_node_Next);
-      SmartFreeObject(last);
-      count:= count - 1;
-    until (count = 0);
-    SmartFreeObject(next);
-    SmartFreeObject(head);
-    SmartFreeObject(nodeList);
-  except
-    try
-      SmartFreeObject(next);
-    except
-    end;
-    try
-      SmartFreeObject(head);
-    except
-    end;
-    try
-      SmartFreeObject(nodeList);
-    except
-    end;
-    wait(50);
-    Result := R_GetMenuText;
-  end;
-end;
 
-{*******************************************************************************
-function R_ChooseOptionMulti(Options : TStringArray) : Boolean;
-By: Drags111 - Based off nava2's and Lordsaturns.
-Description: Chooses the first found option of "Options" from the Right
-             Click menu, returns True and Clicks if found, else it will Move the
-             mouse to a random Coord or select cancel.
-*******************************************************************************}
-function R_ChooseOptionMulti(Options : TStringArray) : Boolean;
-var
-  i, i2, xOff, yOff, t: Integer;
-  P : TPoint;
-  MenuOptions: TStringArray;
+      MenuItemNode := R_GetNodeSubHead(SubMenu);
 
-begin
-  Result := False;
-  if not R_IsMenuOpen then
-  begin
-    MarkTime(t);
-    while(TimeFromMark(t) < 1000)do ;
-    if not R_IsMenuOpen then Exit;
-  end;
-
-  P := Point(SmartGetFieldInt(0, hook_static_MenuX) + 4, SmartGetFieldInt(0, hook_static_MenuY) + 4);
-  //Writeln('MenuX: '+ToStr(SmartGetFieldInt(0, hook_static_MenuX)));
-  //Writeln('MenuY: '+ToStr(SmartGetFieldInt(0, hook_static_MenuY)));
-  MenuOptions := R_GetMenuText;
-
-  // Cstrike added this block
-  if (high(MenuOptions) < 0) or (high(Options) < 0) then
-  begin
-    Writeln('Warning: High array size for MenuOptions/Options is < 0, aborting R_ChooseOptionMulti to prevent crash');
-    Exit;
-  end;
-
-  for i := 0 to High(MenuOptions) do
-  begin
-    for i2 := 0 to High(Options) do
-    begin
-      if(Pos(Lowercase(Options[i2]), Lowercase(MenuOptions[i])) <> 0)then
+      while (MenuItemNode <> 0) do
       begin
-        xOff := RandomRange(4, 4 + Random(Length(MenuOptions[i]) * 4 - 4));
-        yOff := 21 + (16 * i) + RandomRange(2, 10);
-        Mouse(P.x + xOff, P.y + yOff, 0, 0, True);
-        Wait(RandomRange(80, 100));
-        Result := not R_IsMenuOpen;
-        Exit;
-      end;
-    end;
-  end;
 
-  case Random(2) of
-    0: R_ChooseOptionMulti(['Cancel']);
-    1: while R_IsMenuOpen do
-       begin
-         MMouse(Random(MSX2), Random(MSY2), 0, 0);
-         Wait(RandomRange(100, 200));
-       end;
-  end;
-end;
+        Action := SmartGetFieldObject(menuItemNode, hook_menu_Action);
+        Option := SmartGetFieldObject(menuItemNode, hook_menu_Option);
 
-{*******************************************************************************
-function R_getMenuIndex(text: string): Integer;
-By: Timer [Train]
-Description: Returns the index of the desired click.
-*******************************************************************************}
-function R_GetMenuIndex(text: string): Integer;
-var
-  menu: TStringArray;
-  i: Integer;
-begin
-  menu := R_GetMenuText;
-  Result := -1;
-  if (High(menu) > -1) then
-    for i := 0 to High(menu) do
-    begin
-      if (Pos(Lowercase(text), Lowercase(menu[i])) <> 0) then
-      begin
-        Result := i;
-        Exit;
-      end;
-    end;
-end;
-
-{*******************************************************************************
-function R_ClickSubMenu(items: TStringArray; mid, sid: Integer): Boolean;
-By: Timer [Train]
-Description: Clicks a sub menu.
-*******************************************************************************}
-function R_ClickSubMenu(items: TStringArray; mid, sid: Integer): Boolean;
-var
-  x, y: Integer;
-  menuLoc, subLoc: TPoint;
-  t: LongInt;
-begin
-  Result := False;
-  menuLoc := Point(SmartGetFieldInt(0, hook_static_MenuX) + 4, SmartGetFieldInt(0, hook_static_MenuY) + 4);
-  x := RandomRange(4, Length(items[mid]) * 4);
-  y := 21 + 16 * mid + RandomRange(3, 12);
-  MMouse(menuLoc.x + x, menuLoc.y + y, 0, 0);
-  Wait(RandomRange(125, 150));
-  if (R_IsMenuOpen) then
-  begin
-    subLoc := Point(SmartGetFieldInt(0, hook_static_MenuX2) + 4, SmartGetFieldInt(0, hook_static_MenuY2) + 4);
-    GetMousePos(x, y);
-    x := RandomRange(4, Length(items[sid]) * 4);
-    MMouse(subLoc.x + x, y, 0, RandomRange(-2, 2));
-    Wait(RandomRange(125, 150));
-    if (R_IsMenuOpen) then
-    begin
-      GetMousePos(x, y);
-      y := 16 * sid + RandomRange(3, 12) + 21;
-      MMouse(x, subLoc.y + y, RandomRange(-2, 2), 0);
-      Wait(RandomRange(125, 150));
-      if (R_IsMenuOpen) then
-      begin
-        GetMousePos(x, y);
-        Mouse(x, y, 0, 0, True);
-        if (R_IsMenuOpen) then
+        if(Action = 0) and (Option = 0)then
         begin
-          while (TimeFromMark(t) < 1500) and (R_IsMenuOpen) do
-            Wait(150);
+          R_FreeObjects([Action, Option]);
+          break;
         end;
-        Result := not R_IsMenuOpen;
+
+        Item := Trim(R_GetJavaString(Action, 512) + ' ' +
+                     R_GetJavaString(Option, 512));
+        R_FreeObjects([Action, Option]);
+        SetLength(Items, Length(Items)+1);
+        Items[High(Items)] := Trim(R_TrimHTML(Lowercase(Item)));
+
+        Last2 := MenuItemNode;
+        MenuItemNode := R_GetNodeSubNext(Last2);
+
+        R_FreeObject(Last2);
       end;
+
+      if(Length(Items) > 0)then
+      begin
+        SetLength(Result, Length(Result)+1);
+        Result[High(Result)] := Items;
+        SetLength(Items, 0);
+      end;
+
+      Last := GroupNode;
+      GroupNode := R_GetNodeSubNext(Last);
+
+      R_FreeObjects([Last, SubMenu, MenuItemNode]);
     end;
+  finally
+    R_FreeObjects([GroupNode, NodeSubList, SubMenu, MenuItemNode,
+                   Action, Option, Last, Last2]);
   end;
-  if (not Result) then
-    if (R_IsMenuOpen) then
-      case Random(2) of
-        0: R_ChooseOptionMulti(['Cancel']);
-        1: while R_IsMenuOpen do
-           begin
-             MMouse(Random(MSX2), Random(MSY2), 0, 0);
-             Wait(RandomRange(100, 200));
-           end;
-      end;
 end;
 
-{*******************************************************************************
-function R_ClickMenuIndex(index: Integer): Boolean;
-By: pyroryan, Timer [Train]
-Description: Clicks a Menu Index.
-*******************************************************************************}
-function R_ClickMenuIndex(index: Integer): Boolean;
+(*
+R_MMouseMenu
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_MMouseMenu(Options: TStringArray): Boolean;
+
+Moves the mouse over the first instance of the options provided. Used in
+R_ChooseOptionMulti.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_MMouseMenu(Options: TStringArray): Boolean;
 var
-  allItems: TStringArray;
-  item: string;
-  nodeSubList, groupNode, subMenu, menuItemNode, last, lastTwo, xOff, yOff: Integer;
-  P: TPoint;
-  t, mc, sc, sca: LongInt;
+  MenuItems: TStringArray;
+  I, L, X, Y, MX, MY, MW, MH, xOff, yOff: Integer;
+  Option: String;
+  Dimensions: TBox;
 begin
-  mc := 1;
-  allItems := R_GetMenuText;
-  if (Length(allItems) < index) then
-  begin
-    Result := False;
+  Result := False;
+  if not Client.MenuOpen() then
     Exit;
-  end;
-  if (index = -1) then
-  begin
-    Result := False;
-    Exit;
-  end;
-  if (not R_IsMenuOpen) then
-  begin
-    ClickMouse2(False);
-    MarkTime(t);
-    while (TimeFromMark(t) < 1000) do
-      Wait(50);
-    if (not R_IsMenuOpen) then
-      Exit;
-  end;
-  item := allItems[index];
-  P := Point(SmartGetFieldInt(0, hook_static_MenuX) + 4, SmartGetFieldInt(0, hook_static_MenuY) + 4);
-  if (R_IsMenuTabbed) then
-  begin
-    sc := 0;
-    nodeSubList := SmartGetFieldObject(0, hook_static_getCollapsedMenuItems);
-    groupNode := R_getNodeSubHead(nodeSubList);
-    while (groupNode <> 0) do
-    begin
-      subMenu := SmartGetFieldObject(groupNode, hook_MenuGroupNode_getNodeSubListItems);
-      if (subMenu = 0) then
+  MX := Client.MenuX();
+  MY := Client.MenuY();
+  MW := Client.MenuWidth();
+  MH := Client.MenuHeight();
+
+  MenuItems := R_GetMenuItems;
+
+  for I := 0 to High(MenuItems)do
+    for L := 0 to High(Options)do
+      if(Pos(Trim(Lowercase(Options[L])), MenuItems[I]) > 0)then
       begin
-        break;
-      end;
-      menuItemNode := R_getNodeSubHead(subMenu);
-      sca := 0;
-      while (menuItemNode <> 0) do
-      begin
-        Inc(sc);
-        if (sc = index) then
+        Option := MenuItems[I];
+        xOff := RandomRange(0, 4 + Random(Length(Option) * 4 - 4));
+        yOff := 21 + (16 * I) + RandomRange(2, 10);
+        MMouse(MX + xOff, MY + yOff, 0, 0);
+
+        GetMousePos(X, Y);
+        Dimensions := IntToBox(MX, MY, MX + MW, MY + MH);
+        if(Client.MenuOpen() and PointInBox(Point(X, Y), Dimensions))then
         begin
-          R_clickSubMenu(allItems, mc, sca);
+          Result := true;
           Exit;
-        end;
-        lastTwo := menuItemNode;
-        menuItemNode := R_getNodeSubNext(lastTwo);
-        SmartFreeObject(lastTwo);
-        Inc(sca);
+        end else
+          MMouse(MX - 10, MY - 10, 3, 3);
       end;
-      last := groupNode;
-      groupNode := R_getNodeSubNext(last);
-      SmartFreeObject(last);
-      SmartFreeObject(subMenu);
-      SmartFreeObject(menuItemNode);
-      Inc(mc);
-    end;
-    SmartFreeObject(groupNode);
-    SmartFreeObject(nodeSubList);
-  end else
-  begin
-    xOff := RandomRange(4, 4 + Random(Length(item) * 4 - 4));
-    yOff := 21 + (16 * index) + RandomRange(2, 10);
-    Mouse(P.x + xOff, P.y + yOff, 0, 0, True);
-    Wait(RandomRange(80, 100));
-    Result := not R_IsMenuOpen;
+end;
+
+(*
+R_MMouseMenuTabbed
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_MMouseMenuTabbed(Options: TStringArray): Boolean;
+
+Moves the mouse over the first instance of the options provided. Used in
+R_ChooseOptionMulti.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_MMouseMenuTabbed(Options: TStringArray): Boolean;
+var
+  MenuItems: array of TStringArray;
+  I, K, L, X, Y, MX, MY, MW, MH, xOff, yOff: Integer;
+  Option: String;
+  Dimensions: TBox;
+begin
+  Result := False;
+  if(not Client.MenuOpen()) or (not Client.IsMenuTabbed())then
     Exit;
+
+  MenuItems := R_GetMenuItemsTabbed;
+
+  for I := 0 to High(MenuItems)do
+    for K := 0 to High(MenuItems[I])do
+      for L := 0 to High(Options)do
+        if(Pos(Trim(Lowercase(Options[L])), MenuItems[I][K]) > 0)then
+        begin
+          if not Client.MenuOpen() then
+            Exit;
+          MX := Client.MenuX();
+          MY := Client.MenuY();
+          MW := Client.MenuWidth();
+          MH := Client.MenuHeight();
+
+          Option := MenuItems[I][K];
+          xOff := RandomRange(0, 4 + Random(Length(Option) * 4 - 4));
+          yOff := 21 + (16 * I) + RandomRange(2, 10);
+          MMouse(MX + xOff, MY + yOff, 0, 0);
+          GetMousePos(X, Y);
+          Dimensions := IntToBox(MX, MY, MX + MW, MY + MH);
+          if not Client.MenuOpen() or not PointInBox(Point(X, Y), Dimensions)then
+            Exit;
+          wait(100+Random(1000));
+
+          MX := Client.MenuX2();
+          MY := Client.MenuY2();
+          MW := Client.MenuWidth2();
+          MH := Client.MenuHeight2();
+
+          xOff := RandomRange(0, 10);
+          MMouse(MX + xOff, Y, 0, 2);
+          wait(100+Random(100));
+          xOff := RandomRange(0, 4 + Random(Length(Option) * 4 - 4));
+          yOff := 21 + (16 * K) + RandomRange(2, 10);
+          MMouse(MX + xOff, MY + yOff, 0, 0);
+          GetMousePos(X, Y);
+          Dimensions := IntToBox(MX, MY, MX + MW, MY + MH);
+
+          if(Client.MenuOpen() and PointInBox(Point(X, Y), Dimensions))then
+          begin
+            Result := True;
+            Exit;
+          end else
+          begin
+            MX := Client.MenuX();
+            MY := Client.MenuY();
+            MMouse(MX - 10, MY - 10, 3, 3);
+          end;
+        end;
+end;
+
+(*
+R_ChooseOptionMulti
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ChooseOptionMulti(Options: TStringArray): Boolean;
+
+Chooses the first option that is found in a tabbed or non-tabbed menu!
+
+.. note::
+
+  by Drags111
+
+*)
+function R_ChooseOptionMulti(Options: TStringArray): Boolean;
+var
+  X, Y, T: Integer;
+begin
+  Result := False;
+  MarkTime(T);
+  while not Client.MenuOpen() do
+  begin
+    if(TimeFromMark(T) > 500)then
+      Exit;
+    wait(50+Random(50));
   end;
-  case Random(2) of
-    0: R_ChooseOptionMulti(['Cancel']);
-    1: while R_IsMenuOpen do
-       begin
-         MMouse(Random(MSX2), Random(MSY2), 0, 0);
-         Wait(RandomRange(100, 200));
-       end;
+
+  case Client.IsMenuTabbed() of
+    true: Result := R_MMouseMenuTabbed(Options);
+    false: Result := R_MMouseMenu(Options);
+  end;
+
+  if(Client.MenuOpen() and Result)then
+  begin
+    Result := False;
+    GetMousePos(X, Y);
+    Mouse(X, Y, 0, 0, True);
+    MarkTime(T);
+    while Client.MenuOpen() do
+    begin
+      if(TimeFromMark(T) > 3000)then
+        Exit;
+      wait(50+Random(50));
+    end;
+    Result := True;
   end;
 end;
 
-{*******************************************************************************
-function R_ChooseOption(Option : String) : Boolean;
-By: Drags111
-Description: Chooses the option "Option" from the Right Click menu, returns
-             True and clicks if found, else it will Move the Mouse to a random
-             Coord or will select cancel.
-*******************************************************************************}
-function R_ChooseOption(Option : String) : Boolean;
+(*
+R_ChooseOption
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ChooseOption(Option: String): Boolean;
+
+Chooses the option if found in a tabbed or non-tabbed menu!
+
+.. note::
+
+  by Drags111
+
+*)
+function R_ChooseOption(Option: String): Boolean;
 begin
   Result := R_ChooseOptionMulti([Option]);
 end;
 
-{*******************************************************************************
-function R_OptionExists(option: string): Boolean;
-By: Drags111
-Description: Returns true if an option exists in the choose option menu. Choose
-             option menu does NOT have to be open.
-*******************************************************************************}
-function R_OptionExists(Option : string) : Boolean;
+(*
+R_OptionExistsMulti
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_OptionExistsMulti(Options: TStringArray): Boolean;
+
+Returns true if one of the options in the Options array exists. Menu does
+NOT have to be open for it to work.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_OptionExistsMulti(Options: TStringArray): Boolean;
 var
-  i: integer;
-  MenuOptions: TStringArray;
+  MenuItems: TStringArray;
+  MenuItemsTabbed: array of TStringArray;
+  I, K, L: Integer;
 begin
   Result := False;
-  MenuOptions := R_GetMenuText;
-
-  // Cstrike added this block
-  if (high(MenuOptions) < 0) then
-  begin
-    Writeln('Warning: High array size for MenuOptions is < 0, aborting R_ChooseOption to prevent crash');
+  if(Client.MenuOptionCount() <= 0)then
     Exit;
-  end;
-
-  for i := High(MenuOptions) downto 0 do
+  if(Client.IsMenuTabbed())then
   begin
-    Result := (Pos(Option, MenuOptions[i]) > 0);
-    if Result then Exit;
+    MenuItemsTabbed := R_GetMenuItemsTabbed;
+    for I := 0 to High(MenuItemsTabbed)do
+      for K := 0 to High(MenuItemsTabbed[I])do
+        for L := 0 to High(Options)do
+          if(Pos(Trim(Lowercase(Options[L])), MenuItemsTabbed[I][K]) > 0)then
+          begin
+            Result := True;
+            Exit;
+          end;
+  end else
+  begin
+    MenuItems := R_GetMenuItems;
+    for I := 0 to High(MenuItems)do
+      for L := 0 to High(Options) do
+        if(Pos(Trim(Lowercase(Options[L])), MenuItems[I]) > 0)then
+        begin
+          Result := True;
+          Exit;
+        end;
   end;
 end;
 
-{*******************************************************************************
-function R_GetUpText: string;
-By: Drags111
-Description: Gets the UpText (the text in the upper left corner of RS).
-*******************************************************************************}
+(*
+R_OptionExists
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_OptionExists(Option: String): Boolean;
+
+Returns true if the option exists. Menu does NOT have to be open for it to work.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_OptionExists(Option: String): Boolean;
+begin
+  Result := R_OptionExistsMulti([Option]);
+end;
+
+(*
+R_GetUpText
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetUpText: string;
+
+Gets the UpText (the text in the upper left corner of RS).
+
+.. note::
+
+  by Drags111
+
+*)
 function R_GetUpText: string;
 var
-  MenuOptions: TStringArray;
+  MenuItems: TStringArray;
+  MenuItemsTabbed: array of TStringArray;
   First: String;
+  MoreOptions, I, K: Integer;
 begin
-  MenuOptions := R_GetMenuText;
+  case Client.IsMenuTabbed() of
+    true: begin
+      MenuItemsTabbed := R_GetMenuItemsTabbed;
+      First := MenuItemsTabbed[0][0];
+      for I := 0 to High(MenuItemsTabbed)do
+        MoreOptions := MoreOptions + Length(MenuItemsTabbed[I]);
+    end;
+    false: begin
+      MenuItems := R_GetMenuItems;
+      First := MenuItems[0];
+      for I := 0 to High(MenuItems)do
+        Inc(MoreOptions);
+    end;
+  end;
+  Result := Trim(Lowercase(First));
+
   try
-    First := Trim(MenuOptions[0]);
-    Result := First;
-    if (Length(MenuOptions) > 1) and (Result <> '') then
-      Result := Result+' / '+inttostr(Length(MenuOptions))+' more options';
+    if(MoreOptions > 2) and (Result <> '')then
+      Result := Result+' / '+inttostr(MoreOptions-2)+' more options';
   except
-    WriteLn('R_GetUptext failed!');
+    R_Debug('Exception encountered.', 'R_GetUpText');
     Result := '';
   end;
 end;
 
-{*******************************************************************************
-function R_IsUpTextMulti(UpText: TStringArray): Boolean;
-By: Drags111
-Description: Returns true if any instance of the UpText is found.
-*******************************************************************************}
+(*
+R_IsUpTextMulti
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_IsUpTextMulti(UpText: TStringArray): Boolean;
+
+Returns true if any instance of the UpText is found.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_IsUpTextMulti(UpText: TStringArray): Boolean;
 var
-  i,t: integer;
+  I, T: integer;
   UT: String;
 begin
-  t := 0;
-  UT := R_GetUpText;
-  if (Length(UT) = 0) then
-  repeat
-    R_Debug('Text length is 0, something is wrong. Retrying.','R_IsUpTextMulti');
-    Wait(1+Random(10));
+  Result := False;
+  MarkTime(T);
+  while(UT = '')do
+  begin
     UT := R_GetUpText;
-    Inc(t);
-  until (Length(UT) > 0) or (t > 9);
+    if(TimeFromMark(T) > 1000)then
+      Exit;
+    Wait(50+Random(50));
+  end;
   for I := 0 to High(UpText) do
   begin
-    Result := Pos(Lowercase(UpText[I]), Lowercase(UT)) > 0;
+    Result := Pos(Trim(Lowercase(UpText[I])), UT) > 0;
     if Result then Exit;
   end;
 end;
 
-{*******************************************************************************
-function R_IsUpText(UpText: string): Boolean;
-By: Drags111
+(*
+R_IsUpText
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_IsUpText(UpText: string): Boolean;
+
 Description: Returns true if UpText is found.
-*******************************************************************************}
+
+.. note::
+
+  by Drags111
+
+*)
 function R_IsUpText(UpText: string): Boolean;
 begin
   Result := R_IsUpTextMulti([UpText]);
 end;
 
-{*******************************************************************************
-function R_WaitOptionMulti(S: TStringArray; Time: Integer): Boolean;
-By: Naike
-Description: Waits for a string and selects it
-*******************************************************************************}
+(*
+R_WaitOptionMulti
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitOptionMulti(S: TStringArray; Time: Integer): Boolean;
+
+Waits to select an option, and if it finds it, selects it
+
+.. note::
+
+  by Naike
+
+*)
 function R_WaitOptionMulti(S: TStringArray; Time: Integer): Boolean;
 var
   T: Integer;
@@ -576,7 +544,7 @@ begin
   T := GetSystemTime + Time;
   while (GetSystemTime < T) do
   begin
-    if r_ChooseOptionMulti(S) then
+    if R_ChooseOptionMulti(S) then
     begin
       Result := True;
       Exit;
@@ -585,21 +553,41 @@ begin
   end;
 end;
 
-{*******************************************************************************
-function R_WaitOption(S: String; Time: Integer): Boolean;
-By: Naike
-Description: Waits for a string and selects it
-*******************************************************************************}
+(*
+R_WaitOption
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitOption(S: String; Time: Integer): Boolean;
+
+Waits to select an option, and if it finds it, selects it
+
+.. note::
+
+  by Naike
+
+*)
 function R_WaitOption(S: String; Time: Integer): Boolean;
 begin
   Result := r_WaitOptionMulti([S], Time);
 end;
 
-{*******************************************************************************
-function R_WaitUpTextMulti(S: TStringArray; Time: Integer): Boolean;
-By: Naike
-Description: Waits for a uptext
-*******************************************************************************}
+(*
+R_WaitUpTextMulti
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitUpTextMulti(S: TStringArray; Time: Integer): Boolean;
+
+Waits for an uptext in the UpText array.
+
+.. note::
+
+  by Naike
+
+*)
 function R_WaitUpTextMulti(S: TStringArray; Time: Integer): Boolean;
 var
   T: Integer;
@@ -608,7 +596,7 @@ begin
   T := GetSystemTime + Time;
   while (GetSystemTime < T) do
   begin
-    if r_IsUpTextMulti(S) then
+    if R_IsUpTextMulti(S) then
     begin
       Result := True;
       Exit;
@@ -617,11 +605,21 @@ begin
   end;
 end;
 
-{*******************************************************************************
-function R_WaitUpText(S: String; Time: Integer): Boolean;
-By: Naike
-Description: Waits for a uptext
-*******************************************************************************}
+(*
+R_WaitUpText
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitUpText(S: String; Time: Integer): Boolean;
+
+Waits for the UpText
+
+.. note::
+
+  by Naike
+
+*)
 function R_WaitUpText(S: String; Time: Integer): Boolean;
 begin
   Result := r_WaitUpTextMulti([S], Time);

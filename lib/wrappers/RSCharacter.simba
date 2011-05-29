@@ -8,10 +8,8 @@ function RSCharacter_GetTile(Obj: Integer): TTile;
 var
   BaseX, BaseY: Integer;
 begin
-  BaseX := SmartGetFieldInt(0, hook_static_BaseX);
-  BaseY := SmartGetFieldInt(0, hook_static_BaseY);
-  Result.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
-  Result.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
+  Result.X := Client.BaseX() + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
+  Result.Y := Client.BaseY() + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
 end;
 
 function RSCharacter_GetLoopCycleStatus(Obj: Integer): Integer;
@@ -58,8 +56,7 @@ function RSCharacter_GetInCombat(Obj: Integer): Boolean;
 var
   LoopCycle: Integer;
 begin
-  LoopCycle := SmartGetFieldInt(0, hook_static_LoopCycle);
-  Result := LoopCycle < RSCharacter_GetLoopCycleStatus(Obj);
+  Result := Client.LoopCycle() < RSCharacter_GetLoopCycleStatus(Obj);
 end;
 
 function RSCharacter_GetOrientation(Obj: Integer): Integer;

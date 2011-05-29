@@ -78,7 +78,7 @@ Returns true if the interface is valid.
 *)
 function R_ValidInterface(Index: Integer): Boolean;
 begin
-  Result := SmartGetFieldArrayBoolean(0, hook_static_ValidInterfaces, Index);
+  Result := Client.ValidInterfaces(Index);
 end;
 
 (*
@@ -101,7 +101,7 @@ var
   Interfaces, IL, I, C: integer;
 begin
   try
-    Interfaces := SmartGetFieldObject(0, hook_static_GetInterfaces);
+    Interfaces := Client.Interfaces();
     IL := SmartGetFieldArraySize(Interfaces, '', 1);
     SetLength(Result, IL);
 
@@ -140,7 +140,7 @@ var
   Interfaces, C, Child: Integer;
 begin
   try
-    Interfaces := SmartGetFieldObject(0, hook_static_GetInterfaces);
+    Interfaces := Client.Interfaces();
     C := 0;
     Child := R_GetChildRef(ParentI, C);
     while not (SmartIsNull(Child)) do

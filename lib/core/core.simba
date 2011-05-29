@@ -77,10 +77,11 @@ begin
   RevHook := R_LatestRevision('hookrevision');
   If (ClientRev <= ClientVersion) and (RevHook <= HookRev) then
   begin
-    if(SmartGetFieldInt(0, hook_static_LoginIndex) = -1) then
+    if(Client.LoginIndex() = -1) then
     begin
       WriteLn('[Reflection] No new hooks have been uploaded yet; please be patient!');
-      TerminateScript;
+      if not R_ContinueIfOutdated then
+        TerminateScript;
     end;
   end else
   begin
@@ -224,7 +225,7 @@ var
   SettingArray, Data, DL, i: Integer;
 begin
   try
-    SettingArray := SmartGetFieldObject(0, hook_static_GetSettings);
+    SettingArray := Client.Settings();
     Data := SmartGetFieldObject(SettingArray, hook_settingarray_GetData);
 
     DL := SmartGetFieldArraySize(Data, '', 1);
@@ -285,6 +286,56 @@ function R_LoggedIn: Boolean;
 var
   LoginIndex: Integer;
 begin
-  LoginIndex := SmartGetFieldInt(0, hook_static_LoginIndex);
+  LoginIndex := Client.LoginIndex();
   Result := (LoginIndex = 10) or (LoginIndex = 11);
+end;
+
+(*
+R_GetMyPos
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMyPos: TTile;
+
+Returns your current tile.
+
+.. note::
+
+  by Benland100
+
+*)
+function R_GetMyPos: TTile;
+var
+  me: Integer;
+begin
+  me := Client.MyPlayer();
+  Result.x := Client.BaseX() + SmartGetFieldInt(me, hook_animable_PixelX) / 512;
+  Result.y := Client.BaseY() + SmartGetFieldInt(me, hook_animable_PixelY) / 512;
+  R_FreeObject(me);
+end;
+
+(*
+R_GetMyLocPos
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMyLocPos: TTile;
+
+Returns your local position.
+
+.. note::
+
+  by Benland100
+
+*)
+function R_GetMyLocPos: TTile;
+var
+  me: Integer;
+begin
+  me := Client.MyPlayer();
+  Result.x := (SmartGetFieldInt(me, hook_animable_PixelX) - Client.BaseX()) / 512;
+  Result.y := (SmartGetFieldInt(me, hook_animable_PixelY) - Client.BaseY()) / 512;
+  R_FreeObject(me);
 end;
