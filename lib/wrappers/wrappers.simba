@@ -11,4 +11,4 @@ Includes the `wrapper` package
 {$include_once ./RSChild.simba}
 {$include_once ./RSCharacter.simba}
 {$include_once ./RSPlayer.simba}
-{$include_once ./RSNPC.simba}
+//{$include_once ./RSNPC.simba}

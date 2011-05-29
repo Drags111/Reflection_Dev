@@ -24,12 +24,12 @@ end;
 
 function RSCharacter_GetWalkQueueX(Obj: Integer): Integer;
 begin
-  Result := SmartGetFieldInt(Obj, hook_character_WalkQueueX);
+  Result := SmartGetFieldArrayInt(Obj, hook_character_WalkQueueX, 0);
 end;
 
 function RSCharacter_GetWalkQueueY(Obj: Integer): Integer;
 begin
-  Result := SmartGetFieldInt(Obj, hook_character_WalkQueueY);
+  Result := SmartGetFieldArrayInt(Obj, hook_character_WalkQueueY, 0);
 end;
 
 function RSCharacter_GetMotion(Obj: Integer): Integer;
