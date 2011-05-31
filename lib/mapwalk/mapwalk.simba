@@ -1,56 +1,109 @@
-//------------------------------------------------------------------\\
-//--               Simba Reflection Library                       --||
-//--                    MMWalk Routines                           --||
-//------------------------------------------------------------------//
+(*
+MapWalk
+=======
 
-{*******************************************************************************
+Contains routines for walking the runescape minimap.
+
+*)
+
+(*
+R_GetMinimapAngleDeg
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMinimapAngleDeg: extended;
+
+Returns the current Map angle in degrees. North: 0 deg, increases in the
+counter clockwise direction
+
+.. note::
+
+  by BenLand100
+
+*)
 function R_GetMinimapAngleDeg: extended;
-By: BenLand100
-Description: Returns the current Map angle in degrees. North: 0 deg, increases
-             in the counter clockwise direction
-*******************************************************************************}
-function R_GetMinimapAngleDeg: extended;
 begin
-  result:= SmartGetFieldFloat(0, hook_static_MapAngle) * 45.0 / 2048.0;
+  result:= Client.MapAngle() * 45.0 / 2048.0;
 end;
 
-{*******************************************************************************
+(*
+R_GetMinimapAngleRad
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMinimapAngleRad: extended;
+
+Returns the current Map angle in radians. North: 0 deg, increases in the
+counter clockwise direction
+
+.. note::
+
+  by BenLand100
+
+*)
 function R_GetMinimapAngleRad: extended;
-By: BenLand100
-Description: Returns the current map angle in radians. North: 0 rad, increases
-             in the counter clockwise direction
-*******************************************************************************}
-function R_GetMinimapAngleRad: extended;
 begin
-  result:= SmartGetFieldFloat(0, hook_static_MapAngle) * pi / 8192.0;
+  result:= Client.MapAngle() * pi / 8192.0;
 end;
 
-{*******************************************************************************
+(*
+R_GetCamPosX
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetCamPosX: integer;
+
+Camera Position X
+
+.. note::
+
+  by lordsaturn
+
+*)
 function R_GetCamPosX: integer;
-By: lordsaturn
-Description: Camera Position X
-*******************************************************************************}
-function R_GetCamPosX: integer;
 begin
-  Result := SmartGetFieldInt(0, hook_static_CamPosX);
+  Result := Client.CamPosX();
 end;
 
-{*******************************************************************************
-function R_GetCamPosY: integer;
-By: lordsaturn
-Description: Camera Position Y
-*******************************************************************************}
+(*
+R_GetCamPosY
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetCamPosY: integer;
+
+Camera Position Y
+
+.. note::
+
+  by lordsaturn
+
+*)
 function R_GetCamPosY: integer;
 begin
-  Result := SmartGetFieldInt(0, hook_static_CamPosY);
+  Result := Client.CamPosY();
 end;
 
-{*******************************************************************************
-function R_TileToMM(tile: TTile): TPoint;
-By: BenLand100
-Description: Converts the global tile position to a screen location on the
-             minimap, taking map rotation into account.
-*******************************************************************************}
+(*
+R_TileToMM
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_TileToMM(tile: TTile): TPoint;
+
+Converts the global tile position to a screen location on the minimap, taking
+map rotation into account.
+
+.. note::
+
+  by BenLand100
+
+*)
 function R_TileToMM(tile: TTile): TPoint;
 var
   angle, x, y: extended;
@@ -64,11 +117,21 @@ begin
    result.y:= round(y*cos(angle) - x*sin(angle)) + 87;
 end;
 
-{*******************************************************************************
-function R_TileOnMM(Tile: TTile): boolean;
-By: Drags111
-Description: Checks if the Tile is on the MM.
-*******************************************************************************}
+(*
+R_TileOnMM
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_TileOnMM(Tile: TTile): boolean;
+
+Checks if the Tile is on the MM.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_TileOnMM(Tile: TTile): boolean;
 var
   P: TPoint;
@@ -77,25 +140,45 @@ begin
   Result := rs_OnMinimap(P.x, P.y);
 end;
 
-{*******************************************************************************
-function R_GetDest: TTile;
-By: Drags111
-Description: Results the tile of the Flag destination.
-*******************************************************************************}
+(*
+R_GetDest
+~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetDest: TTile;
+
+Returns the tile of the Flag destination.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_GetDest: TTile;
 var
   xDest, yDest: integer;
 begin
-  xDest := SmartGetFieldInt(0, hook_static_DestX);
-  yDest := SmartGetFieldInt(0, hook_static_DestY);
+  xDest := Client.DestX();
+  yDest := Client.DestY();
   Result := R_Tile(xDest, yDest);
 end;
 
-{*******************************************************************************
-function R_FlagExists: Boolean;
-By: Drags111
-Description: Results true if there is a flag.
-*******************************************************************************}
+(*
+R_FlagExists
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FlagExists: Boolean;
+
+Returns true if there is a flag.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_FlagExists: Boolean;
 var
   xFlag: LongInt;
@@ -104,21 +187,41 @@ begin
   Result := (xFlag) > -1;
 end;
 
-{*******************************************************************************
-function R_DistanceTile(T, TT: TTile): Integer;
-By: mormonman
-Description: Returns the distance between two tiles.
-*******************************************************************************}
+(*
+R_DistanceTile
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_DistanceTile(T, TT: TTile): Integer;
+
+Returns the distance between two tiles.
+
+.. note::
+
+  by mormonman
+
+*)
 function R_DistanceTile(T, TT: TTile): Integer;
 begin
   Result := Distance(T.x, T.y, TT.X, TT.Y);
 end;
 
-{*******************************************************************************
-function R_DistanceFromTile(TheTile: TTile): Integer;
-By: Widget
-Description: Returns the distance between your player and the tile.  (Tiles)
-*******************************************************************************}
+(*
+R_DistanceFromTile
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_DistanceFromTile(TheTile: TTile): Integer;
+
+Returns the distance between your player and the tile.
+
+.. note::
+
+  by Widget
+
+*)
 function R_DistanceFromTile(TheTile: TTile): Integer;
 var
   MyPos: TTile;
@@ -127,11 +230,21 @@ begin
   Result := R_DistanceTile(MyPos, TheTile);
 end;
 
-{*******************************************************************************
-function R_DistanceFromFlag: Integer;
-By: Drags111
-Description: Results the distance your char is from the flag.
-*******************************************************************************}
+(*
+R_DistanceFromFlag
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_DistanceFromFlag: Integer;
+
+Returns the distance your char is from the flag.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_DistanceFromFlag: Integer;
 var
   MyPos, FlagPos: TTile;
@@ -146,23 +259,42 @@ begin
   SmartFreeObject(me);
 end;
 
-{*******************************************************************************
-function R_RandomizeTile(Tile: TTile; rX, rY: Integer): TTile;
-By: lordsaturn
-Description: Randomizes a tile using rX and rY.
-*******************************************************************************}
+(*
+R_RandomizeTile
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_RandomizeTile(Tile: TTile; rX, rY: Integer): TTile;
+
+Randomizes a tile using rX and rY.
+
+.. note::
+
+  by lordsaturn
+
+*)
 function R_RandomizeTile(Tile: TTile; rX, rY: Integer): TTile;
 begin
   Result := Point(RandomRange(Tile.X-rX, Tile.X+rX),
                    RandomRange(Tile.Y-rY, Tile.Y+rY));
 end;
 
-{*******************************************************************************
-function R_MakeCompass(Dir: string): Boolean;
-By: Timer
-Description: MakesCompass to degress set (Degress or n, e, s, w).
-Uses reflection.
-*******************************************************************************}
+(*
+R_MakeCompass
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_MakeCompass(setAngle: Variant): Boolean;
+
+MakesCompass to degress set (Degress or n, e, s, w).
+
+.. note::
+
+  by Timer
+
+*)
 function R_MakeCompass(setAngle: Variant): Boolean;
 var
   StartAngle, Angle, DirectionDeg, i: Extended;
@@ -215,12 +347,22 @@ begin
   Result := ((MinE(Abs(Angle - DirectionDeg), MinE(Abs(Angle - (DirectionDeg + 360)), Abs((Angle + 360) - DirectionDeg)))) <= (7.0 + i));
 end;
 
-{*******************************************************************************
-function R_WaitToMove(Timeout: integer): Boolean;
-By: lordsaturn
-Description: Waits for the local player to move with a timeout. Returns true if
-moved, false if timed out.
-*******************************************************************************}
+(*
+R_WaitToMove
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitToMove(Timeout: integer): Boolean;
+
+Waits for the local player to move with a timeout. Returns true if moved,
+false if timed out.
+
+.. note::
+
+  by lordsaturn
+
+*)
 function R_WaitToMove(Timeout: integer): Boolean;
 var
   a, Speed: integer;
@@ -236,11 +378,21 @@ begin
   Result := True;
 end;
 
-{*******************************************************************************
-Procedure R_Flag;
-By: ??
-Description: Waits Till A COMPLETE Stop. (Not dependant on Flag hooks)
-*******************************************************************************}
+(*
+R_Flag
+~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_Flag;
+
+Waits Till A COMPLETE Stop. (Not dependant on Flag hooks)
+
+.. note::
+
+  by Drags111
+
+*)
 procedure R_Flag;
 
 var
@@ -260,11 +412,21 @@ begin
   Wait(500 + Random(50));
 end;
 
-{*******************************************************************************
-procedure R_FFlag(Distance: Integer);
-By: ZephyrsFury
-Description: Similar to the original except it uses Reflection.
-*******************************************************************************}
+(*
+R_FFlag
+~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_FFlag(Dist: Integer);
+
+Waits till you are within the distance specified from the flag.
+
+.. note::
+
+  by ZephyrsFury
+
+*)
 procedure R_FFlag(Dist: Integer);
 
 var
@@ -302,11 +464,21 @@ begin
   end;
 end;
 
-{*******************************************************************************
-function R_WalkToTileEx(Tile: TTile; Randomness, FlagDist: Integer; UseFFlag: Boolean): Boolean;
-By: Wizzup, TheGuyWhoGotOn, and Drags111
-Description: Walks to the tile using minimap.
-*******************************************************************************}
+(*
+R_WalkToTileEx
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WalkToTileEx(Tile: TTile; Randomness, FlagDist: Integer; UseFFlag: Boolean): Boolean;
+
+Walks to the tile using minimap.
+
+.. note::
+
+  by Wizzup, TheGuyWhoGotOn, and Drags111
+
+*)
 function R_WalkToTileEx(Tile: TTile; Randomness, FlagDist: Integer; UseFFlag: Boolean): Boolean;
 var
    wTile: TPoint;
@@ -324,11 +496,21 @@ begin
   Result := (GetSystemTime - t) < 60000;
 end;
 
-{*******************************************************************************
-function R_WalkToTile(Tile: TPoint; Randomness, FlagDist: Integer): Boolean;
-By: Drags111
-Description: Walks to the tile using minimap.
-*******************************************************************************}
+(*
+R_WalkToTile
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WalkToTile(Tile: TPoint; Randomness, FlagDist: Integer): Boolean;
+
+Walks to the tile using minimap.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_WalkToTile(Tile: TPoint; Randomness, FlagDist: Integer): Boolean;
 begin
   Result := R_WalkToTileEx(Tile, Randomness, FlagDist, true);
@@ -346,6 +528,28 @@ Description: Walks the Path of TTileArray from start to finish in a human-like
   Randomness: The amount of variant you want when walking to tiles.
   Inverted: If you want it to reverse the path (Walk from end to start).
 *******************************************************************************}
+(*
+R_WalkPathEx
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WalkPathEx(Path: TTileArray; Randomness: Integer; Inverted: Boolean): Boolean;
+
+Walks the Path of TTileArray from start to finish in a human-like style. It
+looks for the next tile in path and clicks it as soon as it comes up on the
+screen, just like a legit player would. This does make it more beneficial to
+use paths where the tiles are closer together, so it seems more active. All
+personal preference.
+-Path: The array of Tiles to use as the path.
+-Randomness: The amount of variant you want when walking to tiles.
+-Inverted: If you want it to reverse the path (Walk from end to start).
+
+.. note::
+
+  by Drags111
+
+*)
 function R_WalkPathEx(Path: TTileArray; Randomness: Integer; Inverted: Boolean): Boolean;
 var
   Index, Timer, Tries: Integer;
@@ -385,23 +589,42 @@ begin
   R_Flag;
 end;
 
-{*******************************************************************************
-function R_WalkPath(Tiles: TTileArray): boolean;
-By: Drags111
-Description: Walks the tile path. Looks like an ugly function, but it works
-             Beautifully.
-*******************************************************************************}
+(*
+R_WalkPath
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WalkPath(Path: TTileArray): boolean;
+
+Walks the path. See WalkToPathEX for more info.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_WalkPath(Path: TTileArray): boolean;
 begin
   Result := R_WalkPathEx(Path, 3, false);
 end;
 
-{*******************************************************************************
-Function R_WindPath(xs, ys, xe, ye, gravity, wind, minWait, maxWait, maxStep, targetArea: extended): TPointArray;
-By: JuKKa
-Description: Generates a blind path of points!
-*******************************************************************************}
-Function R_WindPath(xs, ys, xe, ye, gravity, wind, minWait, maxWait, maxStep, targetArea: extended): TPointArray;
+(*
+R_WindPath
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WindPath(xs, ys, xe, ye, gravity, wind, minWait, maxWait, maxStep, targetArea: extended): TPointArray;
+
+Generates a blind path of points!
+
+.. note::
+
+  by JuKKa
+
+*)
+function R_WindPath(xs, ys, xe, ye, gravity, wind, minWait, maxWait, maxStep, targetArea: extended): TPointArray;
 var
   veloX, veloY, windX, windY, veloMag, dist, randomDist, lastDist, step: extended;
   lastX, lastY: integer;
@@ -452,26 +675,41 @@ begin
   end;
 end;
 
-{*******************************************************************************
-Function R_WebWalk(T: TTile): Boolean;
-By: JuKKa
-Description: Walks blindly using WindPath!
-*******************************************************************************}
-Function R_WebWalk(T: TTile): Boolean;
-Var
-  I: Integer;
+(*
+R_WindWalk
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WindWalk(T: TTile): Boolean;
+
+Walks blindly using WindPath! Does NOT consider walls or obstacles.
+
+.. note::
+
+  by JuKKa
+
+*)
+function R_WindWalk(T: TTile): Boolean;
+var
+  I, Tries: Integer;
   M, P: TPoint;
   CTRLPoints: TPointArray;
-Begin
-  P := R_TileToPoint(T);
-  Repeat
+begin
+  P := T;
+  repeat
     M := R_GetMyPos;
     CtrlPoints := r_WindPath(M.x, M.y, P.X, P.Y, 5.0, 2.5, 0.0, 0.0, 4.5, 2.5);
-    For I:= High(CtrlPoints) DownTo 0 Do
-      if R_WalkToTile(R_Tile(CtrlPoints[i].x, CtrlPoints[i].y),0, 10) Then
-      Begin
+    Inc(Tries);
+    if(Tries > 20)then
+    begin
+      R_Debug('Failed more than 20 times', 'R_WebWalk');
+    end;
+    for I:= High(CtrlPoints) downto 0 do
+      if R_WalkToTile(R_Tile(CtrlPoints[i].x, CtrlPoints[i].y),0, 10) then
+      begin
         Result := I = High(CtrlPoints);
         Break;
-      End;
-  Until( Result );
-End;
+      end;
+  until(Result);
+end;

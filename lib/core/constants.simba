@@ -6,8 +6,7 @@ Contains all globally used constants and variables.
 
 *)
 
-{ const NULL_INT, NULL_STRING;
-  Description: Our constants for "null" values. }
+{ Constants used throughout the include. }
 const
   NULL_INT        = -1;
   NULL_STRING     = '';
@@ -225,6 +224,22 @@ begin
   R_UseDebug := True;
 end;
 
+(*
+R_Debug
+~~~~~~~
+
+.. code-block:: pascal
+
+    Procedure R_Debug(Debug, InTags: String);
+
+Writes debug notes if R_UseDebug is true. (By default it is true, but you can
+turn it off by setting R_UseDebug to false AFTER SetupReflection.
+
+.. note::
+
+  by Drags111
+
+*)
 Procedure R_Debug(Debug, InTags: String);
 begin
   if not R_UseDebug then Exit;

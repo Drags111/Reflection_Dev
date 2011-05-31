@@ -1,8 +1,7 @@
-//------------------------------------------------------------------\\
-//--               Simba Reflection Library                       --||
-//--                    Tiles Routines                            --||
-//------------------------------------------------------------------//
-{==============================================================================
+(*
+Tiles
+=====
+
 This file relates to Map and Screen locations and converting them to Tiles. The
 methods and formulas here relate to hooks into the Runescape Client's rendering
 system, and therefore a brief description about how those work will help a lot.
@@ -36,24 +35,45 @@ perfectly flat. Tiles here have a size of 4x4 pixels, and the map is rotated
 around your current position by an angle stored in MapAngle. The angle is in
 the range [0,16384], with 0 being North and increasing counter-clockwise. The
 math for converting a Tile into a "minimap" coordinate is provided in TileToMM.
-==============================================================================}
 
-{*******************************************************************************
-function R_Tile(X, Y: Integer): TTile;
-by: Drags111
-Description: Integers to a TTile
-*******************************************************************************}
+*)
+
+(*
+R_Tile
+~~~~~~
+
+.. code-block:: pascal
+
+    function R_Tile(X, Y: Integer): TTile;
+
+Converts two integers to a TTile
+
+.. note::
+
+  by Drags111
+
+*)
 function R_Tile(X, Y: Integer): TTile;
 begin
   Result.X := X;
   Result.Y := Y;
 end;
 
-{*******************************************************************************
-function R_NULL_BOX: TBox;
-by: Drags111
-Description: Nulls a TBox
-*******************************************************************************}
+(*
+NULL_BOX
+~~~~~~~~
+
+.. code-block:: pascal
+
+    function NULL_BOX: TBox;
+
+Nulls a TBox
+
+.. note::
+
+  by Drags111
+
+*)
 function NULL_BOX: TBox;
 begin
   Result.X1 := NULL_INT;
@@ -62,21 +82,41 @@ begin
   Result.Y2 := NULL_INT;
 end;
 
-{*******************************************************************************
-function R_NULL_TILE: TTile;
-by: Drags111
-Description: Nulls a TTile
-*******************************************************************************}
+(*
+NULL_TILE
+~~~~~~~~~
+
+.. code-block:: pascal
+
+    function NULL_TILE: TTile;
+
+Nulls a TTile
+
+.. note::
+
+  by Drags111
+
+*)
 function NULL_TILE: TTile;
 begin
   Result := R_Tile(NULL_INT, NULL_INT);
 end;
 
-{*******************************************************************************
-procedure R_UpdateRenderInfo(var Render : TRender; var RenderData : TRenderData);
-By: Benland100
-Description: Fills a pair of TRender and TRenderData structures with data.
-*******************************************************************************}
+(*
+R_UpdateRenderInfo
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_UpdateRenderInfo(var Render : TRender; var RenderData : TRenderData);
+
+Fills a pair of TRender and TRenderData structures with data.
+
+.. note::
+
+  by Benland100
+
+*)
 procedure R_UpdateRenderInfo(var Render : TRender; var RenderData : TRenderData);
 var
   tk, vp, t: Integer;
@@ -116,11 +156,21 @@ begin
   end;
 end;
 
-{*******************************************************************************
-procedure R_EmptyRenderInfo(var Render : TRender; var RenderData : TRenderData);
-By: Drags111
-Description: Empties a pair of TRender and TRenderData structures.
-*******************************************************************************}
+(*
+R_EmptyRenderInfo
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_EmptyRenderInfo(var Render : TRender; var RenderData : TRenderData);
+
+Empties a pair of TRender and TRenderData structures.
+
+.. note::
+
+  by Drags111
+
+*)
 procedure R_EmptyRenderInfo(var Render : TRender; var RenderData : TRenderData);
 begin
   with RenderData do
@@ -151,12 +201,22 @@ begin
   end;
 end;
 
-{*******************************************************************************
-function R_GetTileHeight(tile: TTile) : integer;
-By: BenLand100
-Description: finds the average height of the global tile provided the tile is in
-             the current loading area and on a loaded plane.
-*******************************************************************************}
+(*
+R_GetTileHeight
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetTileHeight(tile: TTile) : integer;
+
+Finds the average height of the global tile provided the tile is in the current
+loading area and on a loaded plane.
+
+.. note::
+
+  by BenLand100
+
+*)
 function R_GetTileHeight(tile: TTile) : integer;
 var
   x, y, CurPlane, PlaneInstance : integer;
@@ -181,32 +241,22 @@ begin
   R_FreeObject(PlaneInstance);
 end;
 
-{*******************************************************************************
-function R_PointToTile(P: TPoint): TTile;
-By: Drags111
-Description: Converts a TPoint to a TTile.
-*******************************************************************************}
-function R_PointToTile(P: TPoint): TTile;
-begin
-  Result := R_Tile(P.x, P.y);
-end;
+(*
+R_World3DToScreen
+~~~~~~~~~~~~~~~~~
 
-{*******************************************************************************
-function R_TileToPoint(T: TTile): TPoint;
-By: Drags111
-Description: Converts a TTile to a TPoint.
-*******************************************************************************}
-function R_TileToPoint(T: TTile): TPoint;
-begin
-  Result := Point(T.x, T.y);
-end;
+.. code-block:: pascal
 
-{*******************************************************************************
+    function R_World3DToScreen(xx, yy, zz: Extended): TPoint;
+
+Converts a RS 3D point to a coordinate on the screen.
+
+.. note::
+
+  by Benland100
+
+*)
 function R_World3DToScreen(xx, yy, zz: Extended): TPoint;
-By: Benland100/mormonman
-Description: Converts a RS 3D point to a coordinate on the screen.
-*******************************************************************************}
-function R_World3DToScreen(xx, yy, zz: Extended): TPoint;//modified TileToMSEx
 var
   rd : TRenderData;
   r : TRender;
@@ -239,14 +289,24 @@ begin;
   end;
 end;
 
-{*******************************************************************************
-function R_TileToMSEx(tile: TTile; offx, offy : extended; height : integer): TPoint;
-By: BenLand100/mormonman
-Description: Converts the global tile position, a position on that tile in the
-             range [(0,0), (1,1)] with (0.5, 0.5) being center and a height above
-             ground level to a screen location on the main screen, taking camera
-             position and rotation into account.
-*******************************************************************************}
+(*
+R_TileToMSEx
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_TileToMSEx(tile: TTile; offx, offy : extended; height : integer) : TPoint;
+
+Converts the global tile position, a position on that tile in the range
+[(0,0), (1,1)] with (0.5, 0.5) being center and a height above ground level to
+a screen location on the main screen, taking camera position and rotation into
+account.
+
+.. note::
+
+  by Benland100
+
+*)
 function R_TileToMSEx(tile: TTile; offx, offy : extended; height : integer) : TPoint;
 var
   pixelX, pixelY, pixelZ: extended;
@@ -262,44 +322,84 @@ begin
   end;
 end;
 
-{*******************************************************************************
-function R_TileToMS(tile: TTile; height : integer): TPoint;
-By: BenLand100
-Description: Converts the center of a global tile position and a height above
-             ground level to a screen location on the main screen, taking camera
-             position and rotation into account.
-*******************************************************************************}
+(*
+R_TileToMS
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_TileToMS(tile: TTile; height : integer): TPoint;
+
+Converts the center of a global tile position and a height above ground level
+to a screen location on the main screen, taking camera position and rotation
+into account.
+
+.. note::
+
+  by BenLand100
+
+*)
 function R_TileToMS(TheTile: TTile; height : integer) : TPoint;
 begin
   result:= R_TileToMSEx(TheTile, 0.5, 0.5, height);
 end;
 
-{*******************************************************************************
-Function R_TileOnMS(TileX, TileY, Height : Integer) : Boolean;
-By: Drags111
-Description: Results true if the Tile is on the MS.
-*******************************************************************************}
+(*
+R_TileOnMS
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_TileOnMS(TheTile: TTile; Height : Integer) : Boolean;
+
+Results true if the Tile is on the MS.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_TileOnMS(TheTile: TTile; Height : Integer) : Boolean;
 begin
   Result := PointInBox(R_TileToMS(TheTile, Height), IntToBox(MSX1, MSY1, MSX2, MSY2));
 end;
 
-{*******************************************************************************
-function R_TileOnMSEx(Tile : TTile; offX, offY: extended; Height : Integer) : Boolean;
-By: Drags111
-Description: Results true if the tile is on the MS.
-*******************************************************************************}
+(*
+R_TileOnMSEx
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_TileOnMSEx(T: TTile; offX, offY: extended; Height : Integer) : Boolean;
+
+Results true if the Tile is on the MS.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_TileOnMSEx(T: TTile; offX, offY: extended; Height : Integer) : Boolean;
 begin
   Result := PointInBox(R_TileToMSEx(T, offX, offY, Height),
                        IntToBox(MSX1, MSY1, MSX2, MSY2));
 end;
 
-{*******************************************************************************
-function R_TileInBox(Bounds: TBox; Tile: TTile): boolean;
-By: Drags111
-Description: Results true if the tile is in the box. TOP LEFT TO BOTTOM RIGHT.
-*******************************************************************************}
+(*
+R_TileInBox
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_TileInBox(Bounds: TBox; T: TTile): boolean;
+
+Results true if the tile is in the box. TOP LEFT TO BOTTOM RIGHT.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_TileInBox(Bounds: TBox; T: TTile): boolean;
 var
   tx, ty, x1, y1, x2, y2: integer;
@@ -310,12 +410,21 @@ begin
   Result := ((tx >= x1) and (tx <= x2) and (ty <= y1) and (ty >= y2));
 end;
 
-{*******************************************************************************
-function R_SelfInBox(Bounds: TBox): boolean;
-By: Drags111
-Description: Results true if your char is in the box of tiles. TOP LEFT TO
-          BOTTOM RIGHT.
-*******************************************************************************}
+(*
+R_SelfInBox
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_SelfInBox(Bounds: TBox): boolean;
+
+Results true if your char is in the box of tiles. TOP LEFT TO BOTTOM RIGHT.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_SelfInBox(Bounds: TBox): boolean;
 var
   tx, ty, x1, y1, x2, y2: integer;
@@ -328,11 +437,21 @@ begin
   Result := ((tx >= x1) and (tx <= x2) and (ty <= y1) and (ty >= y2));
 end;
 
-{*******************************************************************************
-procedure R_InvertTileArray(var Path: TTileArray);
-By: Drags111
-Description: Reverses the path(array of tiles).
-*******************************************************************************}
+(*
+R_InvertTileArray
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_InvertTileArray(var Path: TTileArray);
+
+Reverses the path(array of tiles).
+
+.. note::
+
+  by Drags111
+
+*)
 procedure R_InvertTileArray(var Path: TTileArray);
 var
   Temp: TTileArray;
@@ -346,6 +465,21 @@ begin
   Path := Temp;
 end;
 
+(*
+R_GetMidTile
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMidTile(Tile1, Tile2: TTile): TTile;
+
+Returns the midway point of the 2 given tiles.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_GetMidTile(Tile1, Tile2: TTile): TTile;
 begin
   Result := R_Tile((Tile1.x+Tile2.x)/2, (Tile1.y+Tile2.y)/2);

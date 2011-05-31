@@ -394,7 +394,7 @@ begin
   SetLength(Result, 104*104);
   resCount := 0;
   TP := R_GetMyPos;
-  TPA := R_SortedCircleTPA(R_TileToPoint(TP), MaxDist);
+  TPA := R_SortedCircleTPA(TP, MaxDist);
   if length(TPA) < 1 then Exit;
   for f := 0 to High(TPA) do
   begin
@@ -439,7 +439,7 @@ var
 begin
   Result := NULL_RSOBJECT;
   TP := R_GetMyPos;
-  TPA := R_SortedCircleTPA(R_TileToPoint(TP), MaxDist);
+  TPA := R_SortedCircleTPA(TP, MaxDist);
   if length(TPA) < 1 then Exit;
   for f := 0 to High(TPA) do
   begin
