@@ -1,0 +1,134 @@
+(*
+RSObject
+========
+
+Wrapper for the RSObject (trees, lamps, fountains, rocks, etc.)
+
+*)
+
+const
+  OBJ_INTERACTABLE    = 1;
+  OBJ_WALLOBJECT      = 2;
+  OBJ_WALLDECORATION  = 3;
+  OBJ_FLOORDECORATION = 4;
+
+function RSObject_GetGroundAt(Tile: TTile): Integer;
+var
+  LocalTile: TTile;
+  Plane: Integer;
+begin
+  LocalTile.X := Tile.X - Client.BaseX();
+  LocalTile.Y := Tile.Y - Client.BaseY();
+  Plane := Client.LoadedPlane();
+  Result := Client.GroundTiles(Plane, LocalTile.X, LocalTile.Y);
+  R_FreeObject(Plane);
+end;
+
+function RSObject_GetObj(Ground, ObjType: Integer): Integer;
+var
+  Node, Obj, Last: Integer;
+begin
+  case ObjType of
+    OBJ_INTERACTABLE: begin
+      Node := SmartGetFieldObject(Ground, hook_ground_AnimableList);
+      while(Node <> 0)do
+      begin
+        Obj := SmartGetFieldObject(Node, hook_AnimableNode_GetAnimable);
+        if(Obj <> 0)then
+        begin
+          Result := Obj;
+          Break;
+        end;
+        Last := Node;
+        Node := SmartGetFieldObject(Last, hook_AnimableNode_GetNext);
+        R_FreeObject(Last);
+      end;
+    end;
+    OBJ_WALLOBJECT:begin
+      Obj := SmartGetFieldObject(Ground, hook_ground_WallObject1);
+      if(Obj = 0)then
+      begin
+        R_FreeObject(Obj);
+        Obj := SmartGetFieldObject(Ground, hook_ground_WallObject2);
+      end;
+    end;
+    OBJ_WALLDECORATION:begin
+      Obj := SmartGetFieldObject(Ground, hook_ground_WallDecoration1);
+      if(Obj = 0)then
+      begin
+        SmartFreeObject(Obj);
+        Obj := SmartGetFieldObject(Ground, hook_ground_WallDecoration2);
+      end;
+    end;
+    OBJ_FLOORDECORATION: Obj := SmartGetFieldObject(Ground, hook_ground_FloorDecoration);
+    else begin
+      R_Debug('Invalid Object Type', 'RSObject_GetObj');
+      Exit;
+    end;
+  end;
+
+  Result := Obj;
+  R_FreeObjects([Node, Last]);
+end;
+
+function RSObject_GetTileArea(Obj: Integer): TBox;
+var
+  BaseX, BaseY: Integer;
+begin
+  BaseX := Client.BaseX();
+  BaseY := Client.BaseY();
+  Result.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
+  Result.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
+  Result.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
+  Result.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
+end;
+
+function RSObject_GetBaseInfo(Obj, ObjType: Integer): TRSObject;
+var
+  ID, SecondLevel: Integer;
+begin
+  Result.ID := -1;
+  Result.ObjType := -1;
+  Result.Tile := Point(-1, -1);
+  Result.TileArea := IntToBox(-1, -1, -1, -1);
+
+  case ObjType of
+    OBJ_INTERACTABLE:begin
+      ID := SmartGetFieldShort(Obj, hook_InteractiveObject_GetID) and $FFFF;
+      if(ID = -1) or (ID = 65535)then   //65535 is an unsigned -1...
+      begin
+        SecondLevel := SmartGetFieldObject(Obj, hook_interactiveobject2_GetObjectData);
+        ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetID) and $FFFF;
+        if(ID = -1) or (ID = 65535)then
+        begin
+          R_FreeObject(SecondLevel);
+          Exit;
+        end;
+        Result.TileArea := RSObject_GetTileArea(SecondLevel);
+        R_FreeObject(SecondLevel);
+      end
+    end;
+    OBJ_WALLOBJECT:begin
+      ID := SmartGetFieldShort(Obj, hook_WallObjectData_GetID) and $FFFF;
+    end;
+    OBJ_WALLDECORATION:begin
+      ID := SmartGetFieldShort(Obj, hook_WallDecorationData_GetID) and $FFFF;
+    end;
+    OBJ_FLOORDECORATION:begin
+      ID := SmartGetFieldShort(Obj, hook_FloorDecorationData_GetID) and $FFFF;
+    end;
+    else begin
+      R_Debug('Invalid Object Type', 'RSObject_GetID');
+      Exit;
+    end;
+  end;
+  if(ID = -1) or (ID = 65535)then
+    ID := SmartGetFieldInt(Obj, hook_secondlevelobject_GetID) and $FFFF;
+  if(ID = -1) or (ID = 65535)then
+    Exit;
+
+  Result.ID := ID;
+  Result.ObjType := ObjType;
+  if(Result.TileArea.X1 = -1) and (ID <> -1)then
+    Result.TileArea := RSObject_GetTileArea(Obj);
+end;

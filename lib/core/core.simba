@@ -206,6 +206,26 @@ begin
 end;
 
 (*
+R_GetArraySize
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetArraySize(arrayObject : Integer) : Integer;
+
+Retrives the size of the array object through smart.
+
+.. note::
+
+  by pyroryan
+
+*)
+function R_GetArraySize(arrayObject : Integer) : Integer;
+begin
+  Result := SmartGetFieldArraySize(arrayObject, '', 1);
+end;
+
+(*
 R_GetSettingArray
 ~~~~~~~~~~~~~~~~~
 

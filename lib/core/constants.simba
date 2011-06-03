@@ -144,6 +144,23 @@ type
 type
   TBankItemArray = array of TBankItem;
 
+type
+{Contains informations pertaining to Objects}
+  TRSObject = record
+    ID, ObjType: Integer;
+    Tile: TTile;
+    TileArea: TBox;
+  end;
+
+{ObjectDefinition}
+  TRSObjectDef = record
+    name : string;
+    actions : TStringArray;
+  end;
+
+{Array of TRSObject}
+  TRSObjectArray = array of TRSObject;
+
 { type TRSClient;
   Contains function pointers to all of the static hooks. }
 type
@@ -186,7 +203,7 @@ type
     InterfaceNC: function: Integer;
     Settings: function: Integer;
     GroundItemCache: function: Integer;
-    GetGroundDataArray: function(Plane: Integer): Integer;
+    GroundDataArray: function(Plane: Integer): Integer;
     SkillExperiences: function(Index: Integer): Integer;
     SkillLevels: function(Index: Integer): Integer;
     MapAngle: function: Extended;

@@ -13,23 +13,7 @@ const
 
 //---                                Records                                --//
 
-type
-{Contains informations pertaining to Objects}
-  TRSObject = record
-    objType: integer;
-    ID: Integer;
-    Tile: TTile;
-    Area: TBox;
-  end;
 
-{ObjectDefinition}
-  TRSObjectDef = record
-    name : string;
-    actions : TStringArray;
-  end;
-
-{Array of TRSObject}
-  TRSObjectArray = array of TRSObject;
 
  {*******************************************************************************
 function NULL_RSOBJECTEx: TRSObject;
@@ -38,24 +22,22 @@ Description: Nulls a TRSObject
 function NULL_RSOBJECT: TRSObject;
 begin
   Result.ID := NULL_INT;
-  Result.objType := NULL_INT;
+  Result.ObjType := NULL_INT;
   Result.Tile := NULL_TILE;
-  Result.Area := NULL_BOX;
+  Result.TileArea := NULL_BOX;
 end;
-
-
 
 {*******************************************************************************
 function R_NewObjectEx(ID, objType: integer; T: TTile; A: TBox): TRSObject;
 By: Drags111
 Description: Returns a new TRSObject with the specified values.
 *******************************************************************************}
-function R_NewObject(ID, objType: integer; T: TTile; A: TBox): TRSObject;
+function R_NewObject(ID, ObjType: integer; Tile: TTile; TileArea: TBox): TRSObject;
 begin
   Result.ID := ID;
-  Result.objType := objType;
-  Result.Tile := T;
-  Result.Area := A;
+  Result.ObjType := ObjType;
+  Result.Tile := Tile;
+  Result.TileArea := TileArea;
 end;
 
 {*******************************************************************************
@@ -96,225 +78,17 @@ By: Drags111
 Description: Returns true if an object obj is in a TRSObjectArray theArray.
               (like IntInArray).
 *******************************************************************************}
-function RSObjectInArray(theArray: TRSObjectArray; obj: TRSObject): boolean;
+function RSObjectInArray(TheArray: TRSObjectArray; Obj: TRSObject): boolean;
 var
-  i: integer;
+  I: integer;
 begin
-  Result := false;
-  for i := 0 to High(theArray) do
-    if(theArray[i] = obj)then
+  Result := False;
+  for I := 0 to High(TheArray) do
+    if(TheArray[I] = Obj)then
     begin
-      Result := true;
+      Result := True;
       Exit;
     end;
-end;
-
-{*******************************************************************************
-function R_GetInteractableAt(T: TTile): TRSObject;
-By: Drags111 modified/fixed by pyroryan
-Description: Returns the objType Interactable ID at the given tile. Interactable
-          objects include anything clickable that isnt a WallObject.
-*******************************************************************************}
-function R_GetInteractableAt(T: TTile): TRSObject;
-var
-  Plane, Ground, Node, Obj, ObjTemp, ID: integer;
-  TempBox: TBox;
-  L, Base: TTile;
-begin
-  Result := NULL_RSOBJECT;
-  try
-    Base.X := SmartGetFieldInt(0, hook_static_BaseX);
-    Base.Y := SmartGetFieldInt(0, hook_static_BaseY);
-    L.X := T.X - Base.X;
-    L.Y := T.Y - Base.Y;
-    Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
-    Ground := SmartGetFieldArray3DObject(0, hook_static_GroundTiles, Plane, L.X, L.Y);
-    Node := SmartGetFieldObject(Ground, hook_ground_AnimableList);
-    while(Node <> 0)do
-    begin
-      TempBox := NULL_BOX;
-      Obj := SmartGetFieldObject(Node, hook_AnimableNode_GetAnimable);
-      if(Obj <> 0)then
-      begin
-        ID := SmartGetFieldShort(Obj, hook_InteractiveObject_GetID) and $FFFF;
-        if((ID = -1) or ((ID) = 65535))then   //65535 is an unsigned -1....
-        begin
-          ObjTemp := SmartGetFieldObject(Obj, hook_interactiveobject2_GetObjectData);
-          if(ObjTemp <> 0) then
-          begin
-            ID := SmartGetFieldInt(ObjTemp, hook_secondlevelobject_GetID);
-            if((ID = -1) or ((ID and $FFFF) = 65535))then
-            begin
-              SmartFreeObject(ObjTemp);
-              Break;
-            end;
-            TempBox.X1 := (Base.X + SmartGetFieldShort(ObjTemp, hook_animableentity_getAreaX1));
-            TempBox.Y1 := (Base.Y + SmartGetFieldShort(ObjTemp, hook_animableentity_getAreaY1));
-            TempBox.X2 := (Base.X + SmartGetFieldShort(ObjTemp, hook_animableentity_getAreaX2));
-            TempBox.Y2 := (Base.Y + SmartGetFieldShort(ObjTemp, hook_animableentity_getAreaY2));
-            SmartFreeObject(ObjTemp);
-          end;
-        end else //ID is valid, so we can use Obj
-        begin
-          TempBox.X1 := (Base.X + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
-          TempBox.Y1 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
-          TempBox.X2 := (Base.X + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
-          TempBox.Y2 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
-        end;
-
-        Result := R_NewObject(ID, OBJECT_TYPE_INTERACTABLE, T, TempBox);
-        SmartFreeObject(Obj);
-        Break;
-      end;
-      SmartFreeObject(Node);
-      Node := SmartGetFieldObject(Node, hook_AnimableNode_GetNext);
-    end;
-  finally
-    try
-      SmartFreeObject(Ground);
-    except
-    end;
-    try
-      SmartFreeObject(Obj);
-    except
-    end;
-    try
-      SmartFreeObject(ObjTemp);
-    except
-    end;
-    try
-      SmartFreeObject(Node);
-    except
-    end;
-  end;
-end;
-
-{*******************************************************************************
-function R_GetWallObjectAt(T: TTile): TRSObject;
-By: Drags111
-Description: Returns the objType WallObject ID at the given tile. Wall objects
-            include anything on walls that are clickable.
-*******************************************************************************}
-function R_GetWallObjectAt(T: TTile): TRSObject;
-var
-  Plane, Ground, Obj, ID: integer;
-  TempBox: TBox;
-  L, Base: TTile;
-begin
-  Result := NULL_RSOBJECT;
-  try
-    Base.X := SmartGetFieldInt(0, hook_static_BaseX);
-    Base.Y := SmartGetFieldInt(0, hook_static_BaseY);
-    L.X := T.X - Base.X;
-    L.Y := T.Y - Base.Y;
-    Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
-    Ground := SmartGetFieldArray3DObject(0, hook_static_GroundTiles, Plane, L.X, L.Y);
-
-    Obj := SmartGetFieldObject(Ground, hook_ground_WallObject1);
-    if(Obj = 0)then
-    begin
-      SmartFreeObject(Obj);
-      Obj := SmartGetFieldObject(Ground, hook_ground_WallObject2);
-    end;
-    if(Obj <> 0)then
-    begin
-      ID := SmartGetFieldShort(Obj, hook_WallObjectData_GetID);
-      if((ID = -1) or ((ID and $FFFF) = 65535))then
-        Exit;
-      TempBox.X1 := (Base.X + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
-      TempBox.Y1 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
-      TempBox.X2 := (Base.X + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
-      TempBox.Y2 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
-      Result := R_NewObject(ID and $FFFF, OBJECT_TYPE_WALLOBJECT, T, TempBox);
-    end;
-
-  finally
-    SmartFreeObject(Obj);
-    SmartFreeObject(Ground);
-  end;
-end;
-
-{*******************************************************************************
-function R_GetWallDecorAt(T: TTile): TRSObject;
-By: Drags111
-Description: Returns the objType WallDecor ID at the given tile.
-*******************************************************************************}
-function R_GetWallDecorAt(T: TTile): TRSObject;
-var
-  Plane, Ground, Obj, ID: integer;
-  TempBox: TBox;
-  L, Base: TTile;
-begin
-  Result := NULL_RSOBJECT;
-  try
-    Base.X := SmartGetFieldInt(0, hook_static_BaseX);
-    Base.Y := SmartGetFieldInt(0, hook_static_BaseY);
-    L.X := T.X - Base.X;
-    L.Y := T.Y - Base.Y;
-    Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
-    Ground := SmartGetFieldArray3DObject(0, hook_static_GroundTiles, Plane, L.X, L.Y);
-
-    Obj := SmartGetFieldObject(Ground, hook_ground_WallDecoration1);
-    if(Obj = 0)then
-    begin
-      SmartFreeObject(Obj);
-      Obj := SmartGetFieldObject(Ground, hook_ground_WallDecoration2);
-    end;
-    if(Obj <> 0)then
-    begin
-      ID := SmartGetFieldShort(Obj, hook_WallDecorationData_GetID);
-      if((ID = -1) or ((ID and $FFFF) = 65535))then
-        Exit;
-      TempBox.X1 := (Base.X + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
-      TempBox.Y1 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
-      TempBox.X2 := (Base.X + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
-      TempBox.Y2 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
-      Result := R_NewObject(ID and $FFFF, OBJECT_TYPE_WALLDECOR, T, TempBox);
-    end;
-
-  finally
-    SmartFreeObject(Obj);
-    SmartFreeObject(Ground);
-  end;
-end;
-
-{*******************************************************************************
-function R_GetFloorDecorAt(T: TTile): TRSObject;
-By: Drags111
-Description: Returns the objType FloorDecor ID at the given tile.
-*******************************************************************************}
-function R_GetFloorDecorAt(T: TTile): TRSObject;
-var
-  Plane, Ground, Obj, ID: integer;
-  TempBox: TBox;
-  L, Base: TTile;
-begin
-  Result := NULL_RSOBJECT;
-  try
-    Base.X := SmartGetFieldInt(0, hook_static_BaseX);
-    Base.Y := SmartGetFieldInt(0, hook_static_BaseY);
-    L.X := T.X - Base.X;
-    L.Y := T.Y - Base.Y;
-    Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
-    Ground := SmartGetFieldArray3DObject(0, hook_static_GroundTiles, Plane, L.X, L.Y);
-
-    Obj := SmartGetFieldObject(Ground, hook_ground_FloorDecoration);
-    if(Obj <> 0)then
-    begin
-      ID := SmartGetFieldShort(Obj, hook_FloorDecorationData_GetID);
-      if((ID = -1) or ((ID and $FFFF) = 65535))then
-        Exit;
-      TempBox.X1 := (Base.X + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
-      TempBox.Y1 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
-      TempBox.X2 := (Base.X + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
-      TempBox.Y2 := (Base.Y + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
-      Result := R_NewObject(ID and $FFFF, OBJECT_TYPE_FLOORDECOR, T, TempBox);
-    end;
-
-  finally
-    SmartFreeObject(Obj);
-    SmartFreeObject(Ground);
-  end;
 end;
 
 {*******************************************************************************
@@ -322,43 +96,56 @@ function R_GetObjectAt(T: TTile; objType: Integer): TRSObject;
 By: Drags111
 Description: Returns the object at the specified tile, with the type of objType.
 *******************************************************************************}
-function R_GetObjectAt(T: TTile; objType: Integer): TRSObject;
+function R_GetObjectAt(Tile: TTile; ObjType: Integer): TRSObject;
 var
-  objFuncts: array [0..3] of function(T: TTile):TRSObject;
+  Ground, Obj: integer;
 begin
   Result := NULL_RSOBJECT;
-
-  objFuncts[0] := @R_GetInteractableAt; objFuncts[1] := @R_GetWallObjectAt;
-  objFuncts[2] := @R_GetWallDecorAt;    objFuncts[3] := @R_GetFloorDecorAt;
-
-  Result := objFuncts[objType](T);
+  try
+    Ground := RSObject_GetGroundAt(Tile);
+    Obj := RSObject_GetObj(Ground, ObjType);
+    Result := RSObject_GetBaseInfo(Obj, ObjType);
+    if(Result <> NULL_RSOBJECT)then
+      Result.Tile := Tile;
+  finally
+    R_FreeObjects([Ground, Obj]);
+  end;
 end;
 
 {*******************************************************************************
-function R_GetAllObjects(objType: Integer): TRSObjectArray;
+function R_GetAllObjects(ObjType: Integer): TRSObjectArray;
 By: Drags111
 Description: Gets all loaded objects of the type, and stores them in a
             TRSObjectArray.
 *******************************************************************************}
-function R_GetAllObjects(objType: Integer): TRSObjectArray;
+function R_GetAllObjects(ObjType: Integer): TRSObjectArray;
 var
-  bx, by, x, y, resCount: integer;
+  bx, by, px, py, plane, Ground, x, y, resCount, obj: integer;
   Temp: TRSObject;
 begin
   SetLength(Result, 104*104);
   resCount := 0;
-  bx := SmartGetFieldInt(0, hook_static_BaseX);
-  by := SmartGetFieldInt(0, hook_static_BaseY);
-  for x := bx to (104 + bx) do
-    for y := by to (104 + by) do
+  BX := Client.BaseX();
+  BY := Client.BaseY();
+  Plane := Client.LoadedPlane();
+  for X := 0 to 103 do
+    for Y := 0 to 103 do
     begin
-      Temp := R_GetObjectAt(R_Tile(x, y), objType);
+      Ground := Client.GroundTiles(Plane, X, Y);
+      Obj := RSObject_GetObj(Ground, ObjType);
+      Temp := RSObject_GetBaseInfo(Obj, ObjType);
       if (Temp = NULL_RSOBJECT) then
-        continue;
+      begin
+        R_FreeObjects([Ground, Obj]);
+        Continue;
+      end;
+      Temp.Tile := R_Tile(bx + x, bx + y);
       Result[resCount] := Temp;
       Inc(resCount);
+      R_FreeObjects([Ground, Obj]);
     end;
-  setLength(Result, resCount);
+  R_FreeObject(Plane);
+  SetLength(Result, resCount);
 end;
 
 {*******************************************************************************
@@ -384,27 +171,42 @@ Description: Returns an array of all objects within the MaxDist with the IDs.
                      search. The smaller the number, the faster the search is
                      completed. The maximum is 52.
 *******************************************************************************}
-function R_GetObjectsByIDEx(IDs: TIntegerArray; objType, MaxDist: Integer): TRSObjectArray;
+function R_GetObjectsByIDEx(IDs: TIntegerArray; ObjType, MaxDist: Integer): TRSObjectArray;
 var
-   f, resCount: Integer;
-   TP: TTile;
-   TileObject: TRSObject;
-   TPA: TPointArray;
+   f, bx, by, resCount, Plane, Ground, Obj: Integer;
+   MyPos: TTile;
+   Temp: TRSObject;
+   Tiles: TTileArray;
 begin
   SetLength(Result, 104*104);
   resCount := 0;
-  TP := R_GetMyPos;
-  TPA := R_SortedCircleTPA(TP, MaxDist);
-  if length(TPA) < 1 then Exit;
-  for f := 0 to High(TPA) do
+  BX := Client.BaseX();
+  BY := Client.BaseY();
+  MyPos := R_GetMyPos;
+  MyPos.X := MyPos.X - BX;
+  MyPos.Y := MyPos.Y - BY;
+  Tiles := R_SortedCircleTPA(MyPos, MaxDist);
+  Plane := Client.LoadedPlane();
+  if length(Tiles) < 1 then Exit;
+  for f := 0 to High(Tiles) do
   begin
-    TileObject := R_GetObjectAt(R_Tile(TPA[f].x, TPA[f].y), objType);
-    if (not (TileObject = NULL_RSOBJECT) and InIntArray(IDs, TileObject.ID)) then
+    Ground := Client.GroundTiles(Plane, Tiles[f].X, Tiles[f].Y);
+    Obj := RSObject_GetObj(Ground, ObjType);
+    Temp := RSObject_GetBaseInfo(Obj, ObjType);
+    if (Temp = NULL_RSOBJECT) then
     begin
-      Result[resCount] := TileObject;
+      R_FreeObjects([Ground, Obj]);
+      Continue;
+    end;
+    Temp.Tile := R_Tile(bx + Tiles[f].x, bx + Tiles[f].y);
+    if(InIntArray(IDs, Temp.ID))then
+    begin
+      Result[resCount] := Temp;
       Inc(resCount);
     end;
+    R_FreeObjects([Ground, Obj]);
   end;
+  R_FreeObject(Plane);
   SetLength(Result, resCount);
 end;
 
@@ -580,6 +382,6 @@ begin
     WriteLn('   Type: ' + ToStr(ObjArray[i].objType));
     WriteLn('   ID: ' + ToStr(ObjArray[i].ID));
     WriteLn('   Tile: ' + ToStr(ObjArray[i].Tile));
-    WriteLn('   Area: ' + ToStr(ObjArray[i].Area));
+    WriteLn('   Area: ' + ToStr(ObjArray[i].TileArea));
   end;
 end;

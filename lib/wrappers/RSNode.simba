@@ -93,16 +93,6 @@ begin
   SmartFreeObject(tail);
 end;
 
-{*******************************************************************************
-function R_GetArraySize(arrayObject : Integer) : Integer;
-By: pyroryan
-Description:
-*******************************************************************************}
-function R_GetArraySize(arrayObject : Integer) : Integer;
-begin
-  Result := SmartGetFieldArraySize(arrayObject, '', 1);
-end;
-
 function R_FindNodeByID(nodeCache, id : Integer) : Integer;
 var
   nodesLength, nodes, tail, cur, next, uid, index : Integer;

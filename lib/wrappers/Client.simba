@@ -188,7 +188,7 @@ begin
   Result := SmartGetFieldObject(0, hook_static_GroundItemCache);
 end;
 
-function Client_GetGetGroundDataArray(Plane: Integer): Integer;
+function Client_GetGroundDataArray(Plane: Integer): Integer;
 begin
   Result := SmartGetFieldArrayObject(0, hook_static_GetGroundDataArray, Plane);
 end;
@@ -296,7 +296,7 @@ begin
     InterfaceNC := @Client_GetInterfaceNC;
     Settings := @Client_GetSettings;
     GroundItemCache := @Client_GetGroundItemCache;
-    GetGroundDataArray := @Client_GetGetGroundDataArray;
+    GroundDataArray := @Client_GetGroundDataArray;
     SkillExperiences := @Client_GetSkillExperiences;
     SkillLevels := @Client_GetSkillLevels;
     MapAngle := @Client_GetMapAngle;

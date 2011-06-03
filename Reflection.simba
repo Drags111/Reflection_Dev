@@ -1,8 +1,8 @@
 //----------------------------------------------------------------------------//
 //--                          Reflection Library                            --//
 //----------------------------------------------------------------------------//
-//-- by: Drags111, pyroryan, mormonman, Benland100, Method, Echo_, N1ke,    --//
-//--   Nava2, and others! If I forgot your name let me know :)              --//
+//-- by: Benland100, Drags111, Echo_, lordsaturn, Method, mormonman, Nava2, --//
+//-- N1ke, pyroryan, widget, and others! If I forgot your name let me know  --//
 //----------------------------------------------------------------------------//
 
 {$DEFINE SMART}
@@ -64,6 +64,6 @@ Sets up Reflection.
 Procedure SetupReflection;
 begin
   Client := Client_GetClient;
-  R_UpdateHooks;
+  //R_UpdateHooks;
   R_SetupGlobals;
 end;
