@@ -220,6 +220,7 @@ type
 
 var
   Client: TRSClient;
+  TileManager: TTileManager;
 
 (*
 R_SetupGlobals
