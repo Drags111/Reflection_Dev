@@ -64,7 +64,6 @@ Sets up Reflection.
 Procedure SetupReflection;
 begin
   Client := Client_GetClient;
-  TileManager := InitTileManager;
 
   //R_UpdateHooks;
   R_SetupGlobals;

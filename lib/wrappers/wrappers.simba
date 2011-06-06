@@ -13,4 +13,4 @@ Includes the `wrapper` package
 {$include_once ./RSPlayer.simba}
 {$include_once ./RSNPC.simba}
 {$include_once ./RSObject.simba}
-{$include_once ./TileManager.simba}
+//{$include_once ./TileManager.simba}
