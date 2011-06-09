@@ -45,8 +45,6 @@ begin
 end;
 
 function RSCharacter_GetInCombat(Obj: Integer): Boolean;
-var
-  LoopCycle: Integer;
 begin
   Result := Client.LoopCycle() < RSCharacter_GetLoopCycleStatus(Obj);
 end;

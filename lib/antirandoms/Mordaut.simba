@@ -312,7 +312,7 @@ var
   Choices: array[0..3] of Integer;
   Possibilities: TIntegerArray;
   Child: TRSChild;
-  I, K, L, Answer: Integer;
+  I, K, Answer: Integer;
 begin
   Result := False;
 

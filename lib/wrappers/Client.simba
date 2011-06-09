@@ -5,7 +5,7 @@ end;
 
 function Client_GetChatLines: Integer;
 begin
-  //Result := SmartGetFieldObject(0, hook_static_GetChatLines); <-WHAT DOES THIS RETURN?
+  Result := SmartGetFieldObject(0, hook_static_GetChatLines); //<-WHAT DOES THIS RETURN?
 end;
 
 function Client_GetCameraYaw: Integer;

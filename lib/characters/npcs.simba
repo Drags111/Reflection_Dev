@@ -65,7 +65,6 @@ then it will include Null NPCs.
 function R_GetAllNPCs(Null: Boolean):array of TNPC;
 var
   I, C, NumNPCs, Index, TheNPC, TheNPCNode, NPCDef: integer;
-  Base: TTile;
 begin
   NumNPCs := Client.NPCCount();
   //Writeln('NumNPCs: '+ToStr(NumNPCs));

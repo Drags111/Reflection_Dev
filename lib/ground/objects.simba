@@ -120,7 +120,7 @@ Description: Gets all loaded objects of the type, and stores them in a
 *******************************************************************************}
 function R_GetAllObjects(ObjType: Integer): TRSObjectArray;
 var
-  bx, by, px, py, plane, Ground, x, y, resCount, obj: integer;
+  bx, by, plane, Ground, x, y, resCount, obj: integer;
   Temp: TRSObject;
 begin
   SetLength(Result, 104*104);

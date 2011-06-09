@@ -89,7 +89,7 @@ Returns a  2-dimensional string array of all of the options in a tabbed menu.
 *)
 function R_GetMenuItemsTabbed: array of TStringArray;
 var
-  Action, Option, Name: Integer;
+  Action, Option: Integer;
   NodeSubList, GroupNode: Integer;
   SubMenu, MenuItemNode, Last, Last2: Integer;
   Item: String;
@@ -438,7 +438,7 @@ var
   MenuItems: TStringArray;
   MenuItemsTabbed: array of TStringArray;
   First: String;
-  MoreOptions, I, K: Integer;
+  MoreOptions, I: Integer;
 begin
   case Client.IsMenuTabbed() of
     true: begin

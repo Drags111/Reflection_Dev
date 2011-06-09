@@ -530,7 +530,7 @@ end;
 function R_PathLengthBetweenEx(Start, Dest: TTile; IsObject: Boolean; Blocks: array of TIntegerArray): Integer;
 var
   BaseX, BaseY: Integer;
-  x1, y1, x2, y2, t: Integer;
+  x1, y1, x2, y2: Integer;
 begin
   try
     BaseX := Client.BaseX();
@@ -548,9 +548,7 @@ end;
 
 function R_PathLengthBetween(Start, Dest: TTile; IsObject: Boolean): Integer;
 var
-  BaseX, BaseY: Integer;
   Blocks: array of TIntegerArray;
-  x1, y1, x2, y2, t: Integer;
 begin
   try
     if not R_GetCollisionMap(Blocks)then
