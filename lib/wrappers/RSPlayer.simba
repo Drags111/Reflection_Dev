@@ -47,7 +47,8 @@ begin
     Name := RSPlayer_GetName(Obj);
     Level := RSPlayer_GetLevel(Obj);
     Team := RSPlayer_GetTeam(Obj);
-    Tile := RSCharacter_GetTile(Obj);
+    Tile := RSAnimable_GetTile(Obj);
+    TileArea := RSAnimableEntity_GetTileBounds(Obj);
     Height := RSCharacter_GetHeight(Obj);
     Animation := RSCharacter_GetAnimation(Obj);
     Motion := RSCharacter_GetMotion(Obj);

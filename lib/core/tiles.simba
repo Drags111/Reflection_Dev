@@ -484,3 +484,100 @@ function R_GetMidTile(Tile1, Tile2: TTile): TTile;
 begin
   Result := R_Tile((Tile1.x+Tile2.x)/2, (Tile1.y+Tile2.y)/2);
 end;
+
+function R_GetCollisionMap(var Blocks: array of TIntegerArray): Boolean;
+var
+  X, Y: Integer;
+  GroundDataArray, MyPlayer, Plane, GroundData, BlocksObj: Integer;
+begin
+  GroundDataArray := SmartGetFieldObject(0, hook_static_GetGroundDataArray);
+  MyPlayer := Client.MyPlayer();
+  Plane := SmartGetFieldByte(MyPlayer, hook_animable_Plane);
+
+  if(R_GetArraySize(GroundDataArray) < Plane)then
+  begin
+    Result := False;
+    R_FreeObjects([GroundDataArray, MyPlayer]);
+    R_Debug('GroundDataArray Length is less than Plane', 'R_GetCollisionMap');
+    Exit;
+  end;
+
+  GroundData := SmartGetFieldArrayObject(GroundDataArray, '', Plane);
+  BlocksObj := SmartGetFieldObject(GroundData, hook_grounddata_GetCollisionFlags);
+
+  if(GroundData = 0) or (BlocksObj = 0)then
+  begin
+    Result := False;
+    R_FreeObjects([GroundDataArray, MyPlayer, GroundData, BlocksObj]);
+    R_Debug('GroundData or BlocksObj is null', 'R_GetCollisionMap');
+    Exit;
+  end;
+
+  Result := True;
+
+  SetLength(Blocks, 104);
+  for X := 0 to 103 do
+  begin
+    SetLength(Blocks[X], 104);
+    for Y := 0 to 103 do
+    begin
+      Blocks[X][Y] := SmartGetFieldArray2DInt(BlocksObj, '', X, Y);
+    end;
+  end;
+  R_FreeObjects([GroundDataArray, MyPlayer, GroundData, BlocksObj]);
+end;
+
+function R_PathLengthBetweenEx(Start, Dest: TTile; IsObject: Boolean; Blocks: array of TIntegerArray): Integer;
+var
+  BaseX, BaseY: Integer;
+  x1, y1, x2, y2, t: Integer;
+begin
+  try
+    BaseX := Client.BaseX();
+    BaseY := Client.BaseY();
+    x1 := Start.X - BaseX;
+    y1 := Start.Y - BaseY;
+    x2 := Dest.X - BaseX;
+    y2 := Dest.Y - BaseY;
+
+    Result := DijkstraDist(x1, y1, x2, y2, isObject, Blocks); // From the plugin
+  except
+    Result := -1;
+  end;
+end;
+
+function R_PathLengthBetween(Start, Dest: TTile; IsObject: Boolean): Integer;
+var
+  BaseX, BaseY: Integer;
+  Blocks: array of TIntegerArray;
+  x1, y1, x2, y2, t: Integer;
+begin
+  try
+    if not R_GetCollisionMap(Blocks)then
+    begin
+      R_Debug('Unable to retrieve collision map.', 'R_PathLengthBetween');
+      Exit;
+    end;
+    Result := R_PathLengthBetweenEx(Start, Dest, IsObject, Blocks); // From the plugin
+  except
+    Result := -1;
+  end;
+end;
+
+function R_CanReachEx(Tile: TTile; IsObject: Boolean; Blocks: array of TIntegerArray): Boolean;
+begin
+  try
+    Result := R_PathLengthBetweenEx(R_GetMyPos, Tile, IsObject, Blocks) <> -1;
+  except
+    Result := False;
+  end;
+end;
+
+function R_CanReach(Tile: TTile; IsObject: Boolean): Boolean;
+begin
+  try
+    Result := R_PathLengthBetween(R_GetMyPos, Tile, IsObject) <> -1;
+  except
+    Result := False;
+  end;
+end;

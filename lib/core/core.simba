@@ -30,7 +30,7 @@ begin
   case whatKind of
     'clientversion':
     begin
-      S := GetPage('http://pyroryan.net46.net/reflection/Hooks.simba');
+      S := GetPage('http://reflection.harry.lu/Hooks.simba');
       I := Pos('ClientVersion', S);
       Delete(S, 1, I+15);
       S := Copy(S, 1, Pos(';', S)-1);
@@ -41,7 +41,7 @@ begin
 
     'hookrevision':
     begin
-      S := GetPage('http://pyroryan.net46.net/reflection/Hooks.simba');
+      S := GetPage('http://reflection.harry.lu/Hooks.simba');
       I := Pos('HookRev', S);
       Delete(S, 1, I+9);
       S := Copy(S, 1, Pos(';', S)-1);
@@ -88,7 +88,7 @@ begin
     WriteLn('[Reflection] You''re using outdated hooks (version ' + ToStr(ClientVersion) + '.' + ToStr(HookRev) + '); updating you to version' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '!');
     WriteLn('[Reflection] If you manually fixed your hooks, please make sure hookrevision values are greater than or equal to the online hooks to prevent overwriting.');
     MyFile := RewriteFile(AppPath + 'includes/Reflection_Dev/lib/core/hooks.simba', False);
-    WriteFileString(MyFile, GetPage('http://pyroryan.net46.net/reflection/Hooks.simba'));
+    WriteFileString(MyFile, GetPage('http://reflection.harry.lu/Hooks.simba'));
     CloseFile(MyFile);
     WriteLn('[Reflection] Updated you to ' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '; please restart your script!');
     TerminateScript;

@@ -68,14 +68,19 @@ var
   Base: TTile;
 begin
   NumNPCs := Client.NPCCount();
+  //Writeln('NumNPCs: '+ToStr(NumNPCs));
   if (NumNPCs < 1) then Exit;
   SetArrayLength(Result, NumNPCs);
   for I := 0 to (NumNPCs-1) do
   try
     Index := Client.NPCIndexArray(I);
+    //Writeln('Index: '+ToStr(Index));
     TheNPCNode := Client.NPCNodes(I);
+    //Writeln('TheNPCNode: '+ToStr(TheNPCNode));
     TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
+    //Writeln('TheNPC: '+ToStr(TheNPC));
     NPCDef := RSPNC_GetNPCDef(TheNPC);
+    //Writeln('NPCDef: '+ToStr(NPCDef));
 
     if(not Null) and (Lowercase(Trim(RSNPC_GetName(NPCDef))) = 'null')then
       continue;
@@ -257,7 +262,7 @@ begin
     Index := Client.NPCIndexArray(I);
     TheNPCNode := Client.NPCNodes(I);
     TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
-    NPCTile := RSCharacter_GetTile(TheNPC);
+    NPCTile := RSAnimable_GetTile(TheNPC);
 
     if (NPCTile = Tile) then
     begin

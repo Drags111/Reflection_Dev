@@ -71,18 +71,6 @@ begin
   R_FreeObjects([Node, Last]);
 end;
 
-function RSObject_GetTileArea(Obj: Integer): TBox;
-var
-  BaseX, BaseY: Integer;
-begin
-  BaseX := Client.BaseX();
-  BaseY := Client.BaseY();
-  Result.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
-  Result.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
-  Result.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
-  Result.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
-end;
-
 function RSObject_GetBaseInfo(Obj, ObjType: Integer): TRSObject;
 var
   ID, SecondLevel: Integer;
@@ -104,7 +92,8 @@ begin
           R_FreeObject(SecondLevel);
           Exit;
         end;
-        Result.TileArea := RSObject_GetTileArea(SecondLevel);
+        Result.Tile := RSAnimable_GetTile(Obj);
+        Result.TileArea := RSAnimableEntity_GetTileBounds(Obj);
         R_FreeObject(SecondLevel);
       end
     end;
@@ -130,5 +119,7 @@ begin
   Result.ID := ID;
   Result.ObjType := ObjType;
   if(Result.TileArea.X1 = -1) and (ID <> -1)then
-    Result.TileArea := RSObject_GetTileArea(Obj);
+    Result.TileArea := RSAnimableEntity_GetTileBounds(Obj);
+  if(Result.Tile.X = -1) and (ID <> -1)then
+    Result.Tile := RSAnimable_GetTile(Obj);
 end;

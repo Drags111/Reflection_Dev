@@ -310,3 +310,36 @@ procedure R_MouseChild(Child: TRSChild; ClickType: Integer);
 begin
   MouseBox(Child.X, Child.Y, Child.Bounds.X2, Child.Bounds.Y2, ClickType);
 end;
+
+function R_WaitInterfaceOpen(Index, WaitTime: Integer): Boolean;
+var
+  T: Integer;
+begin
+  MarkTime(T);
+  while not R_ValidInterface(Index) do
+  begin
+    if R_ValidInterface(Index)then
+      Break;
+    wait(25);
+  end;
+  Result := R_ValidInterface(Index);
+end;
+
+function R_WaitInterfaceClose(Index, WaitTime: Integer): Boolean;
+var
+  T: Integer;
+begin
+  MarkTime(T);
+  while R_ValidInterface(Index) do
+  begin
+    if not R_ValidInterface(Index)then
+      Break;
+    wait(25);
+  end;
+  Result := not R_ValidInterface(Index);
+end;
+
+function R_GetMusic: String;
+begin
+  Result := R_GetInterfaceText(187, 4);
+end;

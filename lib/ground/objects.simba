@@ -4,11 +4,13 @@
 //------------------------------------------------------------------//
 
 //---                               Constants                               --//
+{
 const
-  OBJECT_TYPE_INTERACTABLE = 0;
-  OBJECT_TYPE_WALLOBJECT   = 1;
-  OBJECT_TYPE_WALLDECOR    = 2;
-  OBJECT_TYPE_FLOORDECOR   = 3;
+  OBJ_INTERACTABLE    = 1;
+  OBJ_WALLOBJECT      = 2;
+  OBJ_WALLDECORATION  = 3;
+  OBJ_FLOORDECORATION = 4;
+}
 
 
 //---                                Records                                --//
@@ -73,12 +75,12 @@ begin
 end;
 
 {*******************************************************************************
-function R_RSObjectInArray(theArray: TRSObjectArray; obj: TRSObject): boolean;
+function R_ObjectInArray(theArray: TRSObjectArray; obj: TRSObject): boolean;
 By: Drags111
 Description: Returns true if an object obj is in a TRSObjectArray theArray.
               (like IntInArray).
 *******************************************************************************}
-function RSObjectInArray(TheArray: TRSObjectArray; Obj: TRSObject): boolean;
+function R_ObjectInArray(TheArray: TRSObjectArray; Obj: TRSObject): boolean;
 var
   I: integer;
 begin
@@ -105,8 +107,6 @@ begin
     Ground := RSObject_GetGroundAt(Tile);
     Obj := RSObject_GetObj(Ground, ObjType);
     Result := RSObject_GetBaseInfo(Obj, ObjType);
-    if(Result <> NULL_RSOBJECT)then
-      Result.Tile := Tile;
   finally
     R_FreeObjects([Ground, Obj]);
   end;
@@ -139,7 +139,6 @@ begin
         R_FreeObjects([Ground, Obj]);
         Continue;
       end;
-      Temp.Tile := R_Tile(bx + x, bx + y);
       Result[resCount] := Temp;
       Inc(resCount);
       R_FreeObjects([Ground, Obj]);
@@ -198,7 +197,6 @@ begin
       R_FreeObjects([Ground, Obj]);
       Continue;
     end;
-    Temp.Tile := R_Tile(bx + Tiles[f].x, bx + Tiles[f].y);
     if(InIntArray(IDs, Temp.ID))then
     begin
       Result[resCount] := Temp;

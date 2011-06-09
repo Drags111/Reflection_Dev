@@ -394,10 +394,8 @@ Waits Till A COMPLETE Stop. (Not dependant on Flag hooks)
 
 *)
 procedure R_Flag;
-
 var
   Ticker: Integer;
-
 begin
   Ticker := (GetSystemTime + 30000);
   if not R_WaitToMove(1500) then Exit;

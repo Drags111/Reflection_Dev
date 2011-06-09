@@ -1,0 +1,156 @@
+function R_GetClickContinueInterface: TRSChild;
+var
+  I, K: Integer;
+  ValidInterfaces, ValidChildren: TIntegerArray;
+  ChildText: String;
+begin
+  ValidInterfaces := R_GetValidInterfaces;
+
+	for I := 0 to High(ValidInterfaces) do
+  begin
+		if(ValidInterfaces[I] = 137)then
+			Continue;
+
+    ValidChildren := R_GetValidChildren(ValidInterfaces[I]);
+
+		for K := 0 to High(ValidChildren) do
+    begin
+			ChildText := R_GetInterfaceText(ValidInterfaces[I], K);
+			if (ChildText = '')then
+				Continue;
+			if (Pos('Click here to continue', ChildText) > 0)then
+      begin
+				Result := R_GetRSChild(ValidInterfaces[I], K);
+        Exit;
+      end;
+		end;
+	end;
+end;
+
+function R_GetNPCChatName: String;
+var
+  Cont: TRSChild;
+  InterfaceChildren: TIntegerArray;
+  I, Index: Integer;
+  Text: String;
+begin
+  Cont := R_GetClickContinueInterface;
+  if(Cont.ID <= 0)then
+    Exit;
+
+  Index := Cont.ParentID shr 16;
+  InterfaceChildren := R_GetValidChildren(Index);
+
+  for I := 0 to High(InterfaceChildren) do
+  begin
+    Text := R_GetInterfaceText(Index, I);
+    if((Text <> '') and (Length(Text) > 0))then
+    begin
+      Result := Text;
+      Exit;
+    end;
+  end;
+end;
+
+function R_GetNPCChatMessages: TStringArray;
+var
+  Cont: TRSChild;
+  Children: TIntegerArray;
+  Index, I, C: Integer;
+  IsName: Boolean;
+  Text: String;
+begin
+  Cont := R_GetClickContinueInterface;
+  if(Cont.ID <= 0)then
+    Exit;
+
+  Index := Cont.ParentID shr 16;
+  Children := R_GetValidChildren(Index);
+  SetLength(Result, Length(Children));
+  C := 0;
+
+  if(Length(Children) < 1)then
+    Exit;
+
+  IsName := True;
+
+  for I := 0 to High(Children) do
+  begin
+    Text := R_GetInterfaceText(Index, I);
+    if(Text <> '') and (Length(Text) > 0)then
+    begin
+      if(IsName)then
+      begin
+        IsName := False;
+        Continue;
+      end else
+        if(Text = 'Click here to continue')then
+          Break;
+      Result[C] := R_TrimHTML(Text);
+      Inc(C);
+    end;
+  end;
+  SetLength(Result, C);
+end;
+
+function R_GetNPCChatMessage: String;
+var
+  Messages: TStringArray;
+  I: Integer;
+begin
+  Result := '';
+  Messages := R_GetNPCChatMessages;
+  for I := 0 to High(Messages)do
+    Result := Result + Messages[I] + ' ';
+  Result := Trim(Result);
+end;
+
+function R_ClickToContinue: Boolean;
+var
+  Cont: TRSChild;
+  T: Integer;
+begin
+  Result := False;
+  Cont := R_GetClickContinueInterface;
+
+  if(Cont.ID <= 0)then
+    Exit;
+
+  R_MouseChild(Cont, 1);
+  MarkTime(T);
+  while(R_ValidInterface(Cont.ParentID shr 16))do
+  begin
+    if(TimeFromMark(T) > 5000)then
+      Exit;
+    Wait(100+Random(100));
+  end;
+
+  Result := True;
+end;
+
+function R_WaitNPCChatchange(ClickContinue: Boolean; MaxWait: Integer): Boolean;
+var
+  InitialName, InitialMessage, Name, Message: String;
+  T: Integer;
+begin
+  InitialName := R_GetNPCChatName;
+  InitialMessage := R_GetNPCChatMessage;
+
+  if(ClickContinue)then
+    R_ClickToContinue;
+
+  MarkTime(T);
+  while(TimeFromMark(T) < MaxWait)do
+  begin
+    Name := R_GetNPCChatName;
+    Message := R_GetNPCChatMessage;
+
+    if(InitialName <> Name) or (InitialMessage <> Message)then
+    begin
+      Result := True;
+      Exit;
+    end;
+  end;
+
+  Result := False;
+end;

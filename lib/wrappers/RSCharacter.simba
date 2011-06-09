@@ -4,14 +4,6 @@ RSCharacter
 
 *}
 
-function RSCharacter_GetTile(Obj: Integer): TTile;
-var
-  BaseX, BaseY: Integer;
-begin
-  Result.X := Client.BaseX() + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
-  Result.Y := Client.BaseY() + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
-end;
-
 function RSCharacter_GetLoopCycleStatus(Obj: Integer): Integer;
 begin
   Result := SmartGetFieldInt(Obj, hook_character_LoopCycleStatus);

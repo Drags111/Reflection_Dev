@@ -8,6 +8,8 @@
 {$DEFINE SMART}
 {$DEFINE REFLECTION}
 
+{$loadlib RefCalculationsLib.dll}
+
 //----------------------------------------------------------------------------//
 //--                      Reflection Core Includes                          --//
 //--                                                                        --//
@@ -41,10 +43,17 @@
 {$i ./lib/bank/depositbox.simba}
 
 {$i ./lib/chat/chat.simba}
+{$i ./lib/chat/npcchat.simba}
 
 {$i ./lib/misc/other.simba}
 {$i ./lib/misc/items.simba}
 
+//----------------------------------------------------------------------------//
+//--                    Reflection AntiRandom Includes                      --//
+//--                                                                        --//
+//--     AntiRandom solving routines.                                       --//
+//----------------------------------------------------------------------------//
+{$i ./lib/antirandoms/Antirandoms.simba}
 
 (*
 SetupReflection
@@ -65,6 +74,8 @@ Procedure SetupReflection;
 begin
   Client := Client_GetClient;
 
-  //R_UpdateHooks;
+  R_UpdateHooks;
   R_SetupGlobals;
+
+  R_SetupRandoms;
 end;

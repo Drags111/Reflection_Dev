@@ -60,7 +60,8 @@ begin
     Name := RSNPC_GetName(NPCDef);
     ID := RSNPC_GetID(NPCDef);
     Actions := RSNPC_GetActions(NPCDef);
-    Tile := RSCharacter_GetTile(Obj);
+    Tile := RSAnimable_GetTile(Obj);
+    TileArea := RSAnimableEntity_GetTileBounds(Obj);
     Height := RSCharacter_GetHeight(Obj);
     Animation := RSCharacter_GetAnimation(Obj);
     Motion := RSCharacter_GetMotion(Obj);

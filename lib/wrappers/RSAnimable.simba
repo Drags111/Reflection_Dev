@@ -1,0 +1,26 @@
+function RSAnimable_GetTile(Obj: Integer): TTile;
+var
+  BaseX, BaseY: Integer;
+begin
+  Result.X := Client.BaseX() + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
+  Result.Y := Client.BaseY() + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
+  Writeln(SmartGetFieldInt(Obj, hook_animable_PixelX));
+  Writeln(SmartGetFieldInt(Obj, hook_animable_PixelY));
+end;
+
+function RSAnimable_GetPlane(Obj: Integer):Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_animable_Plane);
+end;
+
+function RSAnimableEntity_GetTileBounds(Obj: Integer): TBox;
+var
+  BaseX, BaseY: Integer;
+begin
+  BaseX := Client.BaseX();
+  BaseY := Client.BaseY();
+  Result.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
+  Result.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
+  Result.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
+  Result.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
+end;

@@ -85,8 +85,8 @@ type
 type
   TRSChild = record
     Actions: TStringArray;
-    ID, Parent, Stack: Integer;
-    TextureID, ModelID, ModelZoom: Integer;
+    ID, ComponentID, ParentID, Stack: Integer;
+    TextureID, ModelID, ModelZoom, TextColor: Integer;
     RelativeX, RelativeY, Width, Height: Integer;
     X, Y: Integer;
     Bounds: TBox;
@@ -106,6 +106,7 @@ type
 type
   TRSPlayer = record
     Tile: TTile;
+    TileArea: TBox;
     Name: String;
     Index, Level, Team, Height: Integer;
     Animation, Motion, HPRatio: Integer;
@@ -116,6 +117,7 @@ type
 
   TNPC = record
     Tile: TTile;
+    TileArea: TBox;
     Name: String;
     Index, Level, ID, Height: Integer;
     Animation, Motion, HPRatio: Integer;

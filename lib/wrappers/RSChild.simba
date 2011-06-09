@@ -69,6 +69,11 @@ begin
   end;
 end;
 
+function RSChid_GetTextColor(Obj: Integer): Integer;
+begin
+  Result := SmartGetFieldInt(Obj, hook_interface_GetTextColor);
+end;
+
 function RSChild_GetName(Obj: Integer): String;
 var
   NameObj: Integer;
@@ -248,8 +253,9 @@ begin
   with Result do
   begin
     Actions := RSChild_GetActions(Obj);
-    ID := RSChild_GetComponentID(Obj);
-    Parent := RSChild_GetParentID(Obj);
+    ID := RSChild_GetID(Obj);
+    ComponentID := RSChild_GetComponentID(Obj);
+    ParentID := RSChild_GetParentID(Obj);
     Stack := RSChild_GetComponentStackSize(Obj);
     TextureID := RSChild_GetTextureID(Obj);
     ModelID := RSChild_GetModelID(Obj);
@@ -259,6 +265,7 @@ begin
     Width := RSChild_GetWidth(Obj);
     Height := RSChild_GetHeight(Obj);
     Text := RSChild_GetText(Obj);
+    TextColor := RSChid_GetTextColor(Obj);
     Name := RSChild_GetName(Obj);
     IsHidden := RSChild_GetIsHidden(Obj);
     VScrollSize := RSChild_GetVScrollSize(Obj);
