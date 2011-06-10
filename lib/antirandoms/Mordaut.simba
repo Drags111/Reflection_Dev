@@ -53,8 +53,8 @@ begin
                     11602, 11603, 11604, 11605, 11606, 11625];
 
   RMordautVars_Combat    := [11528, 11531, 11536, 11537, 11579, 11591, 11592,
-                    11593, 11597, 11627, 11631, 11635, 11636, 11638,
-                    11642, 11648, 11617];
+                    11593, 11597, 11627, 11631, 11635, 11636, 11638, 11642,
+                    11648, 11617];
 
   RMordautVars_Combat2   := [11528, 11531, 11536, 11537, 11579, 11591, 11592,
                     11593, 11597, 11627, 11631, 11635, 11636, 11638,
@@ -88,12 +88,15 @@ begin
 
   RMordautVars_Jewelry  := [11572, 11576, 11652];
 
-  RMordautVars_Items := [RMordautVars_Ranged, RMordautVars_Cooking,
-  RMordautVars_Fishing, RMordautVars_Combat, RMordautVars_Combat2,
-  RMordautVars_Farming, RMordautVars_Magic, RMordautVars_Firemaking,
-  RMordautVars_Hats, RMordautVars_Drinks, RMordautVars_Woodcutting,
-  RMordautVars_Boots, RMordautVars_Crafting, RMordautVars_Mining,
-  RMordautVars_Smithing, RMordautVars_Pirate, RMordautVars_Jewelry];
+  RMordautVars_Items := [RMordautVars_Boots,
+  RMordautVars_Combat, RMordautVars_Cooking,
+  RMordautVars_Crafting, RMordautVars_Drinks,
+  RMordautVars_Farming, RMordautVars_Firemaking,
+  RMordautVars_Fishing, RMordautVars_Hats,
+  RMordautVars_Jewelry, RMordautVars_Magic,
+  RMordautVars_Mining, RMordautVars_Pirate,
+  RMordautVars_Ranged, RMordautVars_Woodcutting,
+  RMordautVars_Smithing];
 
   SetLength(RMordautVars_Matches, 16);
 
@@ -262,7 +265,7 @@ begin
   Result := False;
   if(R_DistanceFromTile(RMordautVars_NPC.Tile) > 5)then
   begin
-    Result := R_WalkToTile(R_Tile(RMordautVars_NPC.Tile.X, RMordautVars_NPC.Tile.Y+4), 0, 0);
+    Result := R_WalkToTile(R_Tile(RMordautVars_NPC.Tile.X, RMordautVars_NPC.Tile.Y+2), 0, 0);
 
     if not Result then
     begin
@@ -335,12 +338,18 @@ begin
   end;
 
   for I := 0 to High(RMordautVars_Items) do
-    for K := 0 to High(RMordautVars_Items[I]) do
-      if(InIntArray(Current, RMordautVars_Items[I][K]))then
+  begin
+    for K := 0 to High(Current) do
+    begin
+      if(InIntArray(RMordautVars_Items[I], Current[K]))then
       begin
         Possibilities := RMordautVars_Items[I];
         Break;
       end;
+    end;
+    if(Possibilities = RMordautVars_Items[I])then
+      Break;
+  end;
 
   if(Length(Possibilities) = 0)then
   begin

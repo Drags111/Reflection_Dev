@@ -1,3 +1,4 @@
+{$include_once ./Arnav.simba}
 {$include_once ./Mordaut.simba}
 {$include_once ./Maze.simba}
 
@@ -20,6 +21,14 @@ var
 
 procedure R_SetupRandoms;
 begin
+  with R_RandomArr[Rand_CapnArnav] do
+  begin
+    RandName := 'Cap''n Arnav';
+    Music := '';
+    InRandom := @RArnav_InRandom;
+    SolveRandom := @RArnav_Solve;
+  end;
+
   with R_RandomArr[Rand_Maze] do
   begin
     RandName := 'Maze';
@@ -90,7 +99,7 @@ begin
 
     if (InRand) then
     begin
-      Players[CurrentPlayer].Rand := R_RandomArr[I].RandName;
+      //Players[CurrentPlayer].Rand := R_RandomArr[I].RandName;
       R_Debug('Trying to solve: ' + R_RandomArr[I].RandName, '');
       T := R_GetMyPos;
       RandomBox := IntToBox(T.X-70, T.Y-70, T.X+70, T.Y+70);
@@ -103,7 +112,7 @@ begin
       begin
         R_Debug('No random solver for ' + R_RandomArr[I].RandName, '');
         Logout;
-        Players[CurrentPlayer].Active := False;
+        //Players[CurrentPlayer].Active := False;
         Inc(RandFailed[I]);
         Exit;
       end;
@@ -112,7 +121,7 @@ begin
       begin
         R_Debug('Random solving failed for ' + R_RandomArr[I].RandName, '');
         Logout;
-        Players[CurrentPlayer].Active := False;
+        //Players[CurrentPlayer].Active := False;
         Inc(RandFailed[I]);
         Exit;
       end else
@@ -128,7 +137,7 @@ begin
       R_Debug('Out of random', '');
       Wait(3000+Random(2000));
 
-      Players[CurrentPlayer].Rand := '';
+      //Players[CurrentPlayer].Rand := '';
       Inc(RandSolved[I]);
       Exit;
     end;

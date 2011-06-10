@@ -142,7 +142,6 @@ begin
       GetMousePos(X, Y);
       Mouse(X, Y, 0, 0, False);
       Result := R_ChooseOption('Open');
-      Writeln(Result);
       if Result then
         Break;
       MMouse(P.x-50, P.y-50, 4, 4);
