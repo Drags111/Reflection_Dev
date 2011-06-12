@@ -110,8 +110,29 @@ function R_WaitForAnimation(Timeout: Integer): Boolean;
 var
   T: Integer;
 begin
+  Result := False;
   MarkTime(T);
   while (R_GetAnimation = -1) do
+  begin
+    if (TimeFromMark(T) >= Timeout) then
+      Exit;
+    Wait(50 + Random(50));
+  end;
+  Result := True;
+end;
+
+{*******************************************************************************
+function R_WaitToStopAnimating(Timeout: Integer): Boolean;
+By: drags111
+Description: Waits until your character animates, or the timeout is reached.
+*******************************************************************************}
+function R_WaitToStopAnimating(Timeout: Integer): Boolean;
+var
+  T: Integer;
+begin
+  Result := False;
+  MarkTime(T);
+  while (R_GetAnimation <> -1) do
   begin
     if (TimeFromMark(T) >= Timeout) then
       Exit;

@@ -216,10 +216,7 @@ var
   Child: Integer;
 begin
   if not(R_ValidInterface(ParentI))then
-  begin
-    R_Debug('Interface '+ToStr(ParentI)+' isn''t valid.', 'R_GetRSChild');
     Exit;
-  end;
   try
     Child := R_GetChildRef(ParentI, ChildI);
     Result := RSChild_GetBaseInfo(Child);
@@ -316,7 +313,7 @@ var
   T: Integer;
 begin
   MarkTime(T);
-  while not R_ValidInterface(Index) do
+  while (TimeFromMark(T) < WaitTime) do
   begin
     if R_ValidInterface(Index)then
       Break;
@@ -330,7 +327,7 @@ var
   T: Integer;
 begin
   MarkTime(T);
-  while R_ValidInterface(Index) do
+  while (TimeFromMark(T) < WaitTime) do
   begin
     if not R_ValidInterface(Index)then
       Break;

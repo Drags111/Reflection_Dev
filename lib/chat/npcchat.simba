@@ -128,6 +128,15 @@ begin
   Result := True;
 end;
 
+function R_ClickContinueExists: Boolean;
+var
+  Cont: TRSChild;
+begin
+  Result := False;
+  Cont := R_GetClickContinueInterface;
+  Result := Cont.ID > 0;
+end;
+
 function R_WaitNPCChatchange(ClickContinue: Boolean; MaxWait: Integer): Boolean;
 var
   InitialName, InitialMessage, Name, Message: String;

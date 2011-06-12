@@ -1,4 +1,6 @@
 {$include_once ./Arnav.simba}
+{$include_once ./BeeKeeper.simba}
+{$include_once ./DrillDemon.simba}
 {$include_once ./Mordaut.simba}
 {$include_once ./Maze.simba}
 
@@ -21,12 +23,28 @@ var
 
 procedure R_SetupRandoms;
 begin
+  with R_RandomArr[Rand_BeeKeeper] do
+  begin
+    RandName := 'BeeKeeper';
+    Music := '';
+    InRandom := @RBeeKeeper_InRandom;
+    SolveRandom := @RBeeKeeper_Solve;
+  end;
+
   with R_RandomArr[Rand_CapnArnav] do
   begin
     RandName := 'Cap''n Arnav';
     Music := '';
     InRandom := @RArnav_InRandom;
     SolveRandom := @RArnav_Solve;
+  end;
+
+  with R_RandomArr[Rand_Demon] do
+  begin
+    RandName := 'Drill Demon';
+    Music := '';
+    InRandom := @RDemon_InRandom;
+    SolveRandom := @RDemon_Solve;
   end;
 
   with R_RandomArr[Rand_Maze] do

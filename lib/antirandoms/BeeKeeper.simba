@@ -1,0 +1,177 @@
+const
+  RBeeConst_Setting = 805;
+  RBeeConst_SettingValue = 109907968;
+  RBeeConst_Interface = 420;
+
+var
+  RBeeVars_NPC: TNPC;
+  RBeeVars_Models, RBeeVars_StartIDs: TIntegerArray;
+  RBeeVars_ModelNames: TStringArray;
+
+procedure RBeeKeeper_SetVars;
+begin
+  RBeeVars_Models := [16036, 16025, 16022, 16034];
+  RBeeVars_StartIDs := [12, 13, 14, 15];
+  RBeeVars_ModelNames := ['Lid', 'Upper Middle', 'Lower Middle', 'Legs'];
+end;
+
+function RBeeKeeper_InRandom: Boolean;
+begin
+  Result := R_FindNPC(8649, RBeeVars_NPC);
+  if Result then
+    Result := Length(R_GetObjectsByID(16168, OBJ_INTERACTABLE, 8)) > 0;
+end;
+
+function RBeeKeeper_TalkTo: Boolean;
+var
+  P: TPoint;
+begin
+  Result := False;
+  if(R_ClickContinueExists)then
+  begin
+    Result := True;
+    Exit;
+  end;
+  P := R_TileToMS(RBeeVars_NPC.Tile, RBeeVars_NPC.Height/2);
+  if(P.X = -1) or (P.y = -1)then
+    Exit;
+  Mouse(P.x, P.y, 5, 5, false);
+  Result := R_ChooseOption('talk');
+end;
+
+function RBeeKeeper_GetDragTo(Model: Integer): Integer;
+begin
+  case Model of
+    16036: Result := 16;
+		16025: Result := 17;
+		16022: Result := 18;
+		16034: Result := 19;
+  end;
+end;
+
+function RBeeKeeper_GetSlotID(Slot: Integer): Integer;
+begin
+  case Slot of
+    1: Result := 25;
+		2: Result := 22;
+		3: Result := 23;
+		4: Result := 21;
+  end;
+end;
+
+function RBeeKeeper_GetIDAtSlot(Slot: Integer): Integer;
+var
+  Child: TRSChild;
+begin
+  Result := -1;
+  if(Slot < 1) or (Slot > 4)then
+    Exit;
+
+  Child := R_GetRSChild(RBeeConst_Interface, RBeeKeeper_GetSlotID(Slot));
+  if(Child.ID <= 0) or (Child.ModelID <= 0)then
+    Exit;
+
+  if(InIntArray(RBeeVars_Models, Child.ModelID))then
+    Result := Child.ModelID;
+end;
+
+procedure RBeeKeeper_CloseScreen;
+var
+  CloseButton: TRSChild;
+begin
+  if not R_ValidInterface(RBeeConst_Interface)then
+    Exit;
+  CloseButton := R_GetRSChild(RBeeConst_Interface, 38);
+  R_MouseChild(CloseButton, 1);
+  R_WaitInterfaceClose(RBeeConst_Interface, 5000);
+end;
+
+procedure RBeeKeeper_ClickBuild;
+var
+  BuildButton: TRSChild;
+begin
+  if not R_ValidInterface(RBeeConst_Interface)then
+    Exit;
+  BuildButton := R_GetRSChild(RBeeConst_Interface, 40);
+  R_MouseChild(BuildButton, 1);
+end;
+
+procedure RBeeKeeper_MoveParts;
+var
+  StartSlot, EndSlot: TRSChild;
+  I, ID, X, Y: Integer;
+begin
+  if not R_ValidInterface(RBeeConst_Interface)then
+    Exit;
+  for I := 1 to 4 do
+  begin
+    ID := RBeeKeeper_GetIDAtSlot(I);
+    if(ID = -1)then
+      Continue;
+
+    StartSlot := R_GetRSChild(RBeeConst_Interface, RBeeVars_StartIDs[I-1]);
+    EndSlot := R_GetRSChild(RBeeConst_Interface, RBeeKeeper_GetDragTo(ID));
+
+    R_MouseChild(StartSlot, 3);
+    GetMousePos(X, Y);
+    HoldMouse(X, Y, 1);
+    wait(25+Random(25));
+    R_MouseChild(EndSlot, 3);
+    GetMousePos(X, Y);
+    ReleaseMouse(X, Y, 1);
+
+    Wait(400+Random(400));
+  end;
+  Wait(2000+Random(1000));
+end;
+
+function RBeeKeeper_Solve: Boolean;
+var
+  T: Integer;
+  Option: TRSChild;
+begin
+  Result := False;
+  RBeeKeeper_SetVars;
+  MarkTime(T);
+  while(TimeFromMark(T) < 180000) and RBeeKeeper_InRandom do
+  begin
+    Wait(250+Random(200));
+    if(R_ValidInterface(RBeeConst_Interface))then
+    begin
+      RBeeKeeper_MoveParts;
+      if(R_GetSetting(RBeeConst_Setting) = RBeeConst_SettingValue)then
+      begin
+        RBeeKeeper_ClickBuild;
+        R_WaitInterfaceClose(RBeeConst_Interface, 3000);
+        Result := True;
+      end else
+        RBeeKeeper_CloseScreen;
+    end else
+    begin
+      Option := R_GetRSChild(236, 2);
+      if(Option.Text <> '') and (Pos('let me get on', Option.Text) > 0)then
+      begin
+        Mouse(168+RandomRange(0, 184), 433+RandomRange(0, 11), 0, 0, True);
+        R_WaitInterfaceClose(236, 3000);
+        wait(600+Random(800));
+      end;
+
+      if(Result and not R_ClickContinueExists)then
+      begin
+        if(R_GetAnimation > 0)then
+        begin
+          R_WaitToStopAnimating(7000);
+          if(not RBeeKeeper_InRandom)then
+            Break;
+        end;
+      end;
+
+      if not RBeeKeeper_TalkTo then
+        Continue;
+
+      R_ClickToContinue;
+      Wait(600+Random(400));
+    end;
+  end;
+  Result := not RBeeKeeper_InRandom;
+end;

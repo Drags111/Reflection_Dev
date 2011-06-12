@@ -320,7 +320,7 @@ begin
         begin
           if(R_ClickToContinue)then
             MarkTime(T3);
-          if(TimeFromMark(T3) >= 5000)then
+          if(TimeFromMark(T3) >= 2500)then
             Break;
         end;
       end;
