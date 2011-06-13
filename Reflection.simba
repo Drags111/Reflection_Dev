@@ -56,26 +56,149 @@
 {$i ./lib/antirandoms/Antirandoms.simba}
 
 (*
+R_RSReady
+~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_RSReady: Boolean;
+
+Waits until the client is ready using the LoginIndex.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_RSReady: Boolean;
+var
+  LoginIndex: Integer;
+begin
+  Result := False;
+  LoginIndex := SmartGetFieldInt(0, hook_static_LoginIndex);
+  while(InRange(LoginIndex, 0, 2))do
+  begin
+    LoginIndex := SmartGetFieldInt(0, hook_static_LoginIndex);
+    Wait(1000);
+  end;
+  Result := True;
+end;
+
+(*
 SetupReflection
 ~~~~~~~~~~~
 
 .. code-block:: pascal
 
-    Procedure SetupReflection;
+    procedure SetupReflection;
 
-Sets up Reflection.
+Sets up Reflection and SRL.
 
 .. note::
 
   by Reflection Dev Team
 
 *)
-Procedure SetupReflection;
+procedure SetupReflection;
+var
+  T: Integer;
 begin
+  {$IFNDEF SMART}
+    {$IFDEF SIMBA}
+      if (not IsTargetValid) then
+        srl_Warn('SetUpSRL', 'Target client is not valid! ' +
+          'Drag the crosshairs over the target client.', warn_Terminate);
+    {$ENDIF}
+  {$ENDIF}
+  SetupBoxes; //Sets up box variables in globals.scar
+  T := GetTimeRunning;
+  MouseSpeed := 15;
+  {$IFDEF UseLaptopMouse}LMouse_MissChance := 75;{$ENDIF}
+  CheckHPFirst := True;
+  Reincarnate := False;
+  TalkAfterRandoms := False;
+  RoadColor := 0;
+  WaterColor := 0;
+  BankColor := 0;
+  LampSkill := 'mining';
+  SetUpSRLReport;
+  LoadCosineArrays;
+  SymbolAccuracy:= 0.8;
+  LoadSRLBitMaps;
+  LoadSRLFonts;
+  LoadTeleRandoms;
+  SolveSRLRandoms := True;
+  SetupSRLAutoResponder;
+  UseFindMod := True;
+  LogoutOnMod := True;
+  UseFindTrade := True;
+  UseAutoResponder := True;
+  Screenshots := False;
+  GraphicsSet := False;
+  AllowPVP    := False;
+  ScreenShots := True;
+  WarnSensitivity := -2;
+  SetupAutoColors;
+{$IFDEF SCAR325_UP}
+    rs_LoadUpChars(FontsPath + 'UpChars\');
+    NPCChars := LoadChars2(FontsPath + 'CharsNPC\');
+    UpChars := LoadChars2(FontsPath + 'UpChars\');
+    SmallChars := LoadChars2(FontsPath + 'SmallChars\');
+    StatChars := LoadChars2(FontsPath + 'StatChars\');
+    FriendChars := LoadChars2(FontsPath + 'FriendChars\');
+    BigChars := LoadChars2(FontsPath + 'BigChars\');
+    LoginChars := LoadChars2(FontsPath + 'LoginChars\');
+{$ENDIF}
+{$IFNDEF Simba}
+  {$IFDEF SCAR325_UP}
+    IncludePath := IncludesPath;
+    FontPath := FontsPath;
+  {$ELSE}
+    IncludePath := AppPath + 'Includes\';
+    FontPath := AppPath + 'Fonts\';
+  {$ENDIF}
+  XPChars := LoadChars2(FontsPath + 'XPChars\');
+{$ENDIF}
+{$IFDEF LoadExtraFonts}
+  srl_UpdateFonts(srl_FontsUp2date);
+{$ENDIF}
+{$IFDEF YourMom}
+  InitializeSRLLogFile;
+{$ENDIF}
+{$IFDEF SIMBA}
+  AddOnTerminate('FreeSRL');
+  SetSupressExceptions(true);
+{$ENDIF}
+  Writeln ('SRL Compiled in '+  IntToStr(GetTimeRunning - t) + ' msec');
+
+  {$IFDEF SRL_SMART}
+  if (Smart_Server = 0) then
+  begin
+    Smart_Server := RandomWorld(Smart_Members, False);
+    Smart_Signed := True;
+    Smart_SuperDetail := False;
+  end;
+  Writeln('SMART Initialized.' + #10 + 'Loaded: Server ' + IntToStr(Smart_Server) + ', Members: ' + BoolToStr(Smart_Members)
+                 + ', Signed: ' + BoolToStr(Smart_Signed) + ', Super Detail: ' + BoolToStr(Smart_SuperDetail) + '.');
+  SmartSetupEx(Smart_Server, Smart_Members, Smart_Signed, Smart_SuperDetail);
+{$IFDEF Simba}
+  SetTargetArray(SmartImageArray, 765,503);
+{$ELSE}
+  SetTargetDC(SmartGetDC);
+{$ENDIF}
+  R_RSReady;
+  {$ELSE}
+  Smart_Server := 0;
+  Smart_Members := false;
+  Smart_Signed := True;
+  Smart_SuperDetail := false;
+  {$ENDIF}
   Client := Client_GetClient;
 
+  T := GetTimeRunning;
   R_UpdateHooks;
   R_SetupGlobals;
 
   R_SetupRandoms;
+  Writeln ('Reflection Compiled in '+  IntToStr(GetTimeRunning - t) + ' msec');
 end;

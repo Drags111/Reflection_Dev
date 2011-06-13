@@ -108,12 +108,16 @@ end;
 function R_ClickToContinue: Boolean;
 var
   Cont: TRSChild;
-  T: Integer;
+  T, Color, X, Y: Integer;
 begin
   Result := False;
   Cont := R_GetClickContinueInterface;
 
   if(Cont.ID <= 0)then
+    Exit;
+
+  Color := Cont.TextColor;
+  if not FindColor(X, Y, Color, 178, 440, 470, 465)then
     Exit;
 
   R_MouseChild(Cont, 1);

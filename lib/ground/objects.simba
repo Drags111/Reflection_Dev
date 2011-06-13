@@ -197,7 +197,7 @@ begin
       R_FreeObjects([Ground, Obj]);
       Continue;
     end;
-    if(InIntArray(IDs, Temp.ID))then
+    if(InIntArray(IDs, Temp.ID) and (not R_ObjectInArray(Result, Temp)))then
     begin
       Result[resCount] := Temp;
       Inc(resCount);
