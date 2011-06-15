@@ -181,7 +181,7 @@ begin
   {
     Initialize the result array, setup for looping.
   }
-  NPCs := R_SortNPCs(R_GetAllNPCs(False));
+  NPCs := R_SortNPCs(R_GetAllNPCs(True));
   SetLength(Result, Length(NPCs));
   Hig := High(TheVarArr);
   Hi := High(NPCs);
