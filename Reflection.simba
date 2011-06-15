@@ -45,6 +45,8 @@
 {$i ./lib/chat/chat.simba}
 {$i ./lib/chat/npcchat.simba}
 
+{$i ./lib/gametab/gametab.simba}
+
 {$i ./lib/misc/other.simba}
 {$i ./lib/misc/items.simba}
 

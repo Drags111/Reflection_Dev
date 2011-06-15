@@ -55,6 +55,9 @@ var
   R_UseDebug, R_ExitOnRandoms: Boolean;
   R_ContinueIfOutdated: Boolean;
 
+var
+  SKILL_STRINGS: TStringArray; // Array of all the skills
+
 type
 {Stores the rotation matrix used by the client to render to the main
  screen, along with offsets.}
@@ -241,6 +244,12 @@ Sets up variables that need to be declared.
 procedure R_SetupGlobals;
 begin
   R_UseDebug := True;
+  SKILL_STRINGS := ['attack', 'defence', 'strength', 'hitpoints', 'range',
+                    'prayer', 'magic', 'cooking', 'woodcutting', 'fletching',
+                    'fishing', 'firemaking', 'crafting', 'smithing', 'mining',
+                    'herblore', 'agility', 'thieving', 'slayer', 'farming',
+                    'runecrafting', 'hunter', 'construction', 'summoning',
+                    'dungeoneering'];
 end;
 
 (*
