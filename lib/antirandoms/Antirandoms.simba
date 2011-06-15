@@ -1,10 +1,21 @@
+{$include_once ./Abyss.simba}
 {$include_once ./Arnav.simba}
 {$include_once ./BeeKeeper.simba}
+{$include_once ./Certer.simba}
 {$include_once ./DrillDemon.simba}
+{$include_once ./Forester.simba}
+{$include_once ./Frog.simba}
 {$include_once ./Gravedigger.simba}
 {$include_once ./Maze.simba}
 {$include_once ./Mime.simba}
+{$include_once ./Molly.simba}
 {$include_once ./Mordaut.simba}
+{$include_once ./Pillory.simba}
+{$include_once ./Pinball.simba}
+{$include_once ./Prison.simba}
+{$include_once ./Quiz.simba}
+{$include_once ./Sandwich.simba}
+{$include_once ./ScapeRune.simba}
 
 const
   R_RandomCount = 18;
@@ -25,6 +36,14 @@ var
 
 procedure R_SetupRandoms;
 begin
+  with R_RandomArr[Rand_Abyss] do
+  begin
+    RandName := 'Abyss';            //Not done
+    Music := '';
+    InRandom := @RAbyss_InRandom;
+    SolveRandom := @RAbyss_Solve;
+  end;
+
   with R_RandomArr[Rand_BeeKeeper] do
   begin
     RandName := 'BeeKeeper';
@@ -41,12 +60,36 @@ begin
     SolveRandom := @RArnav_Solve;
   end;
 
+  with R_RandomArr[Rand_Certer] do  //Not done
+  begin
+    RandName := 'Certer';
+    Music := '';
+    InRandom := @RCerter_InRandom;
+    SolveRandom := @RCerter_Solve;
+  end;
+
   with R_RandomArr[Rand_Demon] do
   begin
     RandName := 'Drill Demon';
     Music := '';
     InRandom := @RDemon_InRandom;
     SolveRandom := @RDemon_Solve;
+  end;
+
+  with R_RandomArr[Rand_Forester] do
+  begin                              //Not done
+    RandName := 'Freaky Forester';
+    Music := '';
+    InRandom := @RForest_InRandom;
+    SolveRandom := @RForest_Solve;
+  end;
+
+  with R_RandomArr[Rand_Frog] do
+  begin                              //Not done
+    RandName := 'Frog Cave';
+    Music := '';
+    InRandom := @RFrog_InRandom;
+    SolveRandom := @RFrog_Solve;
   end;
 
   with R_RandomArr[Rand_Leo] do
@@ -73,12 +116,68 @@ begin
     SolveRandom := @RMime_Solve;
   end;
 
+  with R_RandomArr[Rand_Molly] do
+  begin                              //Not done
+    RandName := 'Molly';
+    Music := '';
+    InRandom := @RMolly_InRandom;
+    SolveRandom := @RMolly_Solve;
+  end;
+
   with R_RandomArr[Rand_Mordaut] do
   begin
     RandName := 'Mordaut';
     Music := '';
     InRandom := @RMordaut_InRandom;
     SolveRandom := @RMordaut_Solve;
+  end;
+
+  with R_RandomArr[Rand_Pillory] do
+  begin                              //Not done
+    RandName := 'Pillory';
+    Music := '';
+    InRandom := @RPillory_InRandom;
+    SolveRandom := @RPillory_Solve;
+  end;
+
+  with R_RandomArr[Rand_Pinball] do
+  begin                              //Not done
+    RandName := 'Pinball';
+    Music := '';
+    InRandom := @RPinball_InRandom;
+    SolveRandom := @RPinball_Solve;
+  end;
+
+  with R_RandomArr[Rand_PrisonPete] do
+  begin                              //Not done
+    RandName := 'Prison Pete';
+    Music := '';
+    InRandom := @RPrison_InRandom;
+    SolveRandom := @RPrison_Solve;
+  end;
+
+  with R_RandomArr[Rand_Quiz] do
+  begin                              //Not done
+    RandName := 'Quiz';
+    Music := '';
+    InRandom := @RQuiz_InRandom;
+    SolveRandom := @RQuiz_Solve;
+  end;
+
+  with R_RandomArr[Rand_Sandwich] do
+  begin                              //Not done
+    RandName := 'Sandwich Lady';
+    Music := '';
+    InRandom := @RSandwich_InRandom;
+    SolveRandom := @RSandwich_Solve;
+  end;
+
+  with R_RandomArr[Rand_ScapeRune] do
+  begin                              //Not done
+    RandName := 'Evil Bob''s Island';
+    Music := '';
+    InRandom := @REvilBob_InRandom;
+    SolveRandom := @REvilBob_Solve;
   end;
 
   // Needs deposit
@@ -110,17 +209,18 @@ var
   T: TTile;
   RandomBox: TBox;
 begin
-  If Not R_LoggedIn then
-    Exit;
+  //If Not R_LoggedIn then
+  //  Exit;
 
-  If Not R_RandomVarSet then
+  if not R_RandomVarSet then
     r_SetupRandoms;
 
   Music := LowerCase(R_GetMusic);
   for I := 0 to R_RandomCount-1 do
   begin
-
-    If (R_RandomArr[I].Music = Music)or(R_RandomArr[I].Music = '')then
+    //Writeln('Checking '+R_RandomArr[I].RandName);
+    //wait(1000);
+    if (R_RandomArr[I].Music = Music)or(R_RandomArr[I].Music = '')then
       if (R_RandomArr[I].InRandom <> nil) then
         InRand := R_RandomArr[I].InRandom()
       else
@@ -135,7 +235,18 @@ begin
 
     if (InRand) then
     begin
-      //Players[CurrentPlayer].Rand := R_RandomArr[I].RandName;
+      Players[CurrentPlayer].Rand := R_RandomArr[I].RandName;
+
+      if R_ExitOnRandoms then
+      begin
+        Result := False;
+        R_Debug('R_ExitOnRandoms is set to true. Logging out of ' + R_RandomArr[I].RandName, 'Randoms');
+        Logout;
+        Players[CurrentPlayer].Active := False;
+        Inc(RandFailed[I]);
+        Exit;
+      end;
+
       R_Debug('Trying to solve: ' + R_RandomArr[I].RandName, '');
       T := R_GetMyPos;
       RandomBox := IntToBox(T.X-70, T.Y-70, T.X+70, T.Y+70);
@@ -148,7 +259,7 @@ begin
       begin
         R_Debug('No random solver for ' + R_RandomArr[I].RandName, '');
         Logout;
-        //Players[CurrentPlayer].Active := False;
+        Players[CurrentPlayer].Active := False;
         Inc(RandFailed[I]);
         Exit;
       end;
@@ -157,7 +268,7 @@ begin
       begin
         R_Debug('Random solving failed for ' + R_RandomArr[I].RandName, '');
         Logout;
-        //Players[CurrentPlayer].Active := False;
+        Players[CurrentPlayer].Active := False;
         Inc(RandFailed[I]);
         Exit;
       end else
@@ -173,7 +284,7 @@ begin
       R_Debug('Out of random', '');
       Wait(3000+Random(2000));
 
-      //Players[CurrentPlayer].Rand := '';
+      Players[CurrentPlayer].Rand := '';
       Inc(RandSolved[I]);
       Exit;
     end;

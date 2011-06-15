@@ -1,0 +1,14 @@
+var
+  RForestVars_NPC: TNPC;
+
+function RForest_InRandom: Boolean;
+begin
+  Result := R_FindNPC('Freaky Forester', RForestVars_NPC);
+  if Result then
+    Result := PointInBox(R_GetMyPos, IntToBox(2593, 4767, 2611, 4781));
+end;
+
+function RForest_Solve: Boolean;
+begin
+  Result := False;
+end;

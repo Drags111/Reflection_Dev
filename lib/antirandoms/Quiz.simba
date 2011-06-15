@@ -1,0 +1,14 @@
+var
+  RQuizVars_NPC: TNPC;
+
+function RQuiz_InRandom: Boolean;
+begin
+  Result := R_FindNPC(2477, RQuizVars_NPC);
+  if Result then
+    Result := (R_DistanceFromTile(RQuizVars_NPC.Tile) < 5);
+end;
+
+function RQuiz_Solve: Boolean;
+begin
+  Result := False
+end;

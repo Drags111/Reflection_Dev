@@ -3,6 +3,7 @@ var
   I, K: Integer;
   ValidInterfaces, ValidChildren: TIntegerArray;
   ChildText: String;
+  Child: TRSChild;
 begin
   ValidInterfaces := R_GetValidInterfaces;
 
@@ -108,7 +109,8 @@ end;
 function R_ClickToContinue: Boolean;
 var
   Cont: TRSChild;
-  T, Color, X, Y: Integer;
+  T, Color: Integer;
+  TPA: TPointArray;
 begin
   Result := False;
   Cont := R_GetClickContinueInterface;
@@ -116,8 +118,7 @@ begin
   if(Cont.ID <= 0)then
     Exit;
 
-  Color := Cont.TextColor;
-  if not FindColor(X, Y, Color, 178, 440, 470, 465)then
+  if(Cont.IsHidden)then
     Exit;
 
   R_MouseChild(Cont, 1);

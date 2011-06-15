@@ -79,8 +79,7 @@ end;
 
 function RMime_Solve: Boolean;
 var
-  T, T2, Animation, I: Integer;
-  Text: String;
+  T, T2, Animation: Integer;
 begin
   Result := False;
   MarkTime(T);

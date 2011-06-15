@@ -1,0 +1,14 @@
+function RPillory_InRandom: Boolean;
+var
+  Tiles: TTileArray;
+begin
+  Tiles := [R_Tile(2608, 3105), R_Tile(2606, 3105), R_Tile(2604, 3105),
+            R_Tile(3226, 3407), R_Tile(3228, 3407), R_Tile(3230, 3407),
+            R_Tile(2685, 3489), R_Tile(2683, 3489), R_Tile(2681, 3489)];
+  Result := PointInTPA(R_GetMyPos, Tiles);
+end;
+
+function RPillory_Solve: Boolean;
+begin
+  Result := False;
+end;

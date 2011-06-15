@@ -1,0 +1,12 @@
+function RAbyss_InRandom: Boolean;
+var
+  Appendage: TRSObject;
+begin
+  Result := False;
+  Appendage := R_GetObjectByID(8995, OBJ_INTERACTABLE, 10);
+end;
+
+function RAbyss_Solve: Boolean;
+begin
+  Result := False;
+end;

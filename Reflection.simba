@@ -76,6 +76,8 @@ var
 begin
   Result := False;
   LoginIndex := SmartGetFieldInt(0, hook_static_LoginIndex);
+  if(LoginIndex = -1)then
+    Exit;
   while(InRange(LoginIndex, 0, 2))do
   begin
     LoginIndex := SmartGetFieldInt(0, hook_static_LoginIndex);
@@ -186,7 +188,6 @@ begin
 {$ELSE}
   SetTargetDC(SmartGetDC);
 {$ENDIF}
-  R_RSReady;
   {$ELSE}
   Smart_Server := 0;
   Smart_Members := false;
@@ -201,4 +202,10 @@ begin
 
   R_SetupRandoms;
   Writeln ('Reflection Compiled in '+  IntToStr(GetTimeRunning - t) + ' msec');
+
+  if not R_RSReady then
+  begin
+    R_Debug('Hooks are outdated, please check back later for an update!', 'Reflection');
+    TerminateScript;
+  end;
 end;

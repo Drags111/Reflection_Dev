@@ -216,7 +216,7 @@ begin
   TriesLeft := 5;
   MarkTime(T);
 
-  while(TimeFromMark(T) < 300000) and (TriesLeft > 0) and RArnav_InRandom do
+  while(TimeFromMark(T) < 300000) and (TriesLeft <> 0) and RArnav_InRandom do
   begin
     if(Result)then
     begin

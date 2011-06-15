@@ -1,0 +1,14 @@
+var
+  RMollyVars_NPC: TNPC;
+
+function RMolly_InRandom: Boolean;
+begin
+  Result := R_FindNPC('Molly', RMollyVars_NPC);
+  if Result then
+    Result := R_ValidNPC('Suspect');
+end;
+
+function RMolly_Solve: Boolean;
+begin
+  Result := False;
+end;

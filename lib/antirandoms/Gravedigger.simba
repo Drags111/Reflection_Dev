@@ -57,8 +57,6 @@ begin
 end;
 
 function RLeo_InRandom: Boolean;
-var
-  Mausoleum: TRSObject;
 begin
   Result := R_FindNPC(RLeoConst_NPCID, RLeoVar_Leo);
   if not Result then
@@ -130,7 +128,7 @@ var
   Item: TRSComponent;
   Close: TRSChild;
   Name: String;
-  I, Count, X, Y, T, Goal: Integer;
+  I, Count, X, Y, Goal: Integer;
 begin
   Result := False;
   if (R_InvCount <= 23)then
@@ -208,7 +206,6 @@ begin
       Break;
     for I := 0 to High(Graves)do
     begin
-      Writeln('I = '+ToStr(I));
       if(R_GetObjectAt(Graves[I].Tile, Graves[I].ObjType) <> Graves[I])then
         Continue;
       if(R_DistanceFromTile(Graves[I].Tile) > 4)then

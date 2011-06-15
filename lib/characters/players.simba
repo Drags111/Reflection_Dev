@@ -376,6 +376,7 @@ var
   NPCs: TNPCArray;
   Me, Player: TRSPlayer;
 begin
+  Result := False;
   NPC := NULL_NPC;
   Me := R_GetMe;
   NPCs := R_GetAllNPCs(False);

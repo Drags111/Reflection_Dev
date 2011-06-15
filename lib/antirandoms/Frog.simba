@@ -1,0 +1,12 @@
+var
+  RFrogVars_NPC: TNPC;
+
+function RFrog_InRandom: Boolean;
+begin
+  Result := R_FindNPC('Frog Herald', RFrogVars_NPC);
+end;
+
+function RFrog_Solve: Boolean;
+begin
+  Result := False;
+end;
