@@ -1,68 +1,135 @@
-const
-  INTERFACE_HITPOINTS = 748;
-  INTERFACE_PRAYER = 749;
-  INTERFACE_RUN = 750;
+(*
+GameTab
+=======
 
-const
-  SETTING_RUN = 173;
+All the routines regarding game tab switching, world map, minimap levels, and
+things of that nature.
 
-{*******************************************************************************
-function R_WorldMapOpen : Boolean;
-Description: Returns true if world map is open
-******************************************************************************* }
-function R_WorldMapOpen : Boolean;
+{Gametab constants}
+  RTAB_FRIENDSLIST = 99;
+  RTAB_CHAT = 100;
+  RTAB_CLANCHAT = 101;
+  RTAB_OPTIONS = 102;
+  RTAB_EMOTES = 103;
+  RTAB_MUSIC = 104;
+  RTAB_NOTES = 105;
+  RTAB_COMBAT = 128;
+  RTAB_TASKS = 129;
+  RTAB_STATS = 130;
+  RTAB_QUESTS = 131;
+  RTAB_INVENTORY = 132;
+  RTAB_EQUIPMENT = 133;
+  RTAB_PRAYER = 134;
+  RTAB_SPELLBOOK = 135;
+
+*)
+
+(*
+R_CurrentGameTab
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_CurrentGameTab: Integer;
+
+Returns the gametab index (one of the constants) of the active game tab.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_CurrentGameTab: Integer;
 var
-  Map: TRSChild;
+  GameTabs: TIntegerArray;
+  I, Child, TextureID: Integer;
 begin
-  Result := R_ValidInterface(755);
-  if not Result then
-    Exit;
-  Map := R_GetRSChild(755, 0);
-  Result := (Map.Width <> 0);
+  Result := -1;
+  GameTabs := [RTAB_FRIENDSLIST, RTAB_CHAT, RTAB_CLANCHAT, RTAB_OPTIONS,
+               RTAB_EMOTES, RTAB_MUSIC, RTAB_NOTES, RTAB_COMBAT, RTAB_TASKS,
+               RTAB_STATS, RTAB_QUESTS, RTAB_INVENTORY, RTAB_EQUIPMENT,
+               RTAB_PRAYER, RTAB_SPELLBOOK];
+  for I := 0 to High(GameTabs)do
+  begin
+    Child := R_GetInterfaceChildRef(INTERFACE_GAMETAB, GameTabs[I]);
+    TextureID := SmartGetFieldInt(Child, hook_interface_GetTextureID);
+    if(TextureID = 1836)then
+    begin
+      Result := GameTabs[I];
+      Exit;
+    end;
+  end;
 end;
 
-{*******************************************************************************
-function R_CloseWorldMap : Boolean;
-By: Drags111
-Description: Closes map.
-******************************************************************************* }
-function R_CloseWorldMap : Boolean;
+(*
+R_GameTab
+~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GameTab(Tab: Integer): Boolean;
+
+Clicks the specified GameTab (see constants.simba for a list of valid
+GameTab constants).
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GameTab(Tab: Integer): Boolean;
 var
-  T, I: Integer;
-  Btn: TRSChild;
+  Child: TInterfaceChild;
+  GameTabs: TIntegerArray;
+  T: Integer;
 begin
   Result := False;
-  if not R_LoggedIn then Exit;
-  if not R_WorldMapOpen then
+  GameTabs := [RTAB_FRIENDSLIST, RTAB_CHAT, RTAB_CLANCHAT, RTAB_OPTIONS,
+               RTAB_EMOTES, RTAB_MUSIC, RTAB_NOTES, RTAB_COMBAT, RTAB_TASKS,
+               RTAB_STATS, RTAB_QUESTS, RTAB_INVENTORY, RTAB_EQUIPMENT,
+               RTAB_PRAYER, RTAB_SPELLBOOK];
+  if not InIntArray(GameTabs, Tab)then
+  begin
+    R_Debug('Invalid tab number', 'R_GameTab');
+  end;
+  if not R_ValidInterface(INTERFACE_GAMETAB)then
+    Exit;
+  Child := R_GetInterfaceChild(INTERFACE_GAMETAB, Tab);
+
+  if(Child.TextureID = 1836)then
   begin
     Result := True;
     Exit;
   end;
 
-  Btn := R_GetRSChild(755, 44);
-  R_MouseChild(Btn, 1);
-
-  for I := 0 to 1 do
+  R_ClickInterface(Child, 1);
+  MarkTime(T);
+  while(TimeFromMark(T) < 2000)do
   begin
-    MarkTime(T);
-    while(R_WorldMapOpen)do
-    begin
-      wait(50+Random(50));
-      if(TimeFromMark(t) > 5000)then
-      begin
-        R_Debug('Timed out closing World Map', 'R_CloseWorldMap');
-        Exit;
-      end;
-    end;
-    Result := not R_WorldMapOpen;
+    Wait(50+RandoM(25));
+    Child := R_GetInterfaceChild(INTERFACE_GAMETAB, Tab);
+    if(Child.TextureID = 1836)then
+      Break;
   end;
+
+  Result := (TimeFromMark(T) < 2000);
 end;
 
-{*******************************************************************************
-function R_GetMMLevels(Which: string): Integer;
-By: lordsaturn and Drags111
-Description: Returns the current value at the designated MM spot.
-*******************************************************************************}
+(*
+R_GetMMLevels
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMMLevels(Which: string): Integer;
+
+Returns the current value at the designated minimap level.
+
+.. note::
+
+  by lordsaturn, Drags111
+
+*)
 function R_GetMMLevels(Which: string): Integer;
 begin
   Result := -1;
@@ -70,25 +137,107 @@ begin
     'hitpoints', 'hp', 'lp', 'lifepoints': Result := StrToInt(R_GetInterfaceText(INTERFACE_HITPOINTS, 8));
     'prayer', 'pp'   : Result := StrToInt(R_GetInterfaceText(INTERFACE_PRAYER, 4));
     'run', 'energy'  : Result := StrToInt(R_GetInterfaceText(INTERFACE_RUN, 5));
-    else R_Debug('R_GetMMLevels', 'Invaild string.');
+    else R_Debug('Invaild string.', 'R_GetMMLevels');
   end;
 end;
 
-{*******************************************************************************
-function R_IsRunning: boolean;
-By: Drags111
-Description: Returns true if the run option is set to true.
-*******************************************************************************}
+(*
+R_ClickNorth
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_ClickNorth;
+
+Clicks the compass icon next to the minimap to face the compass north.
+
+.. note::
+
+  by Drags111
+
+*)
+procedure R_ClickNorth;
+var
+  Compass: TInterfaceChild;
+begin
+  if not R_ValidInterface(INTERFACE_GAMETAB)then
+    Exit;
+  Compass := R_GetInterfaceChild(INTERFACE_GAMETAB, INTERFACE_GAMETAB_FACENORTH);
+  R_ClickInterface(Compass, 1);
+end;
+
+(*
+R_IsRunning
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_IsRunning: boolean;
+
+Returns true if you are running.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_IsRunning: boolean;
 begin
   Result := R_GetSetting(SETTING_RUN) = 1;
 end;
 
-{*******************************************************************************
-function R_IsResting: boolean;
-By: Drags111
-Description: Returns true if your player is performing the resting animation.
-*******************************************************************************}
+(*
+R_SetRun
+~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_SetRun(Run: Boolean);
+
+Sets the run to the condition specified.
+
+.. note::
+
+  by Drags111
+
+*)
+procedure R_SetRun(Run: Boolean);
+var
+  Button: TInterfaceChild;
+  T: Integer;
+begin
+  if not R_ValidInterface(INTERFACE_RUN)then
+    Exit;
+  if(Run = R_IsRunning)then
+    Exit;
+
+  Button := R_GetInterfaceChild(INTERFACE_RUN, 1);
+  R_ClickInterface(Button, 1);
+
+  MarkTime(T);
+  while(TimeFromMark(T) < 1000)do
+  begin
+    Wait(25+Random(50));
+    if(Run = R_IsRunning)then
+      Break;
+  end;
+end;
+
+(*
+R_IsResting
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_IsResting: boolean;
+
+Returns true if your player is performing the resting animation.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_IsResting: boolean;
 var
   Animations: TIntegerArray;
@@ -98,37 +247,51 @@ begin
   Result := InIntArray(Animations, R_GetAnimation);
 end;
 
-{*******************************************************************************
-function R_Rest(MaxEnergy: integer): boolean;
-By: Drags111
-Description: Uses the rest ability until the desired energy is reached.
-*******************************************************************************}
+(*
+R_Rest
+~~~~~~
+
+.. code-block:: pascal
+
+    function R_Rest(MaxEnergy: integer): boolean;
+
+Uses the rest ability until the desired energy is reached.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_Rest(MaxEnergy: integer): boolean;
 var
   T, MT, Energy: integer;
-  RunIcon: TRSChild;
+  RunIcon: TInterfaceChild;
 begin
   Result := True;
-  MarkTime(mt);
+  MarkTime(MT);
   Energy := R_GetMMLevels('Run');
+
   if(Energy >= MaxEnergy)then
     Exit;
+
   Result := R_IsResting;
   while(not Result)do
   begin
     if not LoggedIn or (TimeFromMark(MT) > 9000)then
       Exit;
-    RunIcon := R_GetRSChild(INTERFACE_RUN, 1);
-    R_MouseChild(RunIcon, 2);
+    RunIcon := R_GetInterfaceChild(INTERFACE_RUN, 1);
+    R_ClickInterface(RunIcon, 2);
+    Wait(25+Random(50));
     Result := R_ChooseOption('Rest');
     if(Result)then
     begin
       MarkTime(T);
-      While((not R_IsResting) and (TimeFromMark(T) < 3000))do
+      while((not R_IsResting) and (TimeFromMark(T) < 3000))do
         wait(100+Random(100));
       Result := (R_IsResting);
     end;
   end;
+
   Energy := R_GetMMLevels('run');
   while(Energy < MaxEnergy)do
   begin
@@ -140,88 +303,70 @@ begin
   end;
 end;
 
-{*******************************************************************************
-function _SkillStringToInt(skill: string): Integer;
-By: Nava2
-Description: Gets the integer index of a skill string name.
-*******************************************************************************}
-function R_SkillStringToInt(skill: string): Integer;
-var
-  i, h: Integer;
-begin
-  Result := -1;
-  skill := LowerCase(skill);
-  h := High(SKILL_STRINGS);
-  for i := 0 to h do
-    if (skill = SKILL_STRINGS[i]) then
-    begin
-      Result := i;
-      Exit;
-    end;
+(*
+R_WorldMapOpen
+~~~~~~~~~~~~~~
 
-  SRL_Warn('_SkillStringToInt',
-           'skill: ' + skill + ' was not valid.',
-           warn_AllVersions);
+.. code-block:: pascal
+
+    function R_WorldMapOpen : Boolean;
+
+Returns true if the World Map is open.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WorldMapOpen : Boolean;
+var
+  Map: TInterfaceChild;
+begin
+  Result := R_ValidInterface(755);
+  if not Result then
+    Exit;
+  Map := R_GetInterfaceChild(INTERFACE_WORLDMAP, 0);
+  Result := (Map.Width <> 0);
 end;
 
-{*******************************************************************************
-function R_GetSkillLevel(skill: variant): Integer;
-By: Nava2
-Description: Gets the Level stored at skill. Skill can be the string or const.
-             The const is significantly faster.
-*******************************************************************************}
-function R_GetSkillLevel(skill: variant): Integer;
+(*
+R_CloseWorldMap
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_CloseWorldMap : Boolean;
+
+Closes the World Map. Returns true if it is successful.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_CloseWorldMap : Boolean;
 var
-  Index: Integer;
+  T: Integer;
+  Button: TInterfaceChild;
 begin
-  case VarType(skill) of
-    varString: Index := R_SkillStringToInt(skill);
-    varInteger: Index := skill;
-    else
-      SRL_Warn('GetSkillLevel', 'Invalid var type passed.', warn_AllVersions);
+  Result := False;
+  if not R_WorldMapOpen then
+  begin
+    Result := True;
+    Exit;
   end;
 
-  Result := SmartGetFieldArrayInt(0, hook_static_GetSkillLevels, Index);
-end;
+  Button := R_GetInterfaceChild(INTERFACE_WORLDMAP, INTERFACE_WORLDMAP_CLOSE);
+  R_ClickInterface(Button, 1);
 
-{*******************************************************************************
-function R_GetSkillExperience(skill: variant): Integer;
-By: Nava2
-Description: Gets the Experience stored at skill. Skill can be the string or
-             const. The const is significantly faster.
-*******************************************************************************}
-function R_GetSkillExperience(skill: variant): Integer;
-var
-  Index: Integer;
-begin
-  case VarType(skill) of
-    varString: Index := R_SkillStringToInt(skill);
-    varInteger: Index := skill;
-    else
-      SRL_Warn('GetSkillLevel', 'Invalid var type passed.', warn_AllVersions);
+  MarkTime(T);
+  while(TimeFromMark(T) < 5000)do
+  begin
+    wait(50+Random(50));
+    if not R_WorldMapOpen then
+      Break;
   end;
-
-  Result := SmartGetFieldArrayInt(0, hook_static_GetSkillExperiences, Index);
+  Result := (TimeFromMark(T) < 5000);
 end;
 
-{*******************************************************************************
-function R_ExpToNextLevel(skill: variant): Integer;
-By: Shuttleu
-Description: Gets the Experience needed to get to the next level
-*******************************************************************************}
-function R_ExpToNextLevel(Skill: variant): Integer;
-var
-  Level, i, Index: Integer;
-begin
-  case VarType(skill) of
-    varString: Index := R_SkillStringToInt(skill);
-    varInteger: Index := skill;
-    else
-      SRL_Warn('GetSkillLevel', 'Invalid var type passed.', warn_AllVersions);
-  end;
-  Level:= SmartGetFieldArrayInt(0, hook_static_GetSkillLevels, Index);
-  Result:= 0;
-  for i := 1 to Level do
-    Result := Result + floor(i + 300 * Pow(2.0, i / 7.0));
-  Result:= (Result/4) - SmartGetFieldArrayInt(0, hook_static_GetSkillExperiences, Index);
-end;
+

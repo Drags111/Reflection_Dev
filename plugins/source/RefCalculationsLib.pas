@@ -190,7 +190,7 @@ function GetFunctionCallingConv(x : Integer) : Integer; stdcall; export;
 begin
   Result := 0;
   case x of
-     0..2 : Result := 1;
+    0 : Result := 1;
   end;
 end;
 

@@ -1,0 +1,224 @@
+function R_GetInteractableObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
+var
+  Node, Last, Obj: Integer;
+  ID, SecondLevel: Integer;
+begin
+  Node := SmartGetFieldObject(GroundObj, hook_ground_AnimableList);
+  while(Node <> 0)do
+  begin
+    Obj := SmartGetFieldObject(Node, hook_AnimableNode_GetAnimable);
+    if(Obj <> 0)then
+      Break;
+    Last := Node;
+    Node := SmartGetFieldObject(Last, hook_AnimableNode_GetNext);
+    SmartFreeObject(Last);
+  end;
+  SmartFreeObject(Node);
+
+  if(Obj <= 0)then
+    Exit;
+
+  ID := SmartGetFieldShort(Obj, hook_InteractiveObject_GetID) and $FFFF;
+  if(ID = -1) or (ID = 65535)then   //65535 is an unsigned -1...
+  begin
+    SecondLevel := SmartGetFieldObject(Obj, hook_interactiveobject2_GetObjectData);
+    ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetID) and $FFFF;
+    if(ID = -1) or (ID = 65535)then
+    begin
+      SmartFreeObject(SecondLevel);
+      SmartFreeObject(Obj);
+      Exit;
+    end;
+  end;
+
+  if(ID <> -1) and (ID <> 65535)then
+  begin
+    Result.ID := ID;
+    Result.ObjType := OBJ_INTERACTABLE;
+
+    Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
+    Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
+
+    Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
+    Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
+    Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
+    Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
+  end;
+
+  SmartFreeObject(SecondLevel);
+  SmartFreeObject(Obj);
+end;
+
+function R_GetWallObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
+var
+  Obj, ID: Integer;
+begin
+  Obj := SmartGetFieldObject(GroundObj, hook_ground_WallObject1);
+  if(Obj = 0)then
+  begin
+    SmartFreeObject(Obj);
+    Obj := SmartGetFieldObject(GroundObj, hook_ground_WallObject2);
+    if(Obj <= 0)then
+    begin
+      SmartFreeObject(Obj);
+      Exit;
+    end;
+  end;
+
+  ID := SmartGetFieldShort(Obj, hook_WallObjectData_GetID) and $FFFF;
+  if(ID = -1) or (ID = 65535)then
+    ID := SmartGetFieldInt(Obj, hook_secondlevelobject_GetID) and $FFFF;
+  if(ID = -1) or (ID = 65535)then
+    Exit;
+
+  Result.ID := ID;
+  Result.ObjType := OBJ_INTERACTABLE;
+
+  Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
+  Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
+
+  Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
+  Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
+  Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
+  Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
+
+  SmartFreeObject(Obj);
+end;
+
+function R_GetWallDecorationObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
+var
+  Obj, ID: Integer;
+begin
+  Obj := SmartGetFieldObject(GroundObj, hook_ground_WallDecoration1);
+  if(Obj = 0)then
+  begin
+    SmartFreeObject(Obj);
+    Obj := SmartGetFieldObject(GroundObj, hook_ground_WallDecoration2);
+    if(Obj <= 0)then
+    begin
+      SmartFreeObject(Obj);
+      Exit;
+    end;
+  end;
+
+  ID := SmartGetFieldShort(Obj, hook_WallDecorationData_GetID) and $FFFF;
+  if(ID = -1) or (ID = 65535)then
+    ID := SmartGetFieldInt(Obj, hook_secondlevelobject_GetID) and $FFFF;
+  if(ID = -1) or (ID = 65535)then
+    Exit;
+
+  Result.ID := ID;
+  Result.ObjType := OBJ_INTERACTABLE;
+
+  Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
+  Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
+
+  Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
+  Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
+  Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
+  Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
+
+  SmartFreeObject(Obj);
+end;
+
+function R_GetFloorDecorationObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
+var
+  Obj, ID: Integer;
+begin
+  Obj := SmartGetFieldObject(GroundObj, hook_ground_FloorDecoration);
+  if(Obj = 0)then
+  begin
+    SmartFreeObject(Obj);
+    Exit;
+  end;
+
+  ID := SmartGetFieldShort(Obj, hook_FloorDecorationData_GetID) and $FFFF;
+  if(ID = -1) or (ID = 65535)then
+    ID := SmartGetFieldInt(Obj, hook_secondlevelobject_GetID) and $FFFF;
+  if(ID = -1) or (ID = 65535)then
+    Exit;
+
+  Result.ID := ID;
+  Result.ObjType := OBJ_INTERACTABLE;
+
+  Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
+  Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
+
+  Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
+  Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
+  Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
+  Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
+
+  SmartFreeObject(Obj);
+end;
+
+{*******************************************************************************
+function R_GetAllObjects(ObjType: Integer): TRSObjectArray;
+By: Drags111
+Description: Gets all loaded objects of the type, and stores them in a
+            TRSObjectArray.
+*******************************************************************************}
+(*
+R_GetAllObjects
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetAllObjects(ObjType: Integer): TRSObjectArray;
+
+Gets all the loaded object types of ObjType and stores them in a TRSObjectArray.
+The ObjTypes are as follows:
+{Object constants}
+  OBJ_INTERACTABLE = 1;
+  OBJ_WALLOBJECT = 2;
+  OBJ_WALLDECORATION = 3;
+  OBJ_FLOORDECORATION = 4;
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetAllObjects(ObjType: Integer): TRSObjectArray;
+var
+  Plane, GroundObj, X, Y, C, Obj, BaseX, BaseY: integer;
+  Temp: TRSObject;
+  ObjFunction: function(GroundObj, BaseX, BaseY: Integer): TRSObject;
+begin
+  SetLength(Result, 104*104);
+  C := 0;
+
+  case ObjType of
+    OBJ_INTERACTABLE: ObjFunction := @R_GetInteractableObject;
+    OBJ_WALLOBJECT: ObjFunction := @R_GetWallObject;
+    OBJ_WALLDECORATION: ObjFunction := @R_GetWallDecorationObject;
+    OBJ_FLOORDECORATION: ObjFunction := @R_GetFloorDecorationObject;
+    else begin
+      R_Debug('Not a valid ObjType!', 'R_GetAllObjects');
+      Exit;
+    end;
+  end;
+
+  BaseX := SmartGetFieldInt(0, hook_static_BaseX);
+  BaseY := SmartGetFieldInt(0, hook_static_BaseY);
+  Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
+
+  for X := 0 to 103 do
+    for Y := 0 to 103 do
+    begin
+      GroundObj := SmartGetFieldArray3DObject(0, hook_static_GroundTiles, Plane, X, Y);
+      Temp := NULL_RSOBJECT;
+
+      Temp := ObjFunction(GroundObj, BaseX, BaseY);
+
+      if(Temp = NULL_RSOBJECT)then
+      begin
+        SmartFreeObject(GroundObj);
+        Continue;
+      end;
+      Result[C] := Temp;
+      Inc(C);
+      SmartFreeObject(GroundObj);
+    end;
+  SetLength(Result, C);
+end;
