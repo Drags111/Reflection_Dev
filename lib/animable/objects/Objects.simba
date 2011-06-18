@@ -239,7 +239,7 @@ The ObjTypes are as follows:
 *)
 function R_GetAllObjects(ObjType: Integer): TRSObjectArray;
 var
-  Plane, GroundObj, X, Y, C, Obj, BaseX, BaseY: integer;
+  Plane, GroundObj, X, Y, C, Obj, BaseX, BaseY: Integer;
   Temp: TRSObject;
   ObjFunction: function(GroundObj, BaseX, BaseY: Integer): TRSObject;
 begin
@@ -280,3 +280,341 @@ begin
     end;
   SetLength(Result, C);
 end;
+
+(*
+R_GetObjectAt
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetObjectAt(Tile: TTile; ObjType: Integer): TRSObject;
+
+Returns the object at the specified tile, with the type of objType.
+{Object constants}
+  OBJ_INTERACTABLE = 1;
+  OBJ_WALLOBJECT = 2;
+  OBJ_WALLDECORATION = 3;
+  OBJ_FLOORDECORATION = 4;
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetObjectAt(Tile: TTile; ObjType: Integer): TRSObject;
+var
+  Ground, Obj, LocalX, LocalY, Plane: Integer;
+  ObjFunction: function(GroundObj, BaseX, BaseY: Integer): TRSObject;
+begin
+  Result := NULL_RSOBJECT;
+
+  case ObjType of
+    OBJ_INTERACTABLE: ObjFunction := @R_GetInteractableObject;
+    OBJ_WALLOBJECT: ObjFunction := @R_GetWallObject;
+    OBJ_WALLDECORATION: ObjFunction := @R_GetWallDecorationObject;
+    OBJ_FLOORDECORATION: ObjFunction := @R_GetFloorDecorationObject;
+    else begin
+      R_Debug('Not a valid ObjType!', 'R_GetObjectAt');
+      Exit;
+    end;
+  end;
+
+  try
+    LocalX := Tile.X - SmartGetFieldInt(0, hook_static_BaseX);
+    LocalY := Tile.Y - SmartGetFieldInt(0, hook_static_BaseY);
+    Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
+    Ground := SmartGetFieldArray3DObject(0, hook_static_GroundTiles, Plane, LocalX, LocalY);
+
+    Result := ObjFunction(Ground, Tile.X - LocalX, Tile.Y - LocalY);
+  finally
+    SmartFreeObject(Ground);
+  end;
+end;
+
+(*
+R_GetObjectAt
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_SortedCircleTPA(Center: TPoint; Radius: Integer): TPointArray;
+
+Returns an array of all TPoints inside the circle. Sorted from closest to the
+Center.
+
+.. note::
+
+  by Wizzup and BenLand100
+
+*)
+function R_SortedCircleTPA(Center: TPoint; Radius: Integer): TPointArray;
+begin
+  SetLength(Result,0);
+  Result := TPAFromBox(IntToBox(Center.X - Radius, Center.Y - Radius, Center.X + Radius, Center.Y + Radius));
+  FilterPointsPie(Result, 0, 360, 0, Radius, Center.X, Center.Y);
+  SortTPAFrom(Result, Center);
+end;
+
+(*
+R_GetObjectsEx
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetObjectsEx(IDs: TIntegerArray; ObjType, MaxDist: Integer): TRSObjectArray;
+
+Returns a TRSObjectArray of all the objects that contain one of the id's
+in the IDs parameter. Sorted from closest to you.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetObjectsEx(IDs: TIntegerArray; ObjType, MaxDist: Integer): TRSObjectArray;
+var
+   F, BX, BY, C, Plane, Ground: Integer;
+   MyPos: TTile;
+   Tiles, BadTiles: TTileArray;
+   Temp: TRSObject;
+   ObjFunction: function(GroundObj, BaseX, BaseY: Integer): TRSObject;
+begin
+  SetLength(Result, 0);
+  case ObjType of
+    OBJ_INTERACTABLE: ObjFunction := @R_GetInteractableObject;
+    OBJ_WALLOBJECT: ObjFunction := @R_GetWallObject;
+    OBJ_WALLDECORATION: ObjFunction := @R_GetWallDecorationObject;
+    OBJ_FLOORDECORATION: ObjFunction := @R_GetFloorDecorationObject;
+    else begin
+      R_Debug('Not a valid ObjType!', 'R_GetObjectAt');
+      Exit;
+    end;
+  end;
+
+  C := 0;
+  BX := SmartGetFieldInt(0, hook_static_BaseX);
+  BY := SmartGetFieldInt(0, hook_static_BaseY);
+  MyPos := R_GetMyPos;
+  MyPos.X := MyPos.X - BX;
+  MyPos.Y := MyPos.Y - BY;
+  Tiles := R_SortedCircleTPA(MyPos, MaxDist);
+  SetLength(Result, Length(Tiles));
+  Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
+
+  if Length(Tiles) < 1 then
+    Exit;
+
+  for F := 0 to High(Tiles) do
+  begin
+    Ground := SmartGetFieldArray3DObject(0, hook_static_GroundTiles, Plane, Tiles[F].X, Tiles[F].Y);
+    Temp := ObjFunction(Ground, BX, BY);
+    SmartFreeObject(Ground);
+
+    if (Temp = NULL_RSOBJECT) then
+      Continue;
+
+    if(InIntArray(IDs, Temp.ID) and not PointInTPA(Temp.Tile, BadTiles))then
+    begin
+      Result[C] := Temp;
+      AppendTPA(BadTiles, TPAFromBox(Temp.TileArea));
+      Inc(C);
+    end;
+  end;
+  SetLength(Result, C);
+end;
+
+(*
+R_GetObjects
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetObjects(ID, ObjType, MaxDist: Integer): TRSObjectArray;
+
+Returns a TRSObjectArray of all the objects that contains the id specified in
+the ID parameter. Sorted from closest to you.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetObjects(ID, ObjType, MaxDist: Integer): TRSObjectArray;
+begin
+  Result := R_GetObjectsEx([ID], ObjType, MaxDist);
+end;
+
+(*
+R_GetObjectEx
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetObjectEx(IDs: TIntegerArray; ObjType, MaxDist: Integer): TRSObject;
+
+Returns a TRSObject of the nearest object that has one of the id's specified in
+the IDs parameter. Chooses the closest to you.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetObjectEx(IDs: TIntegerArray; ObjType, MaxDist: Integer): TRSObject;
+var
+   F, BX, BY, Plane, Ground: Integer;
+   MyPos: TTile;
+   Tiles, BadTiles: TTileArray;
+   Temp: TRSObject;
+   ObjFunction: function(GroundObj, BaseX, BaseY: Integer): TRSObject;
+begin
+  Result := NULL_RSOBJECT;
+  case ObjType of
+    OBJ_INTERACTABLE: ObjFunction := @R_GetInteractableObject;
+    OBJ_WALLOBJECT: ObjFunction := @R_GetWallObject;
+    OBJ_WALLDECORATION: ObjFunction := @R_GetWallDecorationObject;
+    OBJ_FLOORDECORATION: ObjFunction := @R_GetFloorDecorationObject;
+    else begin
+      R_Debug('Not a valid ObjType!', 'R_GetObjectAt');
+      Exit;
+    end;
+  end;
+
+  BX := SmartGetFieldInt(0, hook_static_BaseX);
+  BY := SmartGetFieldInt(0, hook_static_BaseY);
+  MyPos := R_GetMyPos;
+  MyPos.X := MyPos.X - BX;
+  MyPos.Y := MyPos.Y - BY;
+  Tiles := R_SortedCircleTPA(MyPos, MaxDist);
+  Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
+
+  if Length(Tiles) < 1 then
+    Exit;
+
+  for F := 0 to High(Tiles) do
+  begin
+    Ground := SmartGetFieldArray3DObject(0, hook_static_GroundTiles, Plane, Tiles[F].X, Tiles[F].Y);
+    Temp := ObjFunction(Ground, BX, BY);
+    SmartFreeObject(Ground);
+
+    if (Temp = NULL_RSOBJECT) then
+      Continue;
+
+    if InIntArray(IDs, Temp.ID)then
+    begin
+      Result := Temp;
+      Exit;
+    end;
+  end;
+end;
+
+(*
+R_GetObject
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetObject(ID, ObjType, MaxDist: Integer): TRSObject;
+
+Returns a TRSObject of the nearest object that has the id specified in the ID
+parameter. Chooses the closest to you.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetObject(ID, ObjType, MaxDist: Integer): TRSObject;
+begin
+  Result := R_GetObjectEx([ID], ObjType, MaxDist);
+end;
+
+(*
+R_FindObjectsEx
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FindObjectsEx(IDs: TIntegerArray; ObjType, MaxDist: Integer; var Objs: TRSObjectArray): Boolean;
+
+Returns true if objects were found with the ID's specified, and stores those
+objects in the Objs var given in the parameters. Objs are sorted from closest
+to you.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_FindObjectsEx(IDs: TIntegerArray; ObjType, MaxDist: Integer; var Objs: TRSObjectArray): Boolean;
+begin
+  Objs := R_GetObjectsEx(IDs, ObjType, MaxDist);
+  Result := (Length(Objs) > 0);
+end;
+
+(*
+R_FindObjects
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FindObjects(ID, ObjType, MaxDist: Integer; var Objs: TRSObjectArray): Boolean;
+
+Returns true if objects were found with the ID specified, and stores those
+objects in the Objs var given in the parameters. Objs are sorted from closest
+to you.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_FindObjects(ID, ObjType, MaxDist: Integer; var Objs: TRSObjectArray): Boolean;
+begin
+  Result := R_FindObjectsEx([ID], ObjType, MaxDist, Objs);
+end;
+
+(*
+R_FindObjectEx
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FindObjectEx(IDs: TIntegerArray; ObjType, MaxDist: Integer; var Obj: TRSObject): Boolean;
+
+Returns true if an object was found with one of the ID's specified, and stores
+that object in the Obj var given in the parameters. Returns the closest one to
+you.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_FindObjectEx(IDs: TIntegerArray; ObjType, MaxDist: Integer; var Obj: TRSObject): Boolean;
+begin
+  Obj := R_GetObjectEx(IDs, ObjType, MaxDist);
+  Result := (Obj <> NULL_RSOBJECT);
+end;
+
+(*
+R_FindObject
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FindObject(ID, ObjType, MaxDist: Integer; var Obj: TRSObject): Boolean;
+
+Returns true if an object was found with the ID specified, and stores that
+object in the Obj var given in the parameters. Returns the closest one to you.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_FindObject(ID, ObjType, MaxDist: Integer; var Obj: TRSObject): Boolean;
+begin
+  Result := R_FindObjectEx([ID], ObjType, MaxDist, Obj);
+end;
+

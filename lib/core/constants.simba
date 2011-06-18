@@ -49,7 +49,7 @@ const
 type
   {Essentially a TPoint, a tile is a global coordinace on the runescape grid.}
   TTile = TPoint;
-  TTileArray = array of TTile;
+  TTileArray = TPointArray;
 
   {Stores the rotation matrix used by the client to render to the main
    screen, along with offsets.}
