@@ -1,3 +1,19 @@
+(*
+R_GetInteractableObject
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInteractableObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
+
+Loads the information from the inputed GroundObj and returns a TRSObject. For
+use in object searching functions in this include, not in scripts.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_GetInteractableObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
 var
   Node, Last, Obj: Integer;
@@ -49,6 +65,22 @@ begin
   SmartFreeObject(Obj);
 end;
 
+(*
+R_GetWallObject
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetWallObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
+
+Loads the information from the inputed GroundObj and returns a TRSObject. For
+use in object searching functions in this include, not in scripts.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_GetWallObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
 var
   Obj, ID: Integer;
@@ -85,6 +117,22 @@ begin
   SmartFreeObject(Obj);
 end;
 
+(*
+R_GetWallDecorationObject
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetWallDecorationObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
+
+Loads the information from the inputed GroundObj and returns a TRSObject. For
+use in object searching functions in this include, not in scripts.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_GetWallDecorationObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
 var
   Obj, ID: Integer;
@@ -121,6 +169,22 @@ begin
   SmartFreeObject(Obj);
 end;
 
+(*
+R_GetFloorDecorationObject
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetFloorDecorationObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
+
+Loads the information from the inputed GroundObj and returns a TRSObject. For
+use in object searching functions in this include, not in scripts.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_GetFloorDecorationObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
 var
   Obj, ID: Integer;
@@ -152,12 +216,6 @@ begin
   SmartFreeObject(Obj);
 end;
 
-{*******************************************************************************
-function R_GetAllObjects(ObjType: Integer): TRSObjectArray;
-By: Drags111
-Description: Gets all loaded objects of the type, and stores them in a
-            TRSObjectArray.
-*******************************************************************************}
 (*
 R_GetAllObjects
 ~~~~~~~~~~~~~~~
