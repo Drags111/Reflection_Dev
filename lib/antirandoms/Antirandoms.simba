@@ -39,7 +39,7 @@ begin
   with R_RandomArr[Rand_Abyss] do
   begin
     RandName := 'Abyss';            //Not done
-    Music := '';
+    Music := 'into the abyss';
     InRandom := @RAbyss_InRandom;
     SolveRandom := @RAbyss_Solve;
   end;
@@ -71,7 +71,7 @@ begin
   with R_RandomArr[Rand_Demon] do
   begin
     RandName := 'Drill Demon';
-    Music := '';
+    Music := 'corporal punishment';
     InRandom := @RDemon_InRandom;
     SolveRandom := @RDemon_Solve;
   end;
@@ -79,7 +79,7 @@ begin
   with R_RandomArr[Rand_Forester] do
   begin                              //Not done
     RandName := 'Freaky Forester';
-    Music := '';
+    Music := 'pheasant peasant';
     InRandom := @RForest_InRandom;
     SolveRandom := @RForest_Solve;
   end;
@@ -87,7 +87,7 @@ begin
   with R_RandomArr[Rand_Frog] do
   begin                              //Not done
     RandName := 'Frog Cave';
-    Music := '';
+    Music := 'frogland';
     InRandom := @RFrog_InRandom;
     SolveRandom := @RFrog_Solve;
   end;
@@ -95,7 +95,7 @@ begin
   with R_RandomArr[Rand_Leo] do
   begin
     RandName := 'Grave Digger';
-    Music := '';
+    Music := 'spooky';
     InRandom := @RLeo_InRandom;
     SolveRandom := @RLeo_Solve;
   end;
@@ -103,7 +103,7 @@ begin
   with R_RandomArr[Rand_Maze] do
   begin
     RandName := 'Maze';
-    Music := '';
+    Music := 'time out';
     InRandom := @RMaze_InRandom;
     SolveRandom := @RMaze_Solve;
   end;
@@ -111,7 +111,7 @@ begin
   with R_RandomArr[Rand_Mime] do
   begin
     RandName := 'Mime';
-    Music := '';
+    Music := 'artistry';
     InRandom := @RMime_InRandom;
     SolveRandom := @RMime_Solve;
   end;
@@ -119,7 +119,7 @@ begin
   with R_RandomArr[Rand_Molly] do
   begin                              //Not done
     RandName := 'Molly';
-    Music := '';
+    Music := 'head to head';
     InRandom := @RMolly_InRandom;
     SolveRandom := @RMolly_Solve;
   end;
@@ -127,7 +127,7 @@ begin
   with R_RandomArr[Rand_Mordaut] do
   begin
     RandName := 'Mordaut';
-    Music := '';
+    Music := 'school''s out';
     InRandom := @RMordaut_InRandom;
     SolveRandom := @RMordaut_Solve;
   end;
@@ -135,7 +135,7 @@ begin
   with R_RandomArr[Rand_Pillory] do
   begin                              //Not done
     RandName := 'Pillory';
-    Music := '';
+    Music := 'pinball wizard';
     InRandom := @RPillory_InRandom;
     SolveRandom := @RPillory_Solve;
   end;
@@ -151,7 +151,7 @@ begin
   with R_RandomArr[Rand_PrisonPete] do
   begin                              //Not done
     RandName := 'Prison Pete';
-    Music := '';
+    Music := 'in the clink';
     InRandom := @RPrison_InRandom;
     SolveRandom := @RPrison_Solve;
   end;
@@ -159,7 +159,7 @@ begin
   with R_RandomArr[Rand_Quiz] do
   begin                              //Not done
     RandName := 'Quiz';
-    Music := '';
+    Music := 'the quiz master';
     InRandom := @RQuiz_InRandom;
     SolveRandom := @RQuiz_Solve;
   end;
@@ -167,7 +167,7 @@ begin
   with R_RandomArr[Rand_Sandwich] do
   begin                              //Not done
     RandName := 'Sandwich Lady';
-    Music := '';
+    Music := 'snack attack';
     InRandom := @RSandwich_InRandom;
     SolveRandom := @RSandwich_Solve;
   end;
@@ -175,7 +175,7 @@ begin
   with R_RandomArr[Rand_ScapeRune] do
   begin                              //Not done
     RandName := 'Evil Bob''s Island';
-    Music := '';
+    Music := 'evil bob''s island';
     InRandom := @REvilBob_InRandom;
     SolveRandom := @REvilBob_Solve;
   end;

@@ -57,6 +57,31 @@ begin
 end;
 
 {*******************************************************************************
+function _GetNPCActionArray(NPCDef: integer): TStringArray;
+By: Drags111
+Description: Gets the Action (String) Array according to the NPC Def.
+             Used in GetNPC functions
+*******************************************************************************}
+function _GetNPCActionArray(NPCDef: integer): TStringArray;
+var
+  i, c, bytes: integer;
+begin
+  SetLength(Result, 11);
+  c := 0;
+  for i := 0 to 10 do
+  begin
+    bytes := SmartGetFieldArrayObject(NPCDef, hook_npcdef_GetActions, i);
+    if(bytes > 0)then
+    begin
+      Result[c] := R_GetJavaString(bytes, 255);
+      inc(c);
+    end;
+    SmartFreeObject(bytes);
+  end;
+  SetLength(Result, c);
+end;
+
+{*******************************************************************************
 function R_GetAllNPCs(Null: Boolean): TNPCArray;
 By: Drags111
 Description: Stores all the loaded NPCs into an array of TNPC. If Null = True

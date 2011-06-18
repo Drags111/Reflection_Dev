@@ -203,6 +203,8 @@ function R_GetJavaString(javaString: integer; maxLength: integer): string;
 begin
   SetLength(result, maxLength);
   SetLength(result, SmartStringFromString(javaString, result));
+  Result := Replace(Result, 'Â', '');
+  Result := Replace(Result, #160, #32);
 end;
 
 (*

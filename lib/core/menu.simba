@@ -440,18 +440,25 @@ var
   First: String;
   MoreOptions, I: Integer;
 begin
+  Result := '';
   case Client.IsMenuTabbed() of
     true: begin
       MenuItemsTabbed := R_GetMenuItemsTabbed;
-      First := MenuItemsTabbed[0][0];
-      for I := 0 to High(MenuItemsTabbed)do
-        MoreOptions := MoreOptions + Length(MenuItemsTabbed[I]);
+      if (Length(MenuItemsTabbed) > 0)then
+      begin
+        First := MenuItemsTabbed[0][0];
+        for I := 0 to High(MenuItemsTabbed)do
+          MoreOptions := MoreOptions + Length(MenuItemsTabbed[I]);
+      end;
     end;
     false: begin
       MenuItems := R_GetMenuItems;
-      First := MenuItems[0];
-      for I := 0 to High(MenuItems)do
-        Inc(MoreOptions);
+      if (Length(MenuItems) > 0)then
+      begin
+        First := MenuItems[0];
+        for I := 0 to High(MenuItems)do
+          Inc(MoreOptions);
+      end;
     end;
   end;
   Result := Trim(Lowercase(First));
