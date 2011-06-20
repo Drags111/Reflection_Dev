@@ -28,6 +28,7 @@
 {$i ./lib/misc/Timing.simba}
 
 {$i ./lib/gametab/GameTab.simba}
+{$i ./lib/gametab/Inventory.simba}
 
 (*
 R_UpdateHooks

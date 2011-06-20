@@ -344,6 +344,18 @@ begin
       wait(50+Random(50));
     end;
     Result := True;
+  end else
+  begin
+    MarkTime(T);
+    while(SmartGetFieldBoolean(0, hook_static_MenuOpen))do
+    begin
+      if(TimeFromMark(T) > 3000)then
+        Exit;
+      X := SmartGetFieldInt(0, hook_static_MenuX);
+      Y := SmartGetFieldInt(0, hook_static_MenuY);
+      MMouse(X, Y-25, 50, 10);
+      Wait(50+Random(50));
+    end;
   end;
 end;
 

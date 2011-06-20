@@ -1,0 +1,752 @@
+(*
+Inventory
+=========
+
+All routines regarding inventory functions.
+
+*)
+
+(*
+R_GetInventoryInterfaceIndex
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInventoryInterfaceIndex: Integer;
+
+Returns the inventory interface index, depending on if the bank is open or not.
+If it is open, the interface index is 763. If it's just normal inventory with no
+bank open, the index is 149
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetInventoryInterfaceIndex: Integer;
+begin
+  Result := NULL_INT;
+  if R_ValidInterface(INTERFACE_BANKINVENTORY)then
+    Result := INTERFACE_BANKINVENTORY;
+  if R_ValidInterface(INTERFACE_INVENTORY)then
+    Result := INTERFACE_INVENTORY;
+end;
+
+(*
+R_GetInvItemAt
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInvItemAt(Slot: Integer): TInvItem;
+
+Returns a TInvItem from the specific slot [1-28]. If slot is empty, it returns
+NULL_INVITEM;
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetInvItemAt(Slot: Integer): TInvItem;
+var
+  Item, NameBytes, Actions, ID: integer;
+  InterfaceID, ArrayLength, Count, Action, I: Integer;
+  Temp: String;
+begin
+  Result := NULL_INVITEM;
+
+  InterfaceID := R_GetInventoryInterfaceIndex;
+  if InterfaceID = NULL_INT then
+  begin
+    R_Debug('The Inventory interface doesn''t exist!', '');
+    Exit;
+  end;
+  if InterfaceID = INTERFACE_INVENTORY then
+    R_GameTab(RTAB_INVENTORY);
+
+  try
+    Item := R_GetInterfaceComponentRef(InterfaceID, 0, Slot-1);
+    ID := SmartGetFieldInt(Item, hook_interface_GetComponentID);
+
+    if(ID > 0)then
+    begin
+      Result.ID := ID;
+      Result.StackSize := SmartGetFieldInt(Item, hook_interface_GetComponentStackSize);
+      Result.Slot := Slot;
+
+      NameBytes := SmartGetFieldObject(Item, hook_interface_GetComponentName);
+      Result.Name := R_TrimHTML(R_GetJavaString(NameBytes, 512));
+
+      try
+        Actions := SmartGetFieldObject(Item, hook_interface_GetActions);
+        ArrayLength := (SmartGetFieldArraySize(Actions, '', 1));
+        SetLength(Result.Actions, ArrayLength);
+        Count := 0;
+
+        for i := 0 to ArrayLength-1 do
+        begin
+          try
+            Action := SmartGetFieldArrayObject(Item, hook_interface_GetActions, I);
+            Temp := R_GetJavaString(Action, 512);
+            if(Trim(Temp) <> NULL_STRING)then
+            begin
+              Result.Actions[Count] := R_TrimHTML(Temp);
+              Inc(Count);
+            end;
+          finally
+            SmartFreeObject(Action);
+          end;
+        end;
+        SetLength(Result.Actions, Count);
+      finally
+        SmartFreeObject(Actions);
+      end;
+    end;
+  finally
+    SmartFreeObject(Item);
+    SmartFreeObject(NameBytes);
+    SmartFreeObject(Actions);
+  end;
+end;
+
+(*
+R_GetInventoryItems
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInventoryItems: TInvItemArray;
+
+Returns an array of all of the inv items in the inventory.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetInventoryItems: TInvItemArray;
+var
+  I, C, InterfaceID: Integer;
+  Temp: TInvItem;
+begin
+  SetLength(Result, 0);
+
+  InterfaceID := R_GetInventoryInterfaceIndex;
+  if InterfaceID = NULL_INT then
+  begin
+    R_Debug('The Inventory interface doesn''t exist!', '');
+    Exit;
+  end;
+  if InterfaceID = INTERFACE_INVENTORY then
+    R_GameTab(RTAB_INVENTORY);
+
+  SetLength(Result, 28);
+  for I := 1 to 28 do
+  begin
+    Temp := R_GetInvItemAt(I);
+    if not(Temp = NULL_INVITEM)then
+    begin
+      Result[C] := Temp;
+      Inc(C);
+    end;
+  end;
+  SetLength(Result, C);
+end;
+
+(*
+R_GetItemStackSizeAt
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetItemStackSizeAt(slot: integer): integer;
+
+Returns the stack size of the item at the specified slot.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetItemStackSizeAt(slot: integer): integer;
+var
+  Temp: TInvItem;
+begin
+  Temp := R_GetInvItemAt(slot);
+  Result := Temp.StackSize;
+end;
+
+(*
+R_GetItemIDAt
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetItemIDAt(slot: integer): integer;
+
+Returns the ID of the item at the specified slot.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetItemIDAt(slot: integer): integer;
+var
+  Temp: TInvItem;
+begin
+  Temp := R_GetInvItemAt(slot);
+  Result := Temp.ID;
+end;
+
+(*
+R_GetItemNameAt
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetItemNameAt(slot: integer): String;
+
+Returns the name of the item at the specified slot.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetItemNameAt(slot: integer): String;
+var
+  Temp: TInvItem;
+begin
+  Temp := R_GetInvItemAt(slot);
+  Result := Temp.Name;
+end;
+
+(*
+R_InvCount
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_InvCount: Integer;
+
+Counts the number of items in the inventory.
+
+.. note::
+
+  by Nava2
+
+*)
+function R_InvCount: Integer;
+var
+  Inventory, Item, ID, I, InterfaceID: integer;
+begin
+  Result := 0;
+
+  InterfaceID := R_GetInventoryInterfaceIndex;
+  if InterfaceID = NULL_INT then
+  begin
+    R_Debug('The Inventory interface doesn''t exist!', '');
+    Exit;
+  end;
+  if InterfaceID = INTERFACE_INVENTORY then
+    R_GameTab(RTAB_INVENTORY);
+
+  try
+    Inventory := R_GetInterfaceChildRef(R_GetInventoryInterfaceIndex, 0);
+    for I := 0 to 27 do
+    begin
+      Item := SmartGetFieldArrayObject(Inventory, hook_interface_GetChildren, I);
+      ID := SmartGetFieldInt(Item, hook_interface_GetComponentID);
+      if (ID > 0) then
+        Inc(Result);
+
+      SmartFreeObject(Item);
+    end;
+  finally
+    SmartFreeObject(Inventory);
+    SmartFreeObject(Item);
+  end;
+end;
+
+(*
+R_InvEmpty
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_InvEmpty : Boolean;
+
+Results true if the inventory is empty
+
+.. note::
+
+  by Zyt3x
+
+*)
+function R_InvEmpty : Boolean;
+begin
+  Result := (R_InvCount = 0);
+end;
+
+(*
+R_InvFull
+~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_InvFull : Boolean;
+
+Results true if the inventory is full
+
+.. note::
+
+  by Zyt3x
+
+*)
+function R_InvFull : Boolean;
+begin
+  Result := (R_InvCount = 28);
+end;
+
+(*
+R_ItemSlotExists
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ItemSlotExists(Slot: integer): boolean;
+
+Returns true if an item exists at the specified slot.
+
+.. note::
+
+  by Zyt3x
+
+*)
+function R_ItemSlotExists(Slot: integer): boolean;
+begin
+  Result := (R_GetInvItemAt(Slot) <> NULL_INVITEM);
+end;
+
+(*
+R_ItemExistsEx
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ItemExistsEx(TheVarArr: TVariantArray; var Items: TInvItemArray): boolean;
+
+Returns true if one of the items is found at least once in the inventory. Also
+returns all of the items found into the var Items.
+
+.. note::
+
+  by Drags111/moromonman
+
+*)
+function R_ItemExistsEx(TheVarArr: TVariantArray; var Items: TInvItemArray): boolean;
+var
+  I, H, Index, vType: integer;
+  ItemArr: TInvItemArray;
+  B: Boolean;
+begin
+  SetLength(Items, 0);
+  Result := False;
+  SetLength(Items, 28);
+  ItemArr := R_GetInventoryItems;
+  for I := 0 to High(ItemArr) do
+    for H := 0 to High(TheVarArr) do
+    begin
+      vType := VarType(TheVarArr[H]);
+      if (vType = varString) then
+        TheVarArr[H] := LowerCase(Trim(TheVarArr[H]));
+      case vType of
+        varInteger: B := (ItemArr[I].ID = TheVarArr[H]);
+        varString: B := (Pos(TheVarArr[H], LowerCase(Trim(ItemArr[I].Name))) > 0);
+        else Exit;
+      end;
+      if not B then
+        Continue;
+      Items[Index] := ItemArr[I];
+      Inc(Index);
+    end;
+  SetLength(Items, Index);
+  Result := (Index > 0);
+end;
+
+(*
+R_ItemExists
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ItemExists(TheVar: Variant; var Item: TInvItem): Boolean;
+
+Returns true if the item is found at least once in the inventory. Also returns
+the first item found into the var Item.
+
+.. note::
+
+  by moromonman
+
+*)
+function R_ItemExists(TheVar: Variant; var Item: TInvItem): Boolean;
+var
+  Items: TInvItemArray;
+begin
+  Result := R_ItemExistsEx([TheVar], Items);
+  if Result then
+    Item := Items[0];
+end;
+
+(*
+R_CountItemEx
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_CountItemEx(TheVarArr: TVariantArray): Integer;
+
+Counts all items with TheVarArr[i](s). *DOES NOT COUNT THE STACKS*
+
+.. note::
+
+  by moromonman
+
+*)
+function R_CountItemEx(TheVarArr: TVariantArray): Integer;
+var
+  Items: TInvItemArray;
+begin
+  Result := 0;
+  if R_ItemExistsEx(TheVarArr, Items) then
+    Result := Length(Items);
+end;
+
+(*
+R_CountItem
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_CountItem(TheVar: Variant): Integer;
+
+Returns the number of items in your inventory with TheVar.
+
+.. note::
+
+  by moromonman
+
+*)
+function R_CountItem(TheVar: Variant): Integer;
+begin
+  Result := R_CountItemEx([TheVar]);
+end;
+
+(*
+R_CountItemsButEx
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_CountItemsButEx(TheVarArr: TVariantArray): Integer;
+
+Returns the number of items in your inventory besides TheVarArr.
+
+.. note::
+
+  by moromonman
+
+*)
+function R_CountItemsButEx(TheVarArr: TVariantArray): Integer;
+begin
+  Result := (R_InvCount - R_CountItemEx(TheVarArr));
+end;
+
+(*
+R_CountItemsBut
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_CountItemsBut(TheVar: Variant): Integer;
+
+Returns the number of items in your inventory besides TheVar.
+
+.. note::
+
+  by moromonman
+
+*)
+function R_CountItemsBut(TheVar: Variant): Integer;
+begin
+  Result := R_CountItemsButEx([TheVar]);
+end;
+
+(*
+R_ClickItem
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ClickItem(Slot: Integer; Action: String): Boolean;
+
+Clicks the slot in the inventory selecting the Action specified. If the action
+is in the uptext then it will left click, otherwise it will right click.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_ClickItem(Slot: Integer; Action: String): Boolean;
+var
+  InterfaceID, X, Y: Integer;
+  Item: TInterfaceComponent;
+begin
+  Result := False;
+  InterfaceID := R_GetInventoryInterfaceIndex;
+  if InterfaceID = NULL_INT then
+  begin
+    R_Debug('The Inventory interface doesn''t exist!', '');
+    Exit;
+  end;
+  if InterfaceID = INTERFACE_INVENTORY then
+    R_GameTab(RTAB_INVENTORY);
+
+  Item := R_GetInterfaceComponent(InterfaceID, 0, Slot-1);
+  if(Item.ID <= 0)then
+    Exit;
+
+  R_ClickInterface(Item, 3);
+  GetMousePos(X, Y);
+  wait(25+Random(25));
+
+  if(R_IsUpText(Action))then
+  begin
+    Mouse(X, Y, 0, 0, True);
+    Result := True;
+  end else
+  begin
+    Mouse(X, Y, 0, 0, False);
+    wait(25+Random(25));
+    Result := R_ChooseOption(Action);
+  end;
+end;
+
+(*
+R_ClickItemBy
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ClickItemBy(TheVar: Variant; Action: String): boolean;
+
+Clicks the item in the inventory selecting the Action specified. If the action
+is in the uptext then it will left click, otherwise it will right click.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_ClickItemBy(TheVar: Variant; Action: String): boolean;
+var
+  Item: TInvItem;
+begin
+  if R_ItemExists(TheVar, Item) then
+    Result := R_ClickItem(Item.Slot, Action);
+end;
+
+(*
+R_ClickItemBy
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ClickItemBy(TheVar: Variant; Action: String): boolean;
+
+Drops the item at the slot.
+
+.. note::
+
+  by Drags111
+
+*)
+procedure R_DropItem(Slot: Integer);
+var
+  MT, T: integer;
+begin
+  MarkTime(MT);
+  while(R_ItemSlotExists(Slot) and (TimeFromMark(MT) < 5000))do
+  begin
+    R_ClickItem(Slot, 'drop');
+    MarkTime(T);
+    while(R_ItemSlotExists(slot) and (TimeFromMark(T) < 1500))do
+      Wait(25+Random(25));
+  end;
+end;
+
+(*
+R_DropAllItems
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DropAllItems;
+
+Drops all items in the inventory.
+
+.. note::
+
+  by Drags111
+
+*)
+procedure R_DropAllItems;
+var
+  I: integer;
+begin
+  for I := 1 to 28 do
+    R_DropItem(I);
+end;
+
+(*
+R_DropAllItemsByEx
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DropAllItemsByEx(TheVarArr: TVariantArray);
+
+Drops all items in the inventory with any of the specified IDs/Names.
+
+.. note::
+
+  by mormonman
+
+*)
+procedure R_DropAllItemsByEx(TheVarArr: TVariantArray);
+var
+  Items: TInvItemArray;
+  I: integer;
+begin
+  if R_ItemExistsEx(TheVarArr, Items) then
+    for I := 0 to High(Items) do
+      R_DropItem(Items[I].Slot);
+end;
+
+(*
+R_DropAllItemsBy
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DropAllItemsBy(TheVar: Variant);
+
+Drops all items in the inventory with the specified ID/Name.
+
+.. note::
+
+  by mormonman
+
+*)
+procedure R_DropAllItemsBy(TheVar: Variant);
+begin
+  R_DropAllItemsByEx([TheVar]);
+end;
+
+(*
+R_DropItemsButSlotEx
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DropItemsButSlotEx(Slots: TIntegerArray);
+
+Drops all items in the inventory except those in the specified slots.
+
+.. note::
+
+  by Drags111
+
+*)
+procedure R_DropItemsButSlotEx(Slots: TIntegerArray);
+var
+  I: integer;
+begin
+  for I := 1 to 28 do
+    if not(InIntArray(slots, I))then
+      R_DropItem(I);
+end;
+
+(*
+R_DropItemsButSlot
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DropItemsButSlot(Slot: integer);
+
+Drops all items in the inventory except the one in the specified slot.
+
+.. note::
+
+  by Drags111
+
+*)
+procedure R_DropItemsButSlot(Slot: integer);
+begin
+  R_DropItemsButSlotEx([Slot]);
+end;
+
+(*
+R_DropItemsButEx
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DropItemsButEx(TheVarArr: TVariantArray);
+
+Drops all items in the inventory except those w/ the specified IDs/Names.
+
+.. note::
+
+  by mormonman
+
+*)
+procedure R_DropItemsButEx(TheVarArr: TVariantArray);
+var
+  Items: TInvItemArray;
+  Slots: TIntegerArray;
+  I: integer;
+begin
+  if R_ItemExistsEx(TheVarArr, Items) then
+  begin
+    SetLength(Slots, Length(Items));
+    for I := 0 to High(Items) do
+      Slots[I] := Items[I].Slot;
+    R_DropItemsButSlotEx(Slots);
+  end;
+end;
+
+(*
+R_DropItemsBut
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DropItemsBut(TheVar: Variant);
+
+Drops all items in the inventory except those w/ the specified ID/Name.
+
+.. note::
+
+  by mormonman
+
+*)
+procedure R_DropItemsBut(TheVar: Variant);
+begin
+  R_DropItemsButEx([TheVar]);
+end;
