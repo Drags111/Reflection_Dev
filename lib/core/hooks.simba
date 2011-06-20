@@ -1,12 +1,16 @@
 const
 ClientVersion = 653;
-HookRev = 2;
+HookRev = 3;
 
 
 {Static Hooks}
 hook_static_LoginIndex = 'vh.v';
-hook_static_GetChatLines = 'q.m';
+hook_static_CamPosX = 'si.q';
+hook_static_CamPosY = 'rs.n';
+hook_static_CamPosZ = 'maa.J';
+hook_static_CameraPitch = 'mt.n';
 hook_static_CameraYaw = 'bga.f';
+hook_static_GetChatLines = 'q.m';
 hook_static_MyPlayer = 'bq.s';
 hook_static_BaseX = 'wb.k';
 hook_static_BaseY = 'cp.eb';
@@ -14,7 +18,7 @@ hook_static_NPCIndexArray = 'ii.I';
 hook_static_LoopCycle = 'qaa.M';
 hook_static_GetNPCNC = 'naa.n';
 hook_static_GetItemDefLoader = 'fu.j';
-hook_static_GetObjectDefLoader = '';
+hook_static_GetObjectDefLoader = 'ji.r';
 hook_static_NPCNodes = 'vc.I';
 hook_static_NPCCount = 'ds.a';
 hook_static_GroundSettingsArray = 'pm.e';
@@ -51,14 +55,8 @@ hook_static_DestY = 'saa.k';
 hook_static_PlayerCount = 'mg.c';
 hook_static_PlayerIndexArray = 'un.j';
 hook_static_GetPlayers = 'rp.v';
-hook_static_CamPosX = 'si.q';
-hook_static_CamPosY = 'rs.n';
 hook_static_GroundTiles = 'kca.w';
 hook_static_GetCrossHairColor = 'ln.J';
-hook_static_isSpellSelected = 'aka.h';
-hook_static_getMinimapSetting = 'kj.b';
-hook_static_getMinimapAngle = 'ln.L';
-hook_static_getSelfInteracting = 'wb.k';
 
 {Class SDModel}
 class_SDModel = 'lda';
@@ -142,14 +140,14 @@ hook_mrunodes_GetInitialCount = 'b';
 hook_mrunodes_GetSpaceLeft = 'j';
 
 {Class ObjectDef}
-class_ObjectDef = '';
-hook_objectdef_GetName = '';
-hook_objectdef_GetActions = '';
-hook_objectdef_getChildrenIDs = '';
+class_ObjectDef = 'nia';
+hook_objectdef_GetName = 'hb';
+hook_objectdef_GetActions = 'G';
+hook_objectdef_getChildrenIDs = 'cb';
 
 {Class ObjectDefLoader}
-class_ObjectDefLoader = '';
-hook_objectdefloader_GetMRUNodes = '';
+class_ObjectDefLoader = 'aj';
+hook_objectdefloader_GetMRUNodes = 'h';
 
 {Class NPC}
 class_NPC = 'uba';
@@ -233,8 +231,6 @@ hook_nodesub_Next = 'r';
 class_Menu = 'via';
 hook_menu_Option = 'D';
 hook_menu_Action = 'L';
-hook_menu_getID = '';
-
 
 {Class Interface}
 class_Interface = 'jfa';
@@ -292,25 +288,25 @@ hook_ground_FloorDecoration = 'a';
 class_WallObjectData = 'tja';
 hook_WallObjectData_GetID = 'V';
 hook_WallObjectData_GetModel = 'ab';
-hook_WallObjectData_GetOrientation = '';
+hook_WallObjectData_GetOrientation = 'I';
 
 {Class WallDecorationData}
 class_WallDecorationData = 'efa';
 hook_WallDecorationData_GetID = 'ob';
 hook_WallDecorationData_GetModel = 'W';
-hook_WallDecorationData_GetOrientation = '';
+hook_WallDecorationData_GetOrientation = 'pb';
 
 {Class FloorDecorationData}
 class_FloorDecorationData = 'dga';
 hook_FloorDecorationData_GetID = 'rb';
 hook_FloorDecorationData_GetModel = 'db';
-hook_FloorDecorationData_GetOrientation = '';
+hook_FloorDecorationData_GetOrientation = 'U';
 
 {Class InteractiveObject}
 class_InteractiveObject = 'qp';
 hook_interactiveobject_GetID = 'V';
 hook_interactiveobject_GetModel = 'O';
-hook_interactiveobject_GetOrientation = '';
+hook_interactiveobject_GetOrientation = 'X';
 
 {Class InteractiveObject2}
 class_InteractiveObject2 = 'gs';
@@ -320,7 +316,7 @@ hook_interactiveobject2_GetObjectData = 'R';
 class_SecondLevelObject = 'oea';
 hook_secondlevelobject_GetID = 'A';
 hook_secondlevelobject_GetModel = 'O';
-hook_secondlevelobject_GetOrientation = '';
+hook_secondlevelobject_GetOrientation = 'B';
 
 {Class WallObjectSub2}
 class_WallObjectSub2 = 'fc';

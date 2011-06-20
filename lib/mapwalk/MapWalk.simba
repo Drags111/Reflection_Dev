@@ -1,0 +1,714 @@
+(*
+MapWalk
+=======
+
+Contains routines for walking the runescape minimap.
+
+*)
+
+(*
+R_GetMinimapAngleDeg
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMinimapAngleDeg: extended;
+
+Returns the current Map angle in degrees. North: 0 deg, increases in the
+counter clockwise direction
+
+.. note::
+
+  by BenLand100
+
+*)
+function R_GetMinimapAngleDeg: extended;
+begin
+  Result := SmartGetFieldFloat(0, hook_static_MapAngle) * 45.0 / 2048.0;
+end;
+
+(*
+R_GetMinimapAngleRad
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMinimapAngleRad: extended;
+
+Returns the current Map angle in radians. North: 0 deg, increases in the
+counter clockwise direction
+
+.. note::
+
+  by BenLand100
+
+*)
+function R_GetMinimapAngleRad: extended;
+begin
+  Result := SmartGetFieldFloat(0, hook_static_MapAngle) * pi / 8192.0;
+end;
+
+(*
+R_GetCamPosX
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetCamPosX: integer;
+
+Camera Position X
+
+.. note::
+
+  by lordsaturn
+
+*)
+function R_GetCamPosX: integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_CamPosX);
+end;
+
+(*
+R_GetCamPosY
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetCamPosY: integer;
+
+Camera Position Y
+
+.. note::
+
+  by lordsaturn
+
+*)
+function R_GetCamPosY: integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_CamPosY);
+end;
+
+(*
+R_TileToMM
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_TileToMM(tile: TTile): TPoint;
+
+Converts the global tile position to a screen location on the minimap, taking
+map rotation into account.
+
+.. note::
+
+  by BenLand100
+
+*)
+function R_TileToMM(tile: TTile): TPoint;
+var
+  angle, x, y: extended;
+  temp: TPoint;
+begin
+   angle:= -R_GetMinimapAngleRad;
+   temp := R_GetMyPos();
+   x:= (tile.x - temp.x) * 4 - 2;
+   y:= (temp.y - tile.y) * 4 - 2;
+   result.x:= round(x*cos(angle) + y*sin(angle)) + 628;
+   result.y:= round(y*cos(angle) - x*sin(angle)) + 87;
+end;
+
+(*
+R_TileOnMM
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_TileOnMM(Tile: TTile): boolean;
+
+Checks if the Tile is on the MM.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_TileOnMM(Tile: TTile): boolean;
+var
+  P: TPoint;
+begin
+  P := R_TileToMM(Tile);
+  Result := rs_OnMinimap(P.x, P.y);
+end;
+
+(*
+R_GetDest
+~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetDest: TTile;
+
+Returns the tile of the Flag destination.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetDest: TTile;
+var
+  xDest, yDest: integer;
+begin
+  xDest := SmartGetFieldInt(0, hook_static_DestX);
+  yDest := SmartGetFieldInt(0, hook_static_DestY);
+  Result := Point(xDest, yDest);
+end;
+
+(*
+R_FlagExists
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FlagExists: Boolean;
+
+Returns true if there is a flag.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_FlagExists: Boolean;
+var
+  xFlag: LongInt;
+begin
+  xFlag := SmartGetFieldInt(0, hook_static_DestX);
+  Result := (xFlag) > -1;
+end;
+
+(*
+R_DistanceTile
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_DistanceTile(T, TT: TTile): Integer;
+
+Returns the distance between two tiles.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_DistanceTile(T, TT: TTile): Integer;
+begin
+  Result := Distance(T.x, T.y, TT.X, TT.Y);
+end;
+
+(*
+R_DistanceFromTile
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_DistanceFromTile(TheTile: TTile): Integer;
+
+Returns the distance between your player and the tile.
+
+.. note::
+
+  by Widget
+
+*)
+function R_DistanceFromTile(TheTile: TTile): Integer;
+var
+  MyPos: TTile;
+begin
+  MyPos := R_GetMyPos;
+  Result := R_DistanceTile(MyPos, TheTile);
+end;
+
+(*
+R_DistanceFromFlag
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_DistanceFromFlag: Integer;
+
+Returns the distance your char is from the flag.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_DistanceFromFlag: Integer;
+var
+  MyPos, FlagPos: TTile;
+  Me: integer;
+begin
+  if not R_FlagExists then Exit;
+  Me := SmartGetFieldObject(0, hook_static_MyPlayer);
+  MyPos.x := SmartGetFieldArrayInt(Me, hook_character_WalkQueueX, 0);
+  MyPos.y := SmartGetFieldArrayInt(Me, hook_character_WalkQueueY, 0);
+  FlagPos := R_GetDest;
+  Result := Distance(MyPos.x, MyPos.y, FlagPos.x, FlagPos.y);
+  SmartFreeObject(me);
+end;
+
+(*
+R_RandomizeTile
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_RandomizeTile(Tile: TTile; rX, rY: Integer): TTile;
+
+Randomizes a tile using rX and rY.
+
+.. note::
+
+  by lordsaturn
+
+*)
+function R_RandomizeTile(Tile: TTile; rX, rY: Integer): TTile;
+begin
+  Result := Point(RandomRange(Tile.X-rX, Tile.X+rX),
+                   RandomRange(Tile.Y-rY, Tile.Y+rY));
+end;
+
+(*
+R_MakeCompass
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_MakeCompass(setAngle: Variant): Boolean;
+
+MakesCompass to degress set (Degress or n, e, s, w).
+
+.. note::
+
+  by Timer
+
+*)
+function R_MakeCompass(setAngle: Variant): Boolean;
+var
+  StartAngle, Angle, DirectionDeg, i: Extended;
+  Bool : Boolean;
+  Mark : Integer;
+begin
+  StartAngle := (R_GetMinimapAngleDeg);
+  if(StartAngle < 0)Or(Not LoggedIn)then
+    Exit;
+  case varType(setAngle) of
+    varString:
+    begin
+      case (LowerCase(setAngle)) of
+        'n': DirectionDeg := -1;
+        'w': DirectionDeg := 90;
+        's': DirectionDeg := 180;
+        'e': DirectionDeg := 270;
+      end;
+    end;
+    varDouble, varSingle:
+      DirectionDeg := setAngle;
+  end;
+  if((MinE(Abs(StartAngle - DirectionDeg), MinE(Abs(StartAngle - (DirectionDeg + 360)), Abs((StartAngle + 360) - DirectionDeg)))) <= 8.0)then
+  begin
+    Result := True;
+    Exit;
+  end;
+  Bool := (Round((360 - StartAngle) + DirectionDeg) mod 360 > Round((StartAngle + 360) - DirectionDeg) mod 360);
+  if(Bool)then
+    KeyDown(VK_LEFT)
+  else
+    KeyDown(VK_RIGHT);
+  Wait(Random(40));
+  MarkTime(Mark);
+  repeat
+    Wait(16);
+    Angle := R_GetMinimapAngleDeg;
+    If ((TimeFromMark(Mark) > 6000)  and (i < 1.0)) or
+       ((TimeFromMark(Mark) > 10000) and (i < 2.0)) or
+       ((TimeFromMark(Mark) > 14000) and (i < 3.0)) then
+      i := i + 1.0;
+  until ((MinE(Abs(Angle - DirectionDeg), MinE(Abs(Angle - (DirectionDeg + 360)), Abs((Angle + 360) - DirectionDeg)))) <= (7.0 + i))
+    or (TimeFromMark(Mark) > 14000)
+    or (Angle < 0);
+  if(Bool)then
+    KeyUp(VK_Left)
+  else
+    KeyUp(VK_Right);
+  Wait(Random(100) + 40);
+  Result := ((MinE(Abs(Angle - DirectionDeg), MinE(Abs(Angle - (DirectionDeg + 360)), Abs((Angle + 360) - DirectionDeg)))) <= (7.0 + i));
+end;
+
+(*
+R_WaitToMove
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitToMove(Timeout: integer): Boolean;
+
+Waits for the local player to move with a timeout. Returns true if moved,
+false if timed out.
+
+.. note::
+
+  by lordsaturn
+
+*)
+function R_WaitToMove(Timeout: integer): Boolean;
+var
+  a, Speed: integer;
+begin
+  a := GetSystemTime;
+  Speed := R_GetMotion;
+  while Speed < 1 do
+  begin
+    Speed := R_GetMotion;
+    if GetSystemTime - a > Timeout then Exit;
+    Wait(100);
+  end;
+  Result := True;
+end;
+
+(*
+R_Flag
+~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_Flag;
+
+Waits Till A COMPLETE Stop. (Not dependant on Flag hooks)
+
+.. note::
+
+  by Drags111
+
+*)
+procedure R_Flag;
+var
+  Ticker: Integer;
+begin
+  Ticker := (GetSystemTime + 30000);
+  if not R_WaitToMove(1500) then Exit;
+  while (R_GetMotion > 0) do
+  begin
+    Wait(10 + Random(10));
+    if SRL_Procs[SRL_AntiBan] <> nil then
+      SRL_Procs[SRL_AntiBan]();
+    if (GetSystemTime > Ticker) then
+      Exit;
+  end;
+  Wait(500 + Random(50));
+end;
+
+(*
+R_FFlag
+~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_FFlag(Dist: Integer);
+
+Waits till you are within the distance specified from the flag.
+
+.. note::
+
+  by ZephyrsFury
+
+*)
+procedure R_FFlag(Dist: Integer);
+
+var
+  Tx, Ty, m, d1, d2: Integer;
+  D: TTile;
+
+begin
+  if not R_WaitToMove(1500) then Exit;
+  if(Dist = 0)then
+  begin
+    R_Flag;
+    Exit;
+  end;
+  while (R_FlagExists) do
+  begin
+    D := R_GetDest;
+    d1 := R_DistanceFromFlag;
+    if (d1 >= Dist) then
+    begin
+      if not (R_GetMotion > 0) then Exit;
+      Inc(m);
+      Wait(100 + Random(30));
+      if SRL_Procs[SRL_AntiBan] <> nil then
+        SRL_Procs[SRL_AntiBan]();
+      if (Random(100) = 0) then IdleTime(500, 1000, 0.01);
+      if (m mod 100 = 0) then
+        if (d1 = d2) then
+        begin
+          if (FindColor(Tx, Ty, 255, MMX1, MMY1, MMX2, MMY2)) then
+            Mouse(Tx, Ty + 14, 0, 0, True)
+          else
+            Mouse(MMCX, MMCY, 0, 0, True);
+        end else d2 := d1;
+    end else Break;
+  end;
+end;
+
+(*
+R_WalkToTileEx
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WalkToTileEx(Tile: TTile; Randomness, FlagDist: Integer; UseFFlag: Boolean): Boolean;
+
+Walks to the tile using minimap.
+
+.. note::
+
+  by Wizzup, TheGuyWhoGotOn, and Drags111
+
+*)
+function R_WalkToTileEx(Tile: TTile; Randomness, FlagDist: Integer; UseFFlag: Boolean): Boolean;
+var
+   wTile: TPoint;
+   t: Integer;
+begin
+  Result := False;
+  Tile := R_RandomizeTile(Tile, Randomness, Randomness);
+  wTile := R_TileToMM(Tile);
+  if not rs_OnMiniMap(wTile.X, wTile.Y) then
+    Exit;
+  Mouse(wTile.x, wTile.y, 1, 1, true);
+  Wait(RandomRange(80, 100));
+  t := getsystemtime;
+  if UseFFlag then R_FFlag(FlagDist);
+  Result := (GetSystemTime - t) < 60000;
+end;
+
+(*
+R_WalkToTile
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WalkToTile(Tile: TPoint; Randomness, FlagDist: Integer): Boolean;
+
+Walks to the tile using minimap.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WalkToTile(Tile: TPoint; Randomness, FlagDist: Integer): Boolean;
+begin
+  Result := R_WalkToTileEx(Tile, Randomness, FlagDist, true);
+end;
+
+{*******************************************************************************
+function R_WalkPathEx(Path: TTileArray; Randomness: Integer; Inverted: Boolean): Boolean;
+By: Drags111
+Description: Walks the Path of TTileArray from start to finish in a human-like
+  style. It looks for the next tile in path and clicks it as soon as it comes
+  up on the screen, just like a legit player would. This does make it more
+  beneficial to use paths where the tiles are closer together, so it seems more
+  active. All personal preference.
+  Path: The array of Tiles to use as the path.
+  Randomness: The amount of variant you want when walking to tiles.
+  Inverted: If you want it to reverse the path (Walk from end to start).
+*******************************************************************************}
+(*
+R_WalkPathEx
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WalkPathEx(Path: TTileArray; Randomness: Integer; Inverted: Boolean): Boolean;
+
+Walks the Path of TTileArray from start to finish in a human-like style. It
+looks for the next tile in path and clicks it as soon as it comes up on the
+screen, just like a legit player would. This does make it more beneficial to
+use paths where the tiles are closer together, so it seems more active. All
+personal preference.
+-Path: The array of Tiles to use as the path.
+-Randomness: The amount of variant you want when walking to tiles.
+-Inverted: If you want it to reverse the path (Walk from end to start).
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WalkPathEx(Path: TTileArray; Randomness: Integer; Inverted: Boolean): Boolean;
+var
+  Index, Timer, Tries: Integer;
+begin
+  if Inverted then R_InvertTileArray(Path);
+  while R_DistanceFromTile(Path[High(Path)]) > 5 do
+  begin
+    for Index := High(Path) downto -1 do
+      if (Index > -1) and R_TileOnMM(Path[Index]) then
+        Break;
+    if (Index = -1) then Break;
+
+    if R_WalkToTileEx(Path[Index], Randomness, 0, false) then
+    begin
+      Timer := (GetSystemTime + 30000);
+      while R_DistanceFromTile(Path[Index]) > 5 do
+      begin
+        Wait(10 + Random(10));
+        if SRL_Procs[SRL_AntiBan] <> nil then
+          SRL_Procs[SRL_AntiBan]();
+
+        if GetSystemTime > Timer then Break;
+        if (R_GetMotion = 0) or ((Index <> High(Path)) and (R_TileOnMM(Path[Index+1]))) then Break;
+      end;
+
+      if (not (R_DistanceFromTile(Path[Index]) <=5)) and
+          ((Index <> High(Path)) and (not R_TileOnMM(Path[Index+1]))) then
+        Inc(Tries);
+    end else
+    begin
+      Inc(Tries);
+      wait(100+Random(300));
+    end;
+    if Tries >= 10 then Break;
+  end;
+  Result := R_DistanceFromTile(Path[High(Path)]) <= 5;
+  R_Flag;
+end;
+
+(*
+R_WalkPath
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WalkPath(Path: TTileArray): boolean;
+
+Walks the path. See WalkToPathEX for more info.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WalkPath(Path: TTileArray): boolean;
+begin
+  Result := R_WalkPathEx(Path, 3, false);
+end;
+
+(*
+R_WindPath
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WindPath(xs, ys, xe, ye, gravity, wind, minWait, maxWait, maxStep, targetArea: extended): TPointArray;
+
+Generates a blind path of points!
+
+.. note::
+
+  by JuKKa
+
+*)
+function R_WindPath(xs, ys, xe, ye, gravity, wind, minWait, maxWait, maxStep, targetArea: extended): TPointArray;
+var
+  veloX, veloY, windX, windY, veloMag, dist, randomDist, lastDist, step: extended;
+  lastX, lastY: integer;
+  sqrt2, sqrt3, sqrt5: extended;
+begin
+  sqrt2:= sqrt(2);
+  sqrt3:= sqrt(3);
+  sqrt5:= sqrt(5);
+  while hypot(xs - xe, ys - ye) > 1 do
+  begin
+    dist:= hypot(xs - xe, ys - ye);
+    wind:= minE(wind, dist);
+    if dist >= targetArea then
+    begin
+      windX:= windX / sqrt3 + (random(round(wind) * 2 + 1) - wind) / sqrt5;
+      windY:= windY / sqrt3 + (random(round(wind) * 2 + 1) - wind) / sqrt5;
+    end else
+    begin
+      windX:= windX / sqrt2;
+      windY:= windY / sqrt2;
+      if (maxStep < 3) then
+      begin
+        maxStep:= random(3) + 3.0;
+      end else
+      begin
+        maxStep:= maxStep / sqrt5;
+      end;
+    end;
+    veloX:= veloX + windX;
+    veloY:= veloY + windY;
+    veloX:= veloX + gravity * (xe - xs) / dist;
+    veloY:= veloY + gravity * (ye - ys) / dist;
+    if hypot(veloX, veloY) > maxStep then
+    begin
+      randomDist:= maxStep / 2.0 + random(round(maxStep) / 2);
+      veloMag:= sqrt(veloX * veloX + veloY * veloY);
+      veloX:= (veloX / veloMag) * randomDist;
+      veloY:= (veloY / veloMag) * randomDist;
+    end;
+    lastX:= Round(xs);
+    lastY:= Round(ys);
+    xs:= xs + veloX;
+    ys:= ys + veloY;
+    SetArrayLength(Result, GetArrayLength(Result) + 1);
+    Result[ High(Result) ] := Point(Round(xs), Round(ys));
+    step:= hypot(xs - lastX, ys - lastY);
+    lastdist:= dist;
+  end;
+end;
+
+(*
+R_WindWalk
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WindWalk(T: TTile): Boolean;
+
+Walks blindly using WindPath! Does NOT consider walls or obstacles.
+
+.. note::
+
+  by JuKKa
+
+*)
+function R_WindWalk(T: TTile): Boolean;
+var
+  I, Tries: Integer;
+  M, P: TPoint;
+  CTRLPoints: TPointArray;
+begin
+  P := T;
+  repeat
+    M := R_GetMyPos;
+    CtrlPoints := r_WindPath(M.x, M.y, P.X, P.Y, 5.0, 2.5, 0.0, 0.0, 4.5, 2.5);
+    Inc(Tries);
+    if(Tries > 20)then
+    begin
+      R_Debug('Failed more than 20 times', 'R_WebWalk');
+      Exit;
+    end;
+    for I:= High(CtrlPoints) downto 0 do
+      if R_WalkToTile(Point(CtrlPoints[i].x, CtrlPoints[i].y),0, 10) then
+      begin
+        Result := I = High(CtrlPoints);
+        Break;
+      end;
+  until(Result);
+end;

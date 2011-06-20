@@ -445,7 +445,8 @@ Returns all the TGroundItems at the given tile.
 
 .. note::
 
-  by Drags111
+  by
+  Method
 
 *)
 function R_GetGroundItemsAt(TheTile: TTile): TGroundItemArray;

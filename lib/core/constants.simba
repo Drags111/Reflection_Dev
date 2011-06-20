@@ -35,6 +35,10 @@ const
 
   SETTING_RUN = 173;
 
+  {Inventory Constants}
+  INTERFACE_INVENTORY = 149;
+  INTERFACE_BANKINVENTORY = 763;
+
   {Object constants}
   OBJ_INTERACTABLE = 1;
   OBJ_WALLOBJECT = 2;
@@ -134,6 +138,14 @@ type
   end;
   TGroundItemArray = array of TGroundItem;
 
+  {Holds information pertaining to an inventory slot}
+  TInvItem = record
+    ID, StackSize, Slot: integer;
+    Name: String;
+    Actions: TStringArray;
+  end;
+  TInvItemArray = array of TInvItem;
+
 (*=====================================
 
    Vars for the Reflection include
@@ -217,4 +229,13 @@ begin
   Result.ID := NULL_INT;
   Result.Stack := NULL_INT;
   Result.Tile := NULL_TILE;
+end;
+
+function NULL_INVITEM: TInvItem;
+begin
+  Result.ID := NULL_INT;
+  Result.StackSize := NULL_INT;
+  Result.Slot := NULL_INT;
+  Result.Name := NULL_STRING;
+  Result.Actions := [];
 end;

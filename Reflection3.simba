@@ -17,10 +17,11 @@
 {$i ./lib/animable/characters/MyPlayer.simba}
 {$i ./lib/animable/characters/Players.simba}
 {$i ./lib/animable/characters/NPCs.simba}
-
 {$i ./lib/animable/objects/Objects.simba}
 
 {$i ./lib/ground/GroundItems.simba}
+
+{$i ./lib/mapwalk/MapWalk.simba}
 
 {$i ./lib/chat/NPCChat.simba}
 
