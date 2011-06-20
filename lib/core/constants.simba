@@ -126,6 +126,14 @@ type
   end;
   TRSObjectArray = array of TRSObject;
 
+  {Holds information pertaining to a ground item}
+  TGroundItem = record
+    ID: Integer;
+    Stack: Integer;
+    Tile: TTile;
+  end;
+  TGroundItemArray = array of TGroundItem;
+
 (*=====================================
 
    Vars for the Reflection include
@@ -202,4 +210,11 @@ begin
   Result.ObjType := NULL_INT;
   Result.Tile := NULL_TILE;
   Result.TileArea := NULL_BOX;
+end;
+
+function NULL_GROUNDITEM: TGroundItem;
+begin
+  Result.ID := NULL_INT;
+  Result.Stack := NULL_INT;
+  Result.Tile := NULL_TILE;
 end;

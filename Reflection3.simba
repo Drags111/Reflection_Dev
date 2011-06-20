@@ -20,6 +20,8 @@
 
 {$i ./lib/animable/objects/Objects.simba}
 
+{$i ./lib/ground/GroundItems.simba}
+
 {$i ./lib/chat/NPCChat.simba}
 
 {$i ./lib/misc/Timing.simba}
