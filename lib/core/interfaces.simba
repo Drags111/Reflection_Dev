@@ -217,7 +217,7 @@ positioning.
 function R_GetInterfaceParentID(Obj: Integer): Integer;
 var
   ParentID, MainID, InterfaceNC, Nodes, Tail, Node, ID, Next : Integer;
-  NodesSize, index : Integer;
+  NodesSize, Index : Integer;
 begin
   ParentID := SmartGetFieldInt(Obj, hook_interface_GetParentID);
   if (ParentID <> -1) then
@@ -228,35 +228,45 @@ begin
   MainID := trunc(SmartGetFieldInt(Obj, hook_interface_GetID) div 65536);
   InterfaceNC := SmartGetFieldObject(0, hook_static_InterfaceNC);
   if (InterfaceNC = 0) then
+  begin
+    SmartFreeObject(InterfaceNC);
     Exit;
+  end;
   Nodes := SmartGetFieldObject(InterfaceNC, hook_nodecache_GetNodes);
   NodesSize := SmartGetFieldArraySize(Nodes, '', 1);
-  SmartFreeObject(InterfaceNC);
-  for Index := 0 to (NodesSize - 1) do
-  begin
-    Tail := SmartGetFieldArrayObject(Nodes, '', Index);
-    Node := SmartGetFieldObject(Tail, hook_node_Next);
-    while (not (SmartIsEqual(Tail, Node))) do
+  try
+    for Index := 0 to (NodesSize - 1) do
     begin
-      ID := SmartGetFieldInt(Node, hook_interfacenode_GetID);
-      if (MainID = ID) then
+      Tail := SmartGetFieldArrayObject(Nodes, '', Index);
+      Node := SmartGetFieldObject(Tail, hook_node_Next);
+      while (not (SmartIsEqual(Tail, Node))) do
       begin
-        Result := SmartGetFieldLongL(Node, hook_node_GetID);
-        SmartFreeObject(Next);
+        ID := SmartGetFieldInt(Node, hook_interfacenode_GetID);
+        if (MainID = ID) then
+        begin
+          Result := SmartGetFieldLongL(Node, hook_node_GetID);
+          SmartFreeObject(Next);
+          SmartFreeObject(Node);
+          SmartFreeObject(Nodes);
+          SmartFreeObject(Tail);
+          SmartFreeObject(InterfaceNC);
+          Exit;
+        end;
+        Next := SmartGetFieldObject(Node, hook_node_Next);
         SmartFreeObject(Node);
-        SmartFreeObject(Nodes);
-        SmartFreeObject(Tail);
-        Exit;
+        Node := Next;
       end;
-      Next := SmartGetFieldObject(Node, hook_node_Next);
+      SmartFreeObject(Tail);
       SmartFreeObject(Node);
-      Node := Next;
+      SmartFreeObject(Next);
     end;
+  finally
+    SmartFreeObject(Next);
+    SmartFreeObject(Node);
+    SmartFreeObject(Nodes);
+    SmartFreeObject(Tail);
+    SmartFreeObject(InterfaceNC);
   end;
-  SmartFreeObject(Next);
-  SmartFreeObject(Node);
-  SmartFreeObject(Nodes);
-  SmartFreeObject(Tail);
 end;
 
 (*
@@ -381,7 +391,7 @@ Gets all Interface -> Child information and stores in a TInterfaceChild.
 *)
 function R_GetInterfaceChild(ParentI, ChildI: Integer): TInterfaceChild;
 var
-  Child, TextObj: Integer;
+  Child, TextObj, NameObj: Integer;
   P: TPoint;
 begin
   if not(R_ValidInterface(ParentI))then
@@ -414,10 +424,10 @@ begin
       TextColor := SmartGetFieldInt(Child, hook_interface_GetTextColor);
 
       try
-        TextObj := SmartGetFieldObject(Child, hook_interface_GetComponentName);
-        Name := R_TrimHTML(R_GetJavaString(TextObj, 512));
+        NameObj := SmartGetFieldObject(Child, hook_interface_GetComponentName);
+        Name := R_TrimHTML(R_GetJavaString(NameObj, 512));
       finally
-        SmartFreeObject(TextObj);
+        SmartFreeObject(NameObj);
       end;
 
       IsHidden := SmartGetFieldBoolean(Child, hook_interface_IsHidden);

@@ -79,9 +79,10 @@ GameTab constants).
 *)
 function R_GameTab(Tab: Integer): Boolean;
 var
-  Child: TInterfaceChild;
+  ChildObj, TextureID, T: Integer;
   GameTabs: TIntegerArray;
-  T: Integer;
+  Child: TInterfaceChild;
+  P: TPoint;
 begin
   Result := False;
   GameTabs := [RTAB_FRIENDSLIST, RTAB_CHAT, RTAB_CLANCHAT, RTAB_OPTIONS,
@@ -91,16 +92,22 @@ begin
   if not InIntArray(GameTabs, Tab)then
   begin
     R_Debug('Invalid tab number', 'R_GameTab');
+    Exit;
   end;
   if not R_ValidInterface(INTERFACE_GAMETAB)then
     Exit;
-  Child := R_GetInterfaceChild(INTERFACE_GAMETAB, Tab);
 
-  if(Child.TextureID = 1836)then
+  ChildObj := R_GetInterfaceChildRef(INTERFACE_GAMETAB, Tab);
+  TextureID := SmartGetFieldInt(ChildObj, hook_interface_GetTextureID);
+  SmartFreeObject(ChildObj);
+
+  if(TextureID = 1836)then
   begin
     Result := True;
     Exit;
   end;
+
+  Child := R_GetInterfaceChild(INTERFACE_GAMETAB, Tab);
 
   R_ClickInterface(Child, 1);
   MarkTime(T);
