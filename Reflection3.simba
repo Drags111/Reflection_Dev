@@ -31,6 +31,8 @@
 {$i ./lib/gametab/Inventory.simba}
 {$i ./lib/gametab/Equipment.simba}
 
+{$i ./lib/bank/Bank.simba}
+
 (*
 R_UpdateHooks
 ~~~~~~~~~~~~~
@@ -85,7 +87,7 @@ begin
   begin
     WriteLn('[Reflection] You''re using outdated hooks (version ' + ToStr(ClientVersion) + '.' + ToStr(HookRev) + '); updating you to version ' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '!');
     WriteLn('[Reflection] If you manually fixed your hooks, please make sure hookrevision values are greater than or equal to the online hooks to prevent overwriting.');
-    MyFile := RewriteFile(AppPath + 'includes/Reflection3/lib/core/Hooks.simba', False);
+    MyFile := RewriteFile(AppPath + 'includes/Reflection_Dev/lib/core/Hooks.simba', False);
     WriteFileString(MyFile, Src);
     CloseFile(MyFile);
     WriteLn('[Reflection] Updated you to ' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '; please restart your script!');

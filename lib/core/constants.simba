@@ -54,11 +54,32 @@ const
   EQUIPMENT_RING       = 35;
   EQUIPMENT_AMMO       = 38;
 
-  {Object constants}
+  {Object Constants}
   OBJ_INTERACTABLE = 1;
   OBJ_WALLOBJECT = 2;
   OBJ_WALLDECORATION = 3;
   OBJ_FLOORDECORATION = 4;
+
+  {Bank Constants}
+  INTERFACE_BANK = 762;
+  INTERFACE_BANK_BTN_CLOSE = 43;
+  INTERFACE_BANK_BTN_DEPOSITBAG = 33;
+  INTERFACE_BANK_BTN_DEPOSITEQUIP = 35;
+  INTERFACE_BANK_BTN_DEPOSITBEAST = 37;
+
+  INTERFACE_BANK_SLOTS = 93;
+  INTERFACE_BANK_SLOTS_MAX = 515;
+
+  INTERFACE_BANK_SCROLLBAR = 114;
+  INTERFACE_BANK_SCROLLBAR_BAR = 1;
+  INTERFACE_BANK_SCROLLBAR_BARTOP = 2;
+  INTERFACE_BANK_SCROLLBAR_BARBOT = 3;
+  INTERFACE_BANK_SCROLLBAR_UP = 4;
+  INTERFACE_BANK_SCROLLBAR_DOWN = 5;
+
+  INTERFACE_PINSCREEN = 13;
+
+  TEXTURE_BANKTABSELECTED = 1419;
 
 (*=====================================
 
@@ -171,6 +192,13 @@ type
   end;
   TEquipmentSet = array of TEquipmentItem;
 
+  {Holds informations pertaining to bank items}
+  TBankItem = Record
+    ID, Slot, StackSize: Integer;
+    Name: String;
+  end;
+  TBankItemArray = array of TBankItem;
+
 (*=====================================
 
    Vars for the Reflection include
@@ -272,4 +300,12 @@ begin
   Result.IsAmmo := False;
   Result.Count := Null_INT;
   Result.Actions := [];
+end;
+
+function NULL_BANKITEM: TBankItem;
+begin
+  Result.ID := NULL_INT;
+  Result.Slot := NULL_INT;
+  Result.StackSize := NULL_INT;
+  Result.Name := NULL_STRING;
 end;

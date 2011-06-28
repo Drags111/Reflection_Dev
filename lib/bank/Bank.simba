@@ -1,0 +1,1108 @@
+(*
+Bank
+====
+
+Contains routines necessary for bank withdrawing, depositing, etc.
+
+*)
+
+(*
+R_BankScreen
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_BankScreen: Boolean;
+
+Returns true if the Bank Screen is up.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_BankScreen: Boolean;
+begin
+  Result := R_ValidInterface(INTERFACE_BANK);
+end;
+
+(*
+R_PinScreen
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_PinScreen: Boolean;
+
+Returns true if the Pin Screen is up.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_PinScreen: Boolean;
+begin
+  Result := R_ValidInterface(INTERFACE_PINSCREEN);
+end;
+
+(*
+R_InPin
+~~~~~~~
+
+.. code-block:: pascal
+
+    function R_InPin(Pin: String): Boolean;
+
+Inputs the bank pin using reflection!
+
+.. note::
+
+  by Drags111
+
+*)
+function R_InPin(Pin: String): Boolean;
+var
+  I, T: integer;
+  Button: TInterfaceChild;
+  CurrNum: Integer;
+begin
+  Result := False;
+  if not R_PinScreen then
+    Exit;
+
+  if(GetNumbers(Pin) <> Pin)then
+  begin
+    R_Debug('PIN is not a valid pin.', 'R_InPin');
+    Exit;
+  end;
+
+  if(Length(Pin) <> 4)then
+  begin
+    R_Debug('PIN is not the correct length.', 'R_InPin');
+    Exit;
+  end;
+
+  while(R_PinScreen)do
+  begin
+    for I := 1 to 4 do
+    begin
+      if not R_PinScreen then
+        break;
+      CurrNum := StrToInt(Pin[I]);
+      Button := R_GetInterfaceChild(INTERFACE_PINSCREEN, CurrNum + 6);
+      R_ClickInterface(Button, 1);
+
+      MarkTime(T);
+      while(R_GetInterfaceText(INTERFACE_PINSCREEN, I) = '?')do
+      begin
+        if(TimeFromMark(T) > 5000)then
+          break;
+        wait(100+Random(100));
+      end;
+
+      wait(1000+Random(1000));
+    end;
+
+    MarkTime(T);
+    while not R_BankScreen do
+    begin
+      wait(100+Random(100));
+      if(TimeFromMark(T) > 5000)then
+        Break;
+    end;
+
+    if not R_PinScreen then
+      Break;
+  end;
+
+  Result := R_BankScreen;
+end;
+
+(*
+R_CloseBank
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_CloseBank;
+
+Closes the bank screen.
+
+.. note::
+
+  by Drags111
+
+*)
+procedure R_CloseBank;
+var
+  Btn: TInterfaceChild;
+  Time: Integer;
+begin
+  if not R_BankScreen then
+    Exit;
+  Btn := R_GetInterfaceChild(INTERFACE_BANK, INTERFACE_BANK_BTN_CLOSE);
+  R_ClickInterface(Btn, 1);
+  MarkTime(Time);
+
+  while(R_BankScreen)do
+  begin
+    Wait(100+Random(100));
+    if(TimeFromMark(Time) > 4000)then
+      Break;
+  end;
+end;
+
+(*
+R_GetBankTabCount
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetBankTabCount: Integer;
+
+Gets the number of bank tabs.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetBankTabCount: Integer;
+var
+  Tab, I, Index, C: Integer;
+  Actions: TStringArray;
+begin
+  if not R_BankScreen then
+    Exit;
+
+  Result := 0;
+  C := 1;
+  Index := 60;
+
+  for I := 2 to 9 do
+  begin
+    Tab := R_GetInterfaceChildRef(INTERFACE_BANK, Index);
+    Actions := R_GetInterfaceActions(Tab);
+    SmartFreeObject(Tab);
+    if(Length(Actions) < 2)then
+      Break;
+    Inc(C);
+    Index := Index - 2;
+  end;
+
+  Result := C;
+end;
+
+(*
+R_CurrentBankTab
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_CurrentBankTab: Integer;
+
+Returns which bank tab you are currntly on.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_CurrentBankTab: Integer;
+var
+  Tab, I, ID: Integer;
+begin
+  Result := -1;
+  if not R_BankScreen then
+    Exit;
+  for I := 0 to 8 do
+  begin
+    Tab := R_GetInterfaceChildRef(INTERFACE_BANK, 62 - (I * 2));
+    ID := SmartGetFieldInt(Tab, hook_interface_GetTextureID);
+    SmartFreeObject(Tab);
+    if (ID = TEXTURE_BANKTABSELECTED) then
+    begin
+      Result := I;
+      Break;
+    end;
+  end;
+  if (Result <> -1)then
+    Inc(Result);
+end;
+
+(*
+R_ClickBankTab
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ClickBankTab(Tab: Integer): Boolean;
+
+Clicks the specified bank tab.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_ClickBankTab(Tab: Integer): Boolean;
+var
+  TheTab: TInterfaceChild;
+  T1, T2: integer;
+begin
+  Result := False
+  if not R_BankScreen then
+    Exit;
+
+  if(Tab > R_GetBankTabCount)then
+  begin
+    R_Debug('Tab doesn''t exist!', 'R_ClickBankTab');
+    Exit;
+  end;
+
+  MarkTime(T1);
+  while not (R_CurrentBankTab = Tab) do
+  begin
+    if(TimeFromMark(T1) > 10000)then
+      Break;
+    TheTab := R_GetInterfaceChild(INTERFACE_BANK, 62 - ((Tab-1) * 2));
+    R_ClickInterface(TheTab, 1);
+    MarkTime(T2);
+    while not (R_CurrentBankTab = Tab) do
+    begin
+      if(TimeFromMark(T2) > 3000)then
+        Break;
+      Wait(50+Random(50));
+    end;
+  end;
+
+  Result := (R_CurrentBankTab = Tab);
+end;
+
+(*
+R_QuickDeposit
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_QuickDeposit(Which: String);
+
+Presses one of the quick deposit buttons in the bank screen. Options are as
+follows:
+        'bag', 'inventory'    //Dumps your inventory
+        'equip', 'equipment'  //Dumps your equipped Items
+        'beasts', 'bob'       //Dumps your Beast of Burden items
+
+.. note::
+
+  by Drags111
+
+*)
+procedure R_QuickDeposit(Which: String);
+var
+  Btn: TInterfaceChild;
+  Index: Integer;
+begin
+  if not R_BankScreen then
+    Exit;
+
+  case Lowercase(Trim(Which)) of
+    'bag', 'inv', 'inventory': Index := INTERFACE_BANK_BTN_DEPOSITBAG;
+    'equip', 'equipment': Index := INTERFACE_BANK_BTN_DEPOSITEQUIP;
+    'beasts', 'bob': Index := INTERFACE_BANK_BTN_DEPOSITBEAST;
+  end;
+
+  Btn := R_GetInterfaceChild(INTERFACE_BANK, Index);
+  R_ClickInterface(Btn, 1);
+  Wait(200+Random(500));
+end;
+
+(*
+R_DepositSlot
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_DepositSlot(Slot: Integer): Boolean;
+
+Deposits item in specified slot. Uses the Deposit All option if
+there is one.
+
+.. note::
+
+  by mormonman, Drags111
+
+*)
+function R_DepositSlot(Slot: Integer): Boolean;
+var
+  T, A, X, Y: Integer;
+begin
+  if not R_BankScreen then
+    Exit;
+  MarkTime(T);
+  while(R_ItemSlotExists(Slot) and (TimeFromMark(T) < 6000))do
+  begin
+    R_MouseItem(Slot);
+    GetMousePos(X, Y);
+    Wait(40 + random(40));
+    if(R_OptionExists('All')) then
+    begin
+      Mouse(X, Y, 0, 0, False);
+      Wait(40 + random(40));
+      R_ChooseOption('All')
+    end else
+    if random(10) = 1 then
+    begin
+      Mouse(X, Y, 0, 0, False);
+      Wait(40 + random(40));
+      R_ChooseOption('Deposit');
+    end else Mouse(X, Y, 0, 0, True);
+    MarkTime(A);
+    while (R_ItemSlotExists(Slot) and (TimeFromMark(A) < 2500)) do
+      Wait(44 + random(44));
+  end;
+  Result := not R_ItemSlotExists(Slot);
+end;
+
+(*
+R_DepositAll
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DepositAll(Fast: Boolean);
+
+Deposits the whole inventory either by
+  -Fast clicks the quick deposit button
+  -Fast = false deposits each item
+
+.. note::
+
+  by Drags111
+
+*)
+procedure R_DepositAll(Fast: Boolean);
+var
+  I: Integer;
+begin
+  if not R_BankScreen then
+    Exit;
+  if(Fast)then
+    R_QuickDeposit('bag')
+  else
+    for I := 1 to 28 do
+      R_DepositSlot(I);
+end;
+
+(*
+R_DepositAllByEx
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_DepositAllByEx(TheVarArr: TVariantArray): Boolean;
+
+Deposits all the items with the specified IDs/Names.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_DepositAllByEx(TheVarArr: TVariantArray): Boolean;
+var
+  i: Integer;
+  Items: TInvItemArray;
+begin
+  if not R_BankScreen then
+    Exit;
+  if R_ItemExistsEx(TheVarArr, Items) then
+    for i := 0 to High(Items) do
+      R_DepositSlot(Items[i].Slot);
+  Result := not R_ItemExistsEx(TheVarArr, Items);
+end;
+
+(*
+R_DepositAllBy
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_DepositAllBy(TheVar: Variant): Boolean;
+
+Deposits all the items with the specified ID/Name.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_DepositAllBy(TheVar: Variant): Boolean;
+begin
+  Result := R_DepositAllByEx([TheVar]);
+end;
+
+(*
+R_DepositAllButEx
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DepositAllButEx(TheVarArr: TVariantArray);
+
+Deposits all items but the items with one of the specified IDs or Names to the
+bank.
+
+.. note::
+
+  by mormonman
+
+*)
+procedure R_DepositAllButEx(TheVarArr: TVariantArray);
+var
+  I, h, HiItems: Integer;
+  Item: TInvItem;
+  Items: TInvItemArray;
+  B: Boolean;
+begin
+  if (not R_BankScreen) then
+    Exit;
+  if (not R_ItemExistsEx(TheVarArr, Items)) then
+    R_DepositAll(True);
+  HiItems := High(Items);
+  for I := 1 to 28 do
+  begin
+    if (not R_ItemSlotExists(I)) then
+      Continue;
+    Item := R_GetInvItemAt(I);
+    B := False;
+    for h := 0 to HiItems do
+      B := B or (Item.ID = Items[h].ID);
+    if (B) then
+      Continue;
+    R_DepositSlot(I);
+  end;
+end;
+
+(*
+R_DepositAllBut
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_DepositAllBut(TheVar : Variant);
+
+Deposits all except items with the specified ID/Name to the bank.
+
+.. note::
+
+  by mormonman
+
+*)
+procedure R_DepositAllBut(TheVar : Variant);
+begin
+  R_DepositAllButEx([TheVar]);
+end;
+
+(*
+R_GetAllBankItems
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetAllBankItems: TBankItemArray;
+
+Returns an array of all of the Bank Items in the bank.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetAllBankItems: TBankItemArray;
+var
+  C, BankSlot, Bank, Item, TheID, NameObj: Integer;
+begin
+  SetLength(Result, 0);
+  if not R_BankScreen then
+    Exit;
+  SetLength(Result, INTERFACE_BANK_SLOTS_MAX + 1);
+  C := 0;
+  try
+    Bank := R_GetInterfaceChildRef(INTERFACE_BANK, INTERFACE_BANK_SLOTS);
+    for BankSlot := 0 to INTERFACE_BANK_SLOTS_MAX do
+    begin
+      Item := SmartGetFieldArrayObject(Bank, hook_interface_GetChildren, BankSlot);
+      TheID := SmartGetFieldInt(Item, hook_interface_GetComponentID);
+      if(TheID > 0)then
+      begin
+        with Result[C] do
+        begin
+          ID := TheID;
+          StackSize := SmartGetFieldInt(Item, hook_interface_GetComponentStackSize);
+          Slot := BankSlot;
+
+          try
+            NameObj := SmartGetFieldObject(Item, hook_interface_GetComponentName);
+            Name := R_TrimHTML(R_GetJavaString(NameObj, 512));
+          finally
+            SmartFreeObject(NameObj);
+          end;
+        end;
+        Inc(C);
+      end;
+      SmartFreeObject(Item);
+    end;
+  finally
+    SmartFreeObject(Bank);
+  end;
+  SetLength(Result, C);
+end;
+
+(*
+R_ItemsExistInBankEx
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ItemsExistInBankEx(TheVarArr: TVariantArray; var ItemArray: TBankItemArray): Boolean;
+
+Returns true if one of the items exists in bank. It also returns the array of
+Items.
+
+.. note::
+
+  by mormonman/Drags111
+
+*)
+function R_ItemsExistInBankEx(TheVarArr: TVariantArray; var ItemArray: TBankItemArray): Boolean;
+var
+  I, H, vType, C: Integer;
+  B: Boolean;
+  BItems: TBankItemArray;
+begin
+  SetLength(ItemArray, 0);
+  if not R_BankScreen then
+  begin
+    R_Debug('Bank not open', 'R_ItemsExistInBankEx');
+    Exit;
+  end;
+  BItems := R_GetAllBankItems;
+  SetLength(ItemArray, Length(BItems));
+  C := 0;
+  for I := 0 to High(BItems) do
+    for H := 0 to High(TheVarArr) do
+    begin
+      vType := VarType(TheVarArr[H]);
+      if (vType = varString) then
+        TheVarArr[H] := LowerCase(Trim(TheVarArr[H]));
+      case vType of
+        varInteger: B := (BItems[I].ID = TheVarArr[H]);
+        varString: B := (Pos(TheVarArr[H], LowerCase(Trim(BItems[I].Name))) > 0);
+        else Exit;
+      end;
+      if not B then
+        Continue;
+      ItemArray[C] := BItems[I];
+      Inc(C);
+    end;
+  SetLength(ItemArray, C);
+  Result := (Length(ItemArray) > 0);
+end;
+
+(*
+R_ItemExistsInBankEx
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ItemExistsInBankEx(TheVarArr: TVariantArray; var Item: TBankItem): Boolean;
+
+Returns true if one of the items exists in bank. It also returns the first Item.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_ItemExistsInBankEx(TheVarArr: TVariantArray; var Item: TBankItem): Boolean;
+var
+  Items: TBankItemArray;
+begin
+  Item := NULL_BANKITEM;
+  Result := R_ItemsExistInBankEx(TheVarArr, Items);
+  if Result then
+    Item := Items[0];
+end;
+
+(*
+R_ItemExistsInBank
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ItemExistsInBank(TheVar: Variant; var Item: TBankItem): Boolean;
+
+Returns true if the item exists in bank also returns the Item.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_ItemExistsInBank(TheVar: Variant; var Item: TBankItem): Boolean;
+begin
+  Result := R_ItemExistsInBankEx([TheVar], Item);
+end;
+
+(*
+R_ScrollToIndex
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ScrollToIndex(Index: Integer): Boolean;
+
+Scrolls to the item at the Index in the bank slots until the item is completely
+visible. To be used for withdrawing.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_ScrollToIndex(Index: Integer): Boolean;
+var
+  Item, Up, Dn: TInterfaceComponent;
+  P1, P2: TPoint;
+  B: TBox;
+  Dir: String;
+  x, y, t, i: integer;
+begin
+  Result := False;
+  if not R_BankScreen then
+    Exit;
+
+  Item := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Index);
+  Dn := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SCROLLBAR,
+                            INTERFACE_BANK_SCROLLBAR_DOWN);
+  Up := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SCROLLBAR,
+                            INTERFACE_BANK_SCROLLBAR_UP);
+  B := IntToBox(MBX1, MBY1, MBX2, MBY2);
+  P1 := Point(Item.Bounds.X1, Item.Bounds.Y1);
+  P2 := Point(Item.Bounds.X2, Item.Bounds.Y2);
+
+  Result := PointInBox(P1, B) and PointInBox(P2, B);
+  if(Result)then
+    Exit;
+
+  for i := 1 to 2 do
+  begin
+    if(P1.y < MBY1)then
+      Dir := 'up'
+    else if(P2.y > MBY2)then
+      Dir := 'down';
+    if(dir = '')then
+    begin
+      R_Debug('Error getting destination direction.', 'R_ScrollToIndex');
+      Exit;
+    end;
+
+    case dir of
+      'up':   R_ClickInterface(Up, 3);
+      'down': R_ClickInterface(Dn, 3);
+    end;
+    GetMousePos(x, y);
+    HoldMouse(x, y, 1);
+    MarkTime(t);
+
+    while not(PointInBox(P1, B) and PointInBox(P2, B)) do
+    begin
+      if(TimeFromMark(t) > 10000)then
+        break;
+      wait(100+Random(50));
+      Item := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Index);
+      P1 := Point(Item.Bounds.X1, Item.Bounds.Y1);
+      P2 := Point(Item.Bounds.X2, Item.Bounds.Y2);
+    end;
+
+    ReleaseMouse(x, y, 1);
+    Result := PointInBox(P1, B) and PointInBox(P2, B);
+    if Result then
+      Continue;
+  end;
+end;
+
+(*
+R_WithdrawItemsEx
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WithdrawItemsEx(TheVarArr: TVariantArray; All: Boolean): Boolean;
+
+Withdraws the items specified. Will scroll through bank to find items if they
+exist.
+        All = true: Will use the 'Withdraw-All' option.
+        All = false: Will just single click the item to withdraw only 1.
+Will Result true only if EVERY item was withdrew successfully.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WithdrawItemsEx(TheVarArr: TVariantArray; All: Boolean): Boolean;
+var
+  Items: TBankItemArray;
+  TempItem: TBankItem;
+  Item: TInterfaceComponent;
+  I, X, Y, Inv, T: Integer;
+begin
+  Result := False;
+  if not R_BankScreen then
+    Exit;
+  if not R_ItemsExistInBankEx(TheVarArr, Items)then
+  begin
+    R_Debug('Items not found in bank.', 'R_WithdrawItemsEx');
+    Exit;
+  end;
+
+  Result := True;
+  for I := 0 to High(Items) do
+  begin
+    if not R_ItemExistsInBank(Items[i].Name, TempItem)then
+    begin
+      Result := False;
+      R_Debug('Unable to find '+Items[i].Name, 'R_WithdrawItemsEx');
+      Continue;
+    end;
+    if not R_ScrollToIndex(TempItem.Slot) then
+    begin
+      Result := False;
+      R_Debug('Unable to scroll to '+Items[i].Name, 'R_WithdrawItemsEx');
+      Continue;
+    end;
+    Item := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, TempItem.Slot);
+    R_ClickInterface(Item, 3);
+    GetMousePos(X, Y);
+    Inv := R_InvCount;
+
+    case All of
+      True: begin
+        Mouse(x, y, 0, 0, false);
+        if(not R_WaitOption('Withdraw-All', 2000))then
+        begin
+          R_Debug('Unable to withdraw '+Item.Name, 'R_WithdrawItemsEx');
+          Result := False;
+          Continue;
+        end;
+      end;
+      False: Mouse(x, y, 0, 0, true);
+    end;
+
+    MarkTime(T);
+    while (R_InvCount = Inv)do
+    begin
+      if(TimeFromMark(T) > 5000)then
+      begin
+        R_Debug('Unable to withdraw '+Item.Name, 'R_WithdrawItemsEx');
+        Result := False;
+        Break;
+      end;
+      Wait(50+Random(50));
+    end;
+
+    Wait(500+Random(1000));
+    //Need to give the bank interface time to reload if an item was removed.
+  end;
+end;
+
+(*
+R_WithdrawItem
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WithdrawItem(TheVar: Variant; All: Boolean): Boolean;
+
+Withdraws the item specified. Will scroll through bank to find the item if it
+exists.
+        All = true: Will use the 'Withdraw-All' option.
+        All = false: Will just single click the item to withdraw only 1.
+Will Result true if item was withdrew successfully.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WithdrawItem(TheVar: Variant; All: Boolean): Boolean;
+begin
+  Result := R_WithdrawItemsEx([TheVar], All);
+end;
+
+(*
+R_WithdrawAllButOne
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WithdrawAllButOne(TheVar: Variant): Boolean;
+
+Withdraws the item specified using the 'Withdraw-All but one' option. Results
+true if Item was successfully withdrew.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WithdrawAllButOne(TheVar: Variant): Boolean;
+var
+  Item: TBankItem;
+  Itm: TInterfaceComponent;
+  Inv, T: Integer;
+begin
+  Result := False;
+  if not R_BankScreen then
+    Exit;
+  if not R_ItemExistsInBank(TheVar, Item) then
+  begin
+    R_Debug('Item not found in bank.', 'R_WithdrawAllButOne');
+    Exit;
+  end;
+
+  if not R_ScrollToIndex(Item.Slot)then
+  begin
+    R_Debug('Could not scroll to item.', 'R_WithdrawAllButOne');
+    Exit;
+  end;
+
+  Inv := R_InvCount;
+  Itm := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Item.Slot);
+  R_ClickInterface(Itm, 2);
+  Result := R_WaitOption('Withdraw-All but one', 3000);
+  if(Result)then
+  begin
+    MarkTime(T);
+    while(R_InvCount = Inv)do
+    begin
+      if R_InvFull then
+        Break;
+      if(TimeFromMark(T) > 5000)then
+      begin
+        Result := False;
+        R_Debug('Error withdrawing item', 'R_WithdrawAllButOne');
+        Exit;
+      end;
+      Wait(50+Random(50));
+    end;
+  end;
+end;
+
+(*
+R_WithdrawX
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WithdrawX(TheVar: Variant; Amount: Integer): Boolean;
+
+Withdraws the item specified using the 'Withdraw-X' option. Results true if the
+Item was successfully withdrew.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WithdrawX(TheVar: Variant; Amount: Integer): Boolean;
+var
+  Item: TBankItem;
+  Itm: TInterfaceComponent;
+  Inv, T: Integer;
+begin
+  Result := False;
+  if not R_BankScreen then
+    Exit;
+  if not R_ItemExistsInBank(TheVar, Item) then
+  begin
+    R_Debug('Item not found in bank.', 'R_WithdrawX');
+    Exit;
+  end;
+
+  if not R_ScrollToIndex(Item.Slot)then
+  begin
+    R_Debug('Could not scroll to item.', 'R_WithdrawX');
+    Exit;
+  end;
+
+  Inv := R_InvCount;
+  Itm := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Item.Slot);
+  R_ClickInterface(Itm, 2);
+  Result := R_WaitOption('Withdraw-X', 3000);
+
+  MarkTime(T);
+  while(R_GetInterfaceText(752, 4) <> 'Enter amount:')do
+  begin
+    if(TimeFromMark(T) > 5000)then
+    begin
+      Result := False;
+      R_Debug('Could not enter amount.', 'R_WithdrawX');
+      Exit;
+    end;
+    wait(50+Random(50));
+  end;
+
+  wait(500+Random(1000));
+  TypeSend(ToStr(Amount));
+  MarkTime(T);
+  while(R_InvCount = Inv)do
+  begin
+    if(TimeFromMark(T) > 5000)then
+    begin
+      Result := False;
+      R_Debug('Error withdrawing item.', 'R_WithdrawX');
+      Exit;
+    end;
+  end;
+end;
+
+{*******************************************************************************
+Function R_OpenBankBooth(Bank : String): Boolean;
+By: ss23 & TheGuyWhoGotOn
+Description: Opens the bank using Bank Booth.
+*******************************************************************************}
+function R_OpenBankBooth(Bank : String) : Boolean;
+var
+  Tiles: TPointArray;
+  P: TPoint;
+  Tries: Integer;
+begin
+  Result := R_BankScreen or R_PinScreen;
+  if Result then
+    Exit;
+
+  case LowerCase(Bank) of
+    'veb', 'varrock east':
+        Tiles := [Point(3251,3419), Point(3252,3419), Point(3253,3419),
+                  Point(3254,3419), Point(3255,3419), Point(3256,3419)];
+    'vwb', 'varrock west':
+        Tiles := [Point(3190,3435), Point(3190,3437), Point(3190,3439),
+                  Point(3190,3441), Point(3190,3443), Point(3181,3444),
+                  Point(3181,3442), Point(3181,3440), Point(3181,3438),
+                  Point(3181,3436)];
+    'falador west', 'fwb':
+        Tiles := [Point(2945,3367), Point(2946,3367), Point(2947,3367),
+                  Point(2948,3367)];
+    'falador east', 'feb':
+        Tiles := [Point(3010,3354), Point(3011,3354), Point(3012,3354),
+                  Point(3013,3354), Point(3014,3354), Point(3015,3354)];
+    'lumbridge', 'lb':
+        Tiles := [Point(3208,3221)];
+    'draynor', 'db':
+        Tiles := [Point(3091,3245), Point(3091,3243), Point(3091,3242)];
+    'al kharid', 'akb':
+        Tiles := [Point(3268,3168), Point(3268,3167), Point(3268,3166),
+                  Point(3268,3169), Point(3268,3164)];
+    'seb', 'seers':
+        Tiles := [Point(2729,3494), Point(2728,3494), Point(2727,3494),
+                  Point(2724,3494), Point(2722,3494), Point(2721,3494)];
+
+    'ctb', 'catherby':
+        Tiles := [Point(2807,3442), Point(2809,3442), Point(2810,3442),
+                  Point(2811,3442)];
+
+    'eb', 'edgeville':
+        Tiles := [Point(3095,3489), Point(3095,3491), Point(3095,3493),
+                  Point(3097,3495)];
+    'fgb', 'fishing guild':
+        Tiles := [Point(2584, 3423), Point(2584, 3422)];
+    'mc', 'moonclan':
+        Tiles := [Point(2098, 3920), Point(2097, 3920), Point(2098, 3920)];
+    'yb', 'yanille':
+        Tiles := [Point(2614, 3094), Point(2614, 3092), Point(2614, 3091)];
+    'da', 'duel arena': Tiles := [Point(3381, 3269), Point(3382, 3270)];
+    'anb', 'ardougne north': Tiles := [Point(2618, 3331), Point(2619, 3331), Point(2614, 3331)];
+    'asb', 'ardougne south': Tiles := [Point(2656, 3286), Point(2656, 3283), Point(2656, 3280)];
+    'pc', 'pest control':
+        Tiles := [Point(2667, 2652), Point(2666, 2652), Point(2665, 2652),
+                  Point(2668, 2652)];
+    'cw', 'castle wars': Tiles := [Point(2445, 3083)];
+  else
+    begin
+      SRL_Warn('R_OpenBankBooth', 'Unsupported bank name.', -1);
+      Exit;
+    end;
+  end;
+  SortTPAFrom(Tiles, R_GetMyPos);
+  if (R_DistanceFromTile(Tiles[0]) > 3) or not R_TileOnMS(Tiles[0], 10) then
+  begin
+    if not(R_TileOnMM(Tiles[0])) then
+    begin
+      SRL_Warn('R_OpenBankBooth', 'Could not find Bank Booth.', Warn_AllVersions);
+      Exit;
+    end;
+    R_WalkToTile(Tiles[0], 0, 0);
+    Wait(50);
+    R_Flag;
+    Wait(RandomRange(100, 200));
+  end;
+  if not(R_TileOnMS(Tiles[0], 10)) then
+  begin
+    SetAngle(True);
+    MakeCompass('n');
+    Wait(RandomRange(200, 400));
+    if not(R_TileOnMS(Tiles[0], 10)) then
+    begin
+      SRL_Warn('R_OpenBankBooth', 'Could get MS Point.', Warn_AllVersions);
+      Exit;
+    end;
+  end;
+
+  if (Bank = 'veb') or (Bank = 'varrock east') then
+  begin
+    if (R_GetMyPos = Point(3250, 3419)) or (R_GetMyPos = Point(3257, 3419)) then
+    begin
+      R_WalkToTile(Point(3253, 3421), 1, 0);
+    end;
+  end;
+
+  P := R_TileToMS(Tiles[0], 10);
+  MMouse(p.x - 5, p.y - 5, 11, 11);
+  Wait(RandomRange(200, 300));
+  if R_IsUpTextMulti(['ank', 'ooth', 'ount', 'unte', 'oun', 'unter']) then
+  begin
+    GetMousePos(P.x, P.y);
+    Mouse(P.x, P.y, 0, 0, false);
+    Wait(RandomRange(80, 110));
+    P.x := 0;
+    if R_ChooseOptionMulti(['Use-quickly']) then
+      repeat
+        R_Flag;
+        Wait(RandomRange(50, 90));
+        Inc(Tries);
+        if (Length(Players) > 0) then
+          if Players[CurrentPlayer].Pin <> '' then
+            Result := InPin(Players[CurrentPlayer].Pin);
+        Result := R_BankScreen or R_PinScreen;
+      until Result or (Tries > 40);
+  end else if IsUpTextMultiCustom(['ank', 'hest']) then //one-click bank chests
+  begin
+    GetMousePos(P.x, P.y);
+    Mouse(P.x, P.y, 0, 0, true);
+    Wait(RandomRange(80, 110));
+    P.x := 0;
+    repeat
+      R_Flag;
+      Wait(RandomRange(50, 90));
+      Inc(Tries);
+      if (Length(Players) > 0) then
+        if Players[CurrentPlayer].Pin <> '' then
+          Result := InPin(Players[CurrentPlayer].Pin);
+      Result := R_BankScreen or R_PinScreen;
+    until Result or (Tries > 40);
+  end;
+end;

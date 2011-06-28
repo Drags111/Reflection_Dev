@@ -27,7 +27,10 @@ function R_GetInventoryInterfaceIndex: Integer;
 begin
   Result := NULL_INT;
   if R_ValidInterface(INTERFACE_BANKINVENTORY)then
+  begin
     Result := INTERFACE_BANKINVENTORY;
+    Exit;
+  end;
   if R_ValidInterface(INTERFACE_INVENTORY)then
     Result := INTERFACE_INVENTORY;
 end;
@@ -483,6 +486,43 @@ Returns the number of items in your inventory besides TheVar.
 function R_CountItemsBut(TheVar: Variant): Integer;
 begin
   Result := R_CountItemsButEx([TheVar]);
+end;
+
+(*
+R_MouseItem
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_MouseItem(Slot: Integer);
+
+Mouses over the specified inventory slot.
+
+.. note::
+
+  by Drags111
+
+*)
+procedure R_MouseItem(Slot: Integer);
+var
+  InterfaceID: Integer;
+  Item: TInterfaceComponent;
+begin
+  InterfaceID := R_GetInventoryInterfaceIndex;
+  if InterfaceID = NULL_INT then
+  begin
+    R_Debug('The Inventory interface doesn''t exist!', '');
+    Exit;
+  end;
+  if InterfaceID = INTERFACE_INVENTORY then
+    if not R_GameTab(RTAB_INVENTORY)then
+      Exit;
+
+  Item := R_GetInterfaceComponent(InterfaceID, 0, Slot-1);
+  if(Item.ID <= 0)then
+    Exit;
+
+  R_ClickInterface(Item, 3);
 end;
 
 (*
