@@ -115,7 +115,7 @@ Waits to select an option, and if it finds it, selects it
 *)
 function R_WaitOption(S: String; Time: Integer): Boolean;
 begin
-  Result := r_WaitOptionMulti([S], Time);
+  Result := R_WaitOptionMulti([S], Time);
 end;
 
 (*
@@ -167,7 +167,7 @@ Waits for the UpText
 *)
 function R_WaitUpText(S: String; Time: Integer): Boolean;
 begin
-  Result := r_WaitUpTextMulti([S], Time);
+  Result := R_WaitUpTextMulti([S], Time);
 end;
 
 (*
