@@ -89,6 +89,72 @@ begin
 end;
 
 (*
+R_GetCameraAngle
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetCameraAngle: Integer;
+
+Returns the Camera Angle. 0 = lowest, 100 = highest.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetCameraAngle: Integer;
+var
+  D: Extended;
+begin
+  D := (SmartGetFieldInt(0, hook_static_CameraPitch) / 1024.0);
+  Result := Round((D - 1) * 50);
+end;
+
+(*
+R_SetCameraAngle
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_SetCameraAngle(Angle: Integer): Boolean;
+
+Sets the Camera Angle. 0 = lowest, 100 = highest.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_SetCameraAngle(Angle: Integer): Boolean;
+var
+  C, T: Integer;
+begin
+  Result := False;
+  if(Angle = R_GetCameraAngle)then
+  begin
+    Result := True;
+    Exit;
+  end;
+  if(Angle < R_GetCameraAngle)then
+    C := VK_DOWN
+  else
+    C := VK_UP;
+
+  KeyDown(C);
+  MarkTime(T);
+  while(TimeFromMark(T) < 5000)do
+  begin
+    if(C = VK_DOWN) and (Angle >= R_GetCameraAngle)then
+      Break;
+    if(C = VK_UP) and (Angle <= R_GetCameraAngle)then
+      Break;
+    wait(10+Random(10));
+  end;
+  KeyUp(C);
+end;
+
+(*
 R_TileToMM
 ~~~~~~~~~~
 

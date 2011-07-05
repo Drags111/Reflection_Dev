@@ -212,3 +212,63 @@ begin
 
   Result := False;
 end;
+
+(*
+R_WaitToStopAnimating
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitToStopAnimating(MaxWait: Integer): Boolean;
+
+Waits until your player is not animating anymore.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WaitToStopAnimating(MaxWait: Integer): Boolean;
+var
+  T: Integer;
+begin
+  Result := False;
+  MarkTime(T);
+  while(R_Animating)do
+  begin
+    if(TimeFromMark(T) >= MaxWait)then
+      Break;
+    Wait(20+Random(10));
+  end;
+  Result := (TimeFromMark(T) < MaxWait);
+end;
+
+(*
+R_WaitToAnimate
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitToAnimate: Boolean;
+
+Waits until your player is animating.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WaitToAnimate(MaxWait: Integer): Boolean;
+var
+  T: Integer;
+begin
+  Result := False;
+  MarkTime(T);
+  while(not R_Animating)do
+  begin
+    if(TimeFromMark(T) >= MaxWait)then
+      Break;
+    Wait(20+Random(10));
+  end;
+  Result := (TimeFromMark(T) < MaxWait);
+end;

@@ -81,6 +81,13 @@ const
 
   TEXTURE_BANKTABSELECTED = 1419;
 
+  {Misc Constants}
+  CROSSHAIR_NONE = 0;
+  CROSSHAIR_YELLOW = 1;
+  CROSSHAIR_RED = 2;
+  INTERFACE_LOGIN_SCREEN = 596;
+  INTERFACE_LOBBY_SCREEN = 907;
+
 (*=====================================
 
    Types for the Reflection include
@@ -205,7 +212,7 @@ type
 
  =====================================*)
 var
-  R_SuppressDebug, R_ContinueIfOutdated: Boolean;
+  R_SuppressDebug, R_ContinueIfOutdated, R_ExitOnRandoms: Boolean;
 
 (*=====================================
 

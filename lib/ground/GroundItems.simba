@@ -26,7 +26,7 @@ Stores them in a TGroundItemArray. Based off of Method's orginal R_GetItemsAt.
 function R_GetAllGroundItems(MaxDist: Integer): TGroundItemArray;
 var
   Cache, Hash, Plane, Nodes, Size, Index, Tail, Cur, Next,
-  UID, List, Stack: Integer;
+  UID, List: Integer;
   H, I, BX, BY, endx, endy: Integer;
   Tiles: TTileArray;
 begin
@@ -120,7 +120,7 @@ contain one of the IDs specified. Stores them in a TGroundItemArray.
 function R_GetGroundItemsEx(IDs: TIntegerArray; MaxDist: Integer): TGroundItemArray;
 var
   Cache, Hash, Plane, Nodes, Size, Index, Tail, Cur, Next,
-  UID, List, TheID, Stack: Integer;
+  UID, List, TheID: Integer;
   H, I, BX, BY, endx, endy: Integer;
   Tiles: TTileArray;
 begin
@@ -239,7 +239,7 @@ contains one of the IDs specified. Stores it in a TGroundItem.
 function R_GetGroundItemEx(IDs: TIntegerArray; MaxDist: Integer): TGroundItem;
 var
   Cache, Hash, Plane, Nodes, Size, Index, Tail, Cur, Next,
-  UID, List, TheID, Stack: Integer;
+  UID, List, TheID: Integer;
   H, I, BX, BY, endx, endy: Integer;
   Tiles: TTileArray;
 begin
@@ -452,7 +452,7 @@ Returns all the TGroundItems at the given tile.
 function R_GetGroundItemsAt(TheTile: TTile): TGroundItemArray;
 var
   Cache, Hash, Plane, Nodes, Size, Index, Tail, Cur, Next,
-  UID, List, Stack: Integer;
+  UID, List: Integer;
 begin
   SetLength(Result, 0);
 

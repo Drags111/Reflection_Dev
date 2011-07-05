@@ -19,7 +19,6 @@ var
   I, K: Integer;
   ValidInterfaces, ValidChildren: TIntegerArray;
   ChildText: String;
-  Child: TInterfaceChild;
 begin
   ValidInterfaces := R_GetValidInterfaces;
 
@@ -186,8 +185,7 @@ If the click to continue interface exists, it will click it.
 function R_ClickToContinue: Boolean;
 var
   Cont: TInterfaceChild;
-  T, Color: Integer;
-  TPA: TPointArray;
+  T: Integer;
 begin
   Result := False;
   Cont := R_GetClickContinueInterface;

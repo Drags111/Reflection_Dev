@@ -82,7 +82,6 @@ var
   ChildObj, TextureID, T: Integer;
   GameTabs: TIntegerArray;
   Child: TInterfaceChild;
-  P: TPoint;
 begin
   Result := False;
   GameTabs := [RTAB_FRIENDSLIST, RTAB_CHAT, RTAB_CLANCHAT, RTAB_OPTIONS,

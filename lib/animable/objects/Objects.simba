@@ -239,7 +239,7 @@ The ObjTypes are as follows:
 *)
 function R_GetAllObjects(ObjType: Integer): TRSObjectArray;
 var
-  Plane, GroundObj, X, Y, C, Obj, BaseX, BaseY: Integer;
+  Plane, GroundObj, X, Y, C, BaseX, BaseY: Integer;
   Temp: TRSObject;
   ObjFunction: function(GroundObj, BaseX, BaseY: Integer): TRSObject;
 begin
@@ -303,7 +303,7 @@ Returns the object at the specified tile, with the type of objType.
 *)
 function R_GetObjectAt(Tile: TTile; ObjType: Integer): TRSObject;
 var
-  Ground, Obj, LocalX, LocalY, Plane: Integer;
+  Ground, LocalX, LocalY, Plane: Integer;
   ObjFunction: function(GroundObj, BaseX, BaseY: Integer): TRSObject;
 begin
   Result := NULL_RSOBJECT;
@@ -464,7 +464,7 @@ function R_GetObjectEx(IDs: TIntegerArray; ObjType, MaxDist: Integer): TRSObject
 var
    F, BX, BY, Plane, Ground: Integer;
    MyPos: TTile;
-   Tiles, BadTiles: TTileArray;
+   Tiles: TTileArray;
    Temp: TRSObject;
    ObjFunction: function(GroundObj, BaseX, BaseY: Integer): TRSObject;
 begin

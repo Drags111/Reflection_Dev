@@ -554,7 +554,9 @@ begin
     Exit;
   end;
   if InterfaceID = INTERFACE_INVENTORY then
+  begin
     R_GameTab(RTAB_INVENTORY);
+  end;
 
   Item := R_GetInterfaceComponent(InterfaceID, 0, Slot-1);
   if(Item.ID <= 0)then

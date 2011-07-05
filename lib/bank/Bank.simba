@@ -843,7 +843,7 @@ var
   BankItem: TBankItem;
   TempItem: TBankItem;
   Item: TInterfaceComponent;
-  I, X, Y, Inv, T: Integer;
+  X, Y, Inv, T: Integer;
 begin
   Result := False;
   if not R_BankScreen then

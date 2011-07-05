@@ -26,12 +26,15 @@
 {$i ./lib/chat/NPCChat.simba}
 
 {$i ./lib/misc/Timing.simba}
+{$i ./lib/misc/Misc.simba}
 
 {$i ./lib/gametab/GameTab.simba}
 {$i ./lib/gametab/Inventory.simba}
 {$i ./lib/gametab/Equipment.simba}
 
 {$i ./lib/bank/Bank.simba}
+
+{$i ./lib/antirandoms/Antirandoms.simba}
 
 (*
 R_UpdateHooks

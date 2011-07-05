@@ -536,6 +536,50 @@ begin
 end;
 
 (*
+R_ValidNPCMulti
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ValidNPCMulti(TheVarArr: TVariantArray; Null: Boolean): Boolean;
+
+Returns true if npc designated by TheVarArr(names or IDs) is found.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_ValidNPCMulti(TheVarArr: TVariantArray; Null: Boolean): Boolean;
+var
+  NPCs: TNPCArray;
+begin
+  Result := R_FindNPCsMulti(TheVarArr, Null, NPCs);
+end;
+
+(*
+R_ValidNPC
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ValidNPC(TheVar: Variant; Null: Boolean): Boolean;
+
+Returns true if npc designated by TheVarArr(names or IDs) is found.
+
+.. note::
+
+  by lordsaturn/Drags111
+
+*)
+function R_ValidNPC(TheVar: Variant; Null: Boolean): Boolean;
+var
+  NPC: TNPC;
+begin
+  Result := R_FindNPC(TheVar, Null, NPC);
+end;
+
+(*
 R_GetInteractingNPC
 ~~~~~~~~~~~~~~~~~~~
 
