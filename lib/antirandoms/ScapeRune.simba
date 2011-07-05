@@ -1,0 +1,12 @@
+var
+  REvilBobVars_Servant: TNPC;
+
+function REvilBob_InRandom: Boolean;
+begin
+  Result := R_FindNPC(2481, True, REvilBobVars_Servant);
+end;
+
+function REvilBob_Solve: Boolean;
+begin
+  Result := False
+end;

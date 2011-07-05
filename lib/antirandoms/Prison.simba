@@ -1,0 +1,18 @@
+var
+  RPrisonVars_NPC: TNPC;
+  RPrisonVars_Lever: TRSObject;
+
+function RPrison_InRandom: Boolean;
+begin
+  Result := R_FindNPC(3118, True, RPrisonVars_NPC);
+  if Result then
+  begin
+    RPrisonVars_Lever := R_GetObject(10817, OBJ_INTERACTABLE, 50);
+    Result := (RPrisonVars_Lever <> NULL_RSOBJECT);
+  end;
+end;
+
+function RPrison_Solve: Boolean;
+begin
+  Result := False
+end;

@@ -1,0 +1,330 @@
+const
+  INTERFACE_ARNAV = 185;
+  INTERFACE_ARNAV_CHOOSEOPTION = 228;
+
+var
+  RArnavVars_NPC: TNPC;
+  RArnavVars_Chest: TRSObject;
+
+function RArnav_InRandom: Boolean;
+begin
+  Result := R_FindNPC(2308, True, RArnavVars_NPC);
+  if not Result then
+    Exit;
+  RArnavVars_Chest := R_GetObjectEx([42337, 42338], OBJ_INTERACTABLE, 10);
+  Result := RArnavVars_Chest <> NULL_RSOBJECT;
+end;
+
+function RArnav_TalkTo: Boolean;
+var
+  P: TPoint;
+  X, Y: Integer;
+begin
+  Result := False;
+  P := R_TileToMS(RArnavVars_NPC.Tile, RArnavVars_NPC.Height/2);
+  MMouse(P.x, P.y, 2, 10);
+  wait(25+Random(25));
+  if not(R_OptionExists('talk'))then
+    Exit;
+  GetMousePos(X, Y);
+  Mouse(X, Y, 0, 0, false);
+  Result := R_ChooseOption('talk');
+  if not Result then
+  begin
+    MMouse(X-50, Y-50, 10, 10);
+    Exit;
+  end;
+  Result := R_WaitNPCChatchange(True, 5000);
+end;
+
+procedure RArnav_CloseScreen;
+var
+  CloseButton: TInterfaceChild;
+begin
+  if not R_ValidInterface(INTERFACE_ARNAV)then
+    Exit;
+  CloseButton := R_GetInterfaceChild(INTERFACE_ARNAV, 30);
+  R_ClickInterface(CloseButton, 1);
+  R_WaitInterfaceClose(INTERFACE_ARNAV, 5000);
+end;
+
+function RArnav_GetTries: Integer;
+var
+  Text, Number: String;
+begin
+  Result := -1;
+  Text := R_GetNPCChatMessage;
+  if(Text = '')then
+    Exit;
+  if(Pos('try', Text) > 0) or (Pos('tries', Text) > 0)then
+  begin
+    Number := GetNumbers(Text);
+    if(Number <> nil)then
+      Result := StrToInt(Number)
+    else
+      Result := -1;
+  end;
+end;
+
+function RArnav_GetItemGoal: Integer;
+var
+  Item: String;
+begin
+  Result := -1;
+  if not R_ValidInterface(INTERFACE_ARNAV)then
+    Exit;
+  Item := Lowercase(Trim(R_GetInterfaceText(INTERFACE_ARNAV, 31)));
+  case Item of
+    'bar':   Result := 7751;
+    'coins': Result := 7752;
+    'ring':  Result := 7753;
+    'bowl':  Result := 20104;
+  end;
+end;
+
+function RArnav_Unlock: Boolean;
+var
+  UpArrows, DownArrows, Middles: array of Integer;
+  Arrow, Slot, Unlock: TInterfaceChild;
+  I, GoalID, Y, T, T2: Integer;
+begin
+  Result := False;
+  GoalID := RArnav_GetItemGoal;
+  if(GoalID = -1)then
+  begin
+    R_Debug('Unable to obtain the GoalID', 'Cap''n Arnav');
+    Exit;
+  end;
+
+  case GoalID of
+    7751: Middles := [8, 15, 22]; //Bars
+    7752: Middles := [6, 13, 20]; //Coins
+    7753: Middles := [5, 12, 19]; //Rings
+    20104:Middles := [7, 14, 21]; //Bowls
+  end;
+
+  UpArrows := [3, 10, 17];
+  DownArrows := [2, 9, 16];
+
+  for I := 0 to 2 do
+  begin
+    Slot := R_GetInterfaceChild(INTERFACE_ARNAV, Middles[i]);
+
+    case Slot.Y of
+      -63, 50: Arrow := R_GetInterfaceChild(INTERFACE_ARNAV, DownArrows[I]);
+      else Arrow := R_GetInterfaceChild(INTERFACE_ARNAV, UpArrows[I]);
+    end;
+
+    MarkTime(T);
+    while(Slot.Y <> 133)do
+    begin
+      if(TimeFromMark(T) > 20000)then
+      begin
+        R_Debug('Failed to set the spinner: '+ToStr(I+1), 'Cap''n Arnav');
+        RArnav_CloseScreen;
+        Exit;
+      end;
+      R_ClickInterface(Arrow, 1);
+      MarkTime(T2);
+      Y := Slot.Y;
+      while(Slot.Y = Y)do
+      begin
+        if(TimeFromMark(T2) > 5000)then
+          Break;
+        wait(300+Random(300));
+        Slot := R_GetInterfaceChild(INTERFACE_ARNAV, Middles[i]);
+      end;
+      Slot := R_GetInterfaceChild(INTERFACE_ARNAV, Middles[i]);
+    end;
+  end;
+  Result := True;
+  Unlock := R_GetInterfaceChild(INTERFACE_ARNAV, 28);
+  R_ClickInterface(Unlock, 1);
+  R_WaitInterfaceClose(INTERFACE_ARNAV, 5000);
+end;
+
+function RArnav_AtChest: Boolean;
+var
+  MyTile: TTile;
+begin
+  MyTile := R_GetMyPos;
+  Result := MyTile = Point(RArnavVars_Chest.Tile.X-1, RArnavVars_Chest.Tile.Y);
+end;
+
+function RArnav_Leave: Boolean;
+var
+  Portal: TRSObject;
+  P: TPoint;
+  X, Y: Integer;
+begin
+  Result := False;
+  Portal := R_GetObject(11369, OBJ_INTERACTABLE, 10);
+  if(Portal = NULL_RSOBJECT)then
+  begin
+    R_Debug('Unable to find portal. Go buy Portal 2..', 'Cap''n Arnav');
+    Exit;
+  end;
+
+  P := R_TileToMS(Portal.Tile, 0);
+  MMouse(P.x, P.y, 10, 10);
+  wait(25+RandoM(25));
+  Result := R_OptionExists('enter');
+  if not Result then
+    Exit;
+
+  GetMousePos(X, Y);
+  Mouse(X, Y, 0, 0, false);
+  wait(25+RandoM(25));
+  Result := R_ChooseOption('enter');
+  if not Result then
+    Exit;
+
+  R_WaitToMove(3000);
+  R_Flag;
+
+  Wait(3000+Random(2000));
+  Result := True;
+end;
+
+function RArnav_CheckSolved: Boolean;
+var
+  Text: String;
+  T: Integer;
+  Cont: TInterfaceChild;
+begin
+  Result := False;
+  MarkTime(T);
+  Cont := R_GetClickContinueInterface;
+  while(TimeFromMark(T) < 10000) and ((Cont.ID = 0) or (Cont.ID = -1))do
+  begin
+    wait(100+Random(100));
+    Cont := R_GetClickContinueInterface;
+  end;
+  if(TimeFromMark(T) >= 10000)then
+    Exit;
+  Text := R_GetNPCChatMessage;
+  Result := Pos('reward', Text) > 0;
+end;
+
+function RArnav_Solve: Boolean;
+var
+  T, T2, T3, TriesLeft: Integer;
+  Cont: TInterfaceChild;
+  P: TPoint;
+begin
+  Result := False;
+  TriesLeft := 5;
+  MarkTime(T);
+
+  while(TimeFromMark(T) < 300000) and (TriesLeft <> 0) and RArnav_InRandom do
+  begin
+    if(Result)then
+    begin
+      if(RArnav_Leave)then
+      begin
+        MarkTime(T2);
+        while(TimeFromMark(T2) < 15000) and (RArnav_InRandom)do
+          Wait(100+Random(100));
+        Wait(1000+Random(1000));
+        Break;
+      end;
+      Continue;
+    end;
+
+    RArnav_CloseScreen;
+    if(RArnav_TalkTo)then
+    begin
+      //Initiate Chat
+      MarkTime(T2);
+      Cont := R_GetClickContinueInterface;
+      while(TimeFromMark(T2) < 10000) and ((Cont.ID = 0) or (Cont.ID = -1))do
+      begin
+        wait(100+Random(100));
+        Cont := R_GetClickContinueInterface;
+      end;
+      if(TimeFromMark(T2) >= 10000)then
+        Continue;
+
+      //Click continue till he moves you to chest.
+      MarkTime(T2);
+      while(TimeFromMark(T2) < 30000) and (not RArnav_AtChest)do
+      begin
+        R_ClickToContinue;
+        wait(250+Random(400));
+      end;
+      if(TimeFromMark(T2) >= 30000)then
+        Continue;
+
+      //Wait for chat again
+      MarkTime(T2);
+      Cont := R_GetClickContinueInterface;
+      while(TimeFromMark(T2) < 10000) and ((Cont.ID = 0) or (Cont.ID = -1))do
+      begin
+        wait(100+Random(100));
+        Cont := R_GetClickContinueInterface;
+      end;
+      if(TimeFromMark(T2) >= 10000)then
+        Continue;
+
+      TriesLeft := RArnav_GetTries;
+      R_Debug(ToStr(TriesLeft)+' tries left.', 'Cap''n Arnav');
+
+      if(TriesLeft = -1)then
+        Continue;
+
+      if not R_ClickToContinue then
+        Continue;
+
+      Wait(250+Random(250));
+      if not R_WaitInterfaceOpen(INTERFACE_ARNAV_CHOOSEOPTION, 5000)then
+        Continue;
+
+      P := Point(171 + RandomRange(0, 183), 424 + RandomRange(0, 15));
+      Mouse(P.x, P.y, 0, 0, True);
+
+      if not R_WaitInterfaceClose(INTERFACE_ARNAV_CHOOSEOPTION, 5000)then
+        Continue;
+
+      wait(500+Random(200));
+
+      //Wait for chat again
+      MarkTime(T2);
+      Cont := R_GetClickContinueInterface;
+      while(TimeFromMark(T2) < 10000) and ((Cont.ID = 0) or (Cont.ID = -1))do
+      begin
+        wait(100+Random(100));
+        Cont := R_GetClickContinueInterface;
+      end;
+      if(TimeFromMark(T2) >= 10000)then
+        Continue;
+
+      if not R_ClickToContinue then
+        Continue;
+
+      wait(250+Random(250));
+
+      if not R_WaitInterfaceOpen(INTERFACE_ARNAV, 5000)then
+        Continue;
+
+      Result := RArnav_Unlock;
+
+      if not Result then
+        Continue;
+      Result := RArnav_CheckSolved;
+
+      if Result then
+      begin
+        MarkTime(T2);
+        MarkTime(T3);
+        while(TimeFromMark(T2) < 20000)do
+        begin
+          if(R_ClickToContinue)then
+            MarkTime(T3);
+          if(TimeFromMark(T3) >= 2500)then
+            Break;
+        end;
+      end;
+    end;
+
+  end;
+end;

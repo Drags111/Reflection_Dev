@@ -1,0 +1,106 @@
+(*
+Misc
+====
+
+Misc routines that could be useful.
+
+*)
+
+(*
+R_GetCrossHairColor
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetCrossHairColor: Integer;
+
+Each crosshair stays up for about 500 milliseconds
+  *CROSSHAIR_RED: clicked on something (red crosshairs).
+  *CROSSHAIR_YELLOW: clicked on ground (yellow crosshairs).
+  *CROSSHAIR_NONE: nothing (no crosshairs)
+
+.. note::
+
+  by pyroryan
+
+*)
+function R_GetCrossHairColor: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_GetCrossHairColor);
+end;
+
+(*
+R_WaitCrossHairColor
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitCrossHairColor(CrossColor: Integer; Time: Integer): Boolean;
+
+Each crosshair stays up for about 500 milliseconds
+  *CROSSHAIR_RED: clicked on something (red crosshairs).
+  *CROSSHAIR_YELLOW: clicked on ground (yellow crosshairs).
+  *CROSSHAIR_NONE: nothing (no crosshairs)
+Waits for a crosshair color to appear.
+
+.. note::
+
+  by pyroryan & Naike
+
+*)
+function R_WaitCrossHairColor(CrossColor: Integer; Time: Integer): Boolean;
+var
+  T: Integer;
+begin
+  Result := False;
+  T := GetSystemTime + Time;
+  while (GetSystemTime < T) do
+  begin
+    if (R_GetCrossHairColor = CrossColor) then
+    begin
+      Result := True;
+      Exit;
+    end;
+    Wait(20 + Random(10));
+  end;
+end;
+
+(*
+R_LoginScreen
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_LoginScreen: Boolean;
+
+Returns true if you are on the Login Screen.
+
+.. note::
+
+  by Unknown
+
+*)
+function R_LoginScreen: Boolean;
+begin
+  Result := R_ValidInterface (INTERFACE_LOGIN_SCREEN);
+end;
+
+(*
+R_LobbyScreen
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_LobbyScreen: Boolean;
+
+Returns true if you are on the Lobby Screen.
+
+.. note::
+
+  by Unknown
+
+*)
+function R_LobbyScreen: Boolean;
+begin
+  Result := R_ValidInterface (INTERFACE_LOBBY_SCREEN);
+end;

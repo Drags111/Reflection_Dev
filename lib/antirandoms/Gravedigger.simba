@@ -1,0 +1,470 @@
+type
+  TRLeo_Coffin = record
+    InventorySlot, RelatedComponentID: Integer;
+  end;
+
+const
+  RLeoConst_NPCID = 3508;
+
+  RLeoConst_FlowerPot = 7608;
+  RLeoConst_Pickaxe = 7607;
+  RLeoConst_Hatchet = 7603;
+  RLeoConst_ChefHat = 7601;
+  RLeoConst_Shears = 7610;
+
+  RLeoConst_FlowerPot2 = 7618;
+  RLeoConst_Pickaxe2 = 7616;
+  RLeoConst_Hatchet2 = 7614;
+  RLeoConst_ChefHat2 = 7615;
+  RLeoConst_Shears2 = 7617;
+
+  RLeoInterface_Instructions = 220;
+  RLeoInterface_Instructions_Close = 16;
+
+  RLeoInterface_Coffin = 141;
+  RLeoInterface_Coffin_Close = 12;
+
+  RLeoInterface_GettingOn = 64;
+  RLeoInterface_GettingOn_Text = 4;
+
+  RLeoInterface_Gravestone = 143;
+  RLeoInterface_Gravestone_Item = 2;
+  RLeoInterface_Gravestone_Close = 3;
+
+  RLeoInterface_Result = 241;
+  RLeoInterface_Result_Text = 4;
+
+  //236: 1, 2: Try again; Give up.
+
+
+var
+  RLeoVar_Leo: TNPC;
+  RLeoVar_Mausoleum: TRSObject;
+  RLeoVar_CoffinIDs, RLeoVar_EmptyGraveIDs,
+  RLeoVar_FullGraveIDs, RLeoVar_ComponentIDs,
+  RLeoVar_ComponentIDs2: TIntegerArray;
+
+procedure RLeo_SetVars;
+begin
+  RLeoVar_CoffinIDs := [7587, 7588, 7589, 7590, 7591];
+  RLeoVar_EmptyGraveIDs := [12726, 12727, 12728, 12729, 12730];
+  RLeoVar_FullGraveIDs := [12721, 12722, 12723, 12724, 12725];
+
+  RLeoVar_ComponentIDs := [RLeoConst_FlowerPot, RLeoConst_Pickaxe,
+    RLeoConst_Hatchet, RLeoConst_ChefHat, RLeoConst_Shears];
+  RLeoVar_ComponentIDs2 := [RLeoConst_FlowerPot2, RLeoConst_Pickaxe2,
+    RLeoConst_Hatchet2, RLeoConst_ChefHat2, RLeoConst_Shears2];
+end;
+
+function RLeo_InRandom: Boolean;
+begin
+  Result := R_FindNPC(RLeoConst_NPCID, True, RLeoVar_Leo);
+  if not Result then
+    Exit;
+  RLeoVar_Mausoleum := R_GetObject(12731, OBJ_INTERACTABLE, 30);
+  Result := RLeoVar_Mausoleum <> NULL_RSOBJECT;
+end;
+
+function RLeo_TalkTo: Boolean;
+var
+  P: TPoint;
+  X, Y, T: Integer;
+begin
+  Result := False;
+  if not R_FindNPC(RLeoConst_NPCID, True, RLeoVar_Leo)then
+  begin
+    R_Debug('Unable to find Leo.', 'Grave Digger');
+    Exit;
+  end;
+  if(R_DistanceFromTile(RLeoVar_Leo.Tile) > 4)then
+  begin
+    if not R_WalkToTile(RLeoVar_Leo.Tile, 1, 0)then
+    begin
+      R_Debug('Unable to walk to Leo.', 'Grave Digger');
+      Exit;
+    end;
+    Wait(300+Random(50));
+  end;
+  P := R_TileToMS(RLeoVar_Leo.Tile, RLeoVar_Leo.Height/2);
+  MMouse(P.x, P.y, 3, 3);
+  wait(25+Random(25));
+  if not R_OptionExists('talk')then
+    Exit;
+  GetMousePos(X, Y);
+  Mouse(X, Y, 0, 0, False);
+  if not R_ChooseOption('talk')then
+    Exit;
+  if(R_DistanceFromTile(RLeoVar_Leo.Tile) > 1)then
+  begin
+    R_WaitToMove(3000);
+    R_Flag;
+  end;
+  MarkTime(T);
+  while(TimeFromMark(T) < 3000)do
+  begin
+    if(R_ClickContinueExists)then
+      Break;
+    wait(50+Random(50));
+  end;
+  Result := (TimeFromMark(T) < 3000);
+end;
+
+procedure RLeo_CloseInstructions;
+var
+  CloseButton: TInterfaceChild;
+begin
+  if not(R_ValidInterface(RLeoInterface_Instructions))then
+    Exit;
+  CloseButton := R_GetInterfaceChild(RLeoInterface_Instructions, RLeoInterface_Instructions_Close);
+  if (CloseButton.ID <= 0)then
+    Exit;
+  R_ClickInterface(CloseButton, 1);
+  R_WaitInterfaceClose(RLeoInterface_Instructions, 3000);
+end;
+
+function RLeo_Deposit: Boolean;
+var
+  P: TPoint;
+  Item: TInterfaceComponent;
+  Close: TInterfaceChild;
+  Name: String;
+  I, Count, X, Y, Goal: Integer;
+begin
+  Result := False;
+  if (R_InvCount <= 23)then
+  begin
+    Result := True;
+    Exit;
+  end;
+  Goal := 5 - (28 - R_InvCount);
+  if(R_DistanceFromTile(RLeoVar_Mausoleum.Tile) > 4)then
+  begin
+    if not R_WalkToTile(RLeoVar_Mausoleum.Tile, 1, 0)then
+      Exit;
+    Wait(200+Random(200));
+  end;
+  P := R_TileToMS(RLeoVar_Mausoleum.Tile, 200);
+  Mouse(P.x, P.y, 5, 5, false);
+  Wait(25+Random(25));
+  if not R_ChooseOption('deposit')then
+    Exit;
+  if(R_DistanceFromTile(RLeoVar_Mausoleum.Tile) > 3)then
+  begin
+    R_WaitToMove(3000);
+    R_Flag;
+  end;
+  R_WaitNPCChatchange(True, 5000);
+  R_ClickToContinue;
+  if not R_WaitInterfaceOpen(11, 5000)then
+    Exit;
+  Count := 0;
+  for I := 27 downto 0 do
+  begin
+    if(Count >= Goal)then
+      Break;
+    Item := R_GetInterfaceComponent(11, 17, I);
+    Name := Item.Name;
+    if(Pos('pickaxe', Lowercase(Name)) > 0)or
+      (Pos('hatchet', Lowercase(Name)) > 0)or
+      (Name = '')then
+      Continue;
+    R_ClickInterface(Item, 3);
+    Wait(25+Random(25));
+    GetMousePos(X, Y);
+    case Random(10) of
+      0..8: Mouse(X, Y, 0, 0, True);
+      9: begin
+        Mouse(X, Y, 0, 0, False);
+        wait(25+Random(25));
+        if not R_ChooseOption('Deposit-1')then
+          Continue;
+      end;
+    end;
+    Wait(500+Random(1500));
+    Inc(Count);
+  end;
+  Result := (Count >= Goal);
+  Close := R_GetInterfaceChild(11, 15);
+  R_ClickInterface(Close, 1);
+  R_WaitInterfaceClose(11, 5000);
+end;
+
+function RLeo_PickupCoffins: Boolean;
+var
+  Graves: TRSObjectArray;
+  I, X, Y, T, MT, Inv: Integer;
+  P: TPoint;
+begin
+  Result := False;
+  Graves := R_GetObjectsEx(RLeoVar_FullGraveIDs, OBJ_INTERACTABLE, 30);
+  if(Length(Graves) < 1)then
+    Exit;
+  MarkTime(MT);
+  while(Length(Graves) > 0)do
+  begin
+    if(TimeFromMark(MT) > 300000)then
+      Break;
+    for I := 0 to High(Graves)do
+    begin
+      if(R_GetObjectAt(Graves[I].Tile, Graves[I].ObjType) <> Graves[I])then
+        Continue;
+      if(R_DistanceFromTile(Graves[I].Tile) > 4)then
+        if not R_WalkToTile(Graves[I].Tile, 0, 0)then
+          Break;
+      wait(100+Random(100));
+      Inv := R_InvCount;
+      P := R_TileToMS(Graves[I].Tile, 0);
+      MMouse(P.x, P.y, 5, 5);
+      GetMousePos(X, Y);
+      if(R_OptionExists('take'))then
+        case Random(2) of
+          0: Mouse(X, Y, 0, 0, True);
+          1: Mouse(X, Y, 0, 0, False);
+        end;
+      wait(100+Random(50));
+      if(SmartGetFieldBoolean(0, hook_static_MenuOpen))then
+        if not R_ChooseOption('take')then
+          Continue;
+      if(R_DistanceFromTile(Graves[I].Tile) > 3)then
+      begin
+        R_WaitToMove(2000);
+        R_Flag;
+      end;
+      MarkTime(T);
+      while(TimeFromMark(T) < 5000)do
+      begin
+        if(Inv < R_InvCount)then
+          Break;
+        Wait(100+Random(100));
+      end;
+      Wait(500+Random(1000));
+    end;
+    SetLength(Graves, 0);
+    Graves := R_GetObjectsEx(RLeoVar_FullGraveIDs, OBJ_INTERACTABLE, 30);
+  end;
+  Result := (TimeFromMark(MT) < 300000);
+end;
+
+function RLeo_CheckCoffins: array of TRLeo_Coffin;
+var
+  I, K, C: Integer;
+  Item: TInvItem;
+  Child: TInterfaceChild;
+begin
+  SetLength(Result, 5);
+  C := 0;
+  for I := 1 to 28 do
+  begin
+    Item := R_GetInvItemAt(I);
+    if(not InIntArray(RLeoVar_CoffinIDs, Item.ID))then
+      Continue;
+    R_ClickItem(Item.Slot, 'check');
+    if not R_WaitInterfaceOpen(RLeoInterface_Coffin, 4000)then
+      Continue;
+    wait(1000+Random(1000));
+
+    for K := 3 to 11 do
+    begin
+      Child := R_GetInterfaceChild(RLeoInterface_Coffin, K);
+      if(Child.ID <= 0)then
+        Continue;
+      if(InIntArray(RLeoVar_ComponentIDs, Child.ComponentID))then
+      begin
+        Result[C].InventorySlot := Item.Slot;
+        Result[C].RelatedComponentID := Child.ComponentID;
+        Inc(C);
+        Break;
+      end;
+    end;
+
+    Child := R_GetInterfaceChild(RLeoInterface_Coffin, RLeoInterface_Coffin_Close);
+    R_ClickInterface(Child, 1);
+    R_WaitInterfaceClose(RLeoInterface_Coffin, 4000);
+    Wait(200+Random(500));
+  end;
+  SetLength(Result, C);
+end;
+
+procedure RLeo_CloseGravestone;
+var
+  Child: TInterfaceChild;
+begin
+  if not R_ValidInterface(RLeoInterface_Gravestone)then
+    Exit;
+  Child := R_GetInterfaceChild(RLeoInterface_Gravestone, RLeoInterface_Gravestone_Close);
+  R_ClickInterface(Child, 1);
+  R_WaitInterfaceClose(RLeoInterface_Gravestone, 4000);
+end;
+
+function RLeo_PutCoffins: Boolean;
+var
+  Coffins: array of TRLeo_Coffin;
+  Coffin: TRLeo_Coffin;
+  Item: TInvItem;
+  Graves: TRSObjectArray;
+  StoneTile: TTile;
+  I, K, ComponentID, T, Tries: Integer;
+  P: TPoint;
+  Model: TInterfaceChild;
+begin
+  Result := False;
+  Tries := 0;
+  while(R_ItemExists('Coffin', Item))do
+  begin
+    if(Tries > 2)then
+      Exit;
+    Inc(Tries);
+    Coffins := RLeo_CheckCoffins;
+    if(Length(Coffins) < 1)then
+    begin
+      R_Debug('Unable to identify coffins.', 'Grave Digger');
+      Exit;
+    end;
+
+    Graves := R_GetObjectsEx(RLeoVar_EmptyGraveIDs, OBJ_INTERACTABLE, 30);
+    if(Length(Graves) < 1)then
+    begin
+      R_Debug('Unable to find gravestones.', 'Grave Digger');
+      Exit;
+    end;
+
+    for I := 0 to High(Graves)do
+    begin
+      StoneTile := Point(Graves[I].Tile.X, Graves[I].Tile.Y + 1);
+      if(R_DistanceFromTile(StoneTile) > 4)then
+        if not R_WalkToTile(StoneTile, 0, 0)then
+          Continue;
+      Wait(400+Random(100));
+      P := R_TileToMS(StoneTile, 100+Random(100));
+      Mouse(P.x, P.y, 4, 4, false);
+      Wait(25+Random(25));
+      if not R_ChooseOption('read')then
+        Continue;
+      if not R_WaitInterfaceOpen(RLeoInterface_Gravestone, 7000)then
+        Continue;            //RLeo_CloseGravestone
+
+      Model := R_GetInterfaceChild(RLeoInterface_Gravestone, RLeoInterface_Gravestone_Item);
+      if(Model.ID <= 0)then
+      begin
+        RLeo_CloseGravestone;
+        Continue;
+      end;
+
+      for K := 0 to High(RLeoVar_ComponentIDs2)do
+      begin
+        if(RLeoVar_ComponentIDs2[K] = Model.ComponentID)then
+        begin
+          ComponentID := RLeoVar_ComponentIDs[K];
+          Break;
+        end;
+      end;
+
+      Coffin.InventorySlot := -1;
+      Coffin.RelatedComponentID := -1;
+
+      for K := 0 to High(Coffins)do
+      begin
+        if(Coffins[K].RelatedComponentID = ComponentID)then
+        begin
+          Coffin := Coffins[K];
+          Break;
+        end;
+      end;
+
+      //Writeln('This grave (ID of '+ToStr(Model.ComponentID)+') matches the coffin at inv slot: '+ToStr(Coffin.InventorySlot));
+      wait(2000+Random(1000));
+      RLeo_CloseGravestone;
+
+      if(Coffin.InventorySlot = -1)then
+        Continue;
+
+      wait(500+Random(500));
+      P := R_TileToMS(Graves[I].Tile, 100+Random(100));
+      R_ClickItem(Coffin.InventorySlot, 'Use');
+      wait(300+Random(500));
+      Mouse(P.x, P.y, 4, 4, True);
+
+      R_WaitToMove(3000);
+      R_Flag;
+      MarkTime(T);
+      while(R_FindObject(Graves[I].ID, Graves[I].ObjType, 10, Graves[I]))do
+      begin
+        if(TimeFromMark(T) > 5000)then
+          Break;
+        wait(200+Random(500));
+      end;
+      Result := (TimeFromMark(T) < 5000);
+    end;
+  end;
+end;
+
+function RLeo_Finished: Boolean;
+var
+  Text: String;
+  Child: TInterfaceChild;
+  T: Integer;
+begin
+  Result := False;
+  Text := R_GetInterfaceText(236, 1);
+  Result := (Pos('I''m ready to', Text) > 0);
+  if not Result then
+    Exit;
+  Child := R_GetInterfaceChild(236, 1);
+  R_ClickInterface(Child, 1);
+  if R_WaitNPCChatChange(False, 3000)then
+  begin
+    if not R_ClickToContinue then
+      Exit;
+    MarkTime(T);
+    while(TimeFromMark(T) < 10000)do
+    begin
+      if not RLeo_InRandom then
+        Break;
+      Wait(100+Random(100));
+    end;
+  end;
+end;
+
+function RLeo_Solve: Boolean;
+var
+  T: Integer;
+  CoffinsPlaced: Boolean;
+begin
+  Result := False;
+  CoffinsPlaced := False;
+  RLeo_SetVars;
+  MarkTime(T);
+  while(RLeo_InRandom and (TimeFromMark(T) < 600000))do
+  begin
+    RLeo_TalkTo;
+    while(R_ClickContinueExists)do
+    begin
+      R_ClickToContinue;
+      Wait(500+Random(300));
+    end;
+
+    if RLeo_Finished then
+    begin
+      Result := True;
+      Continue;
+    end;
+
+    if (not Result) and (not CoffinsPlaced)then
+    begin
+      RLeo_CloseInstructions;
+      if not RLeo_Deposit then
+      begin
+        R_Debug('Unable to desposit items.', 'Grave Digger');
+        Exit;
+      end;
+
+      RLeo_PickupCoffins;
+      if(RLeo_PutCoffins)then
+      begin
+        R_Debug('Placed coffins in graves!', 'Grave Digger');
+        CoffinsPlaced := True;
+      end;
+    end;
+  end;
+  Result := not RLeo_InRandom;
+end;

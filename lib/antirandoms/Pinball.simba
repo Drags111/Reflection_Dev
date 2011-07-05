@@ -1,0 +1,9 @@
+function RPinball_InRandom: Boolean;
+begin
+  Result := R_ValidNPC('Flippa', True) and R_ValidNPC('Tilt', True);
+end;
+
+function RPinball_Solve: Boolean;
+begin
+  Result := False
+end;

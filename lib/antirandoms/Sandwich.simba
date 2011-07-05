@@ -1,0 +1,12 @@
+var
+  RSandwichVars_NPC: TNPC;
+
+function RSandwich_InRandom: Boolean;
+begin
+  Result := R_FindNPC(8630, True, RSandwichVars_NPC);
+end;
+
+function RSandwich_Solve: Boolean;
+begin
+  Result := False
+end;

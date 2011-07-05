@@ -1,0 +1,19 @@
+var
+  RCerterVars_NPC: TNPC;
+
+function RCerter_InRandom: Boolean;
+var
+  Obj: TRSObject;
+begin
+  Result := R_FindNPCMulti(['Giles', 'Miles', 'Niles'], True, RCerterVars_NPC);
+  if Result then
+  begin
+    Obj := R_GetObject(11368, OBJ_INTERACTABLE, 15);
+    Result := (Obj <> NULL_RSOBJECT);
+  end;
+end;
+
+function RCerter_Solve: Boolean;
+begin
+  Result := False;
+end;

@@ -1,0 +1,670 @@
+const
+  MORDAUT_INTERFACE_RELATED = 559;
+  MORDAUT_INTERFACE_NEXT = 103;
+
+type
+  TRMordaut_Match = record
+    Hints: TStringArray;
+    Answers: TIntegerArray;
+  end;
+  TRMordaut_MatchArray = array of TRMordaut_Match;
+
+var
+  RMordautVars_NPC: TNPC;
+
+  RMordautVars_Ranged,      RMordautVars_Cooking,
+  RMordautVars_Fishing,     RMordautVars_Combat,
+  RMordautVars_Combat2,     RMordautVars_Farming,
+  RMordautVars_Magic,       RMordautVars_Firemaking,
+  RMordautVars_Hats,        RMordautVars_Drinks,
+  RMordautVars_Woodcutting, RMordautVars_Boots,
+  RMordautVars_Crafting,    RMordautVars_Mining,
+  RMordautVars_Smithing,    RMordautVars_Jewelry,
+  RMordautVars_Pirate: TIntegerArray;
+
+  RMordautVars_Items: array of TIntegerArray;
+  RMordautVars_Matches: TRMordaut_MatchArray;
+
+(*
+RMordaut_SetVars
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure RMordaut_SetVars;
+
+Sets the vars needed for mordaut.
+
+.. note::
+
+  by Drags111
+
+*)
+procedure RMordaut_SetVars;
+begin
+  RMordautVars_Ranged    := [11539, 11540, 11541, 11614, 11615, 11633];
+
+  RMordautVars_Cooking   := [11526, 11529, 11545, 11549, 11550, 11555, 11560,
+                    11563, 11564, 11607, 11608, 11616, 11620, 11621,
+                    11622, 11623, 11628, 11629, 11634, 11639, 11641,
+                    11649, 11624];
+
+  RMordautVars_Fishing   := [11527, 11574, 11578, 11580, 11599, 11600, 11601,
+                    11602, 11603, 11604, 11605, 11606, 11625];
+
+  RMordautVars_Combat    := [11528, 11531, 11536, 11537, 11579, 11591, 11592,
+                    11593, 11597, 11627, 11631, 11635, 11636, 11638, 11642,
+                    11648, 11617];
+
+  RMordautVars_Combat2   := [11528, 11531, 11536, 11537, 11579, 11591, 11592,
+                    11593, 11597, 11627, 11631, 11635, 11636, 11638,
+                    11642, 11648];
+
+  RMordautVars_Farming   := [11530, 11532, 11547, 11548, 11554, 11556, 11571,
+                    11581, 11586, 11610, 11645];
+
+  RMordautVars_Magic     := [11533, 11534, 11538, 11562, 11567, 11582];
+
+  RMordautVars_Firemaking:= [11535, 11551, 11552, 11559, 11646];
+
+  RMordautVars_Hats      := [11540, 11557, 11558, 11560, 11570, 11619, 11626,
+                    11630, 11632, 11637, 11654];
+
+  RMordautVars_Drinks    := [11542, 11543, 11544, 11644, 11647];
+
+  RMordautVars_Woodcutting:=[11573, 11595];
+
+  RMordautVars_Boots     := [11561, 11618, 11650, 11651];
+
+  RMordautVars_Crafting  := [11546, 11553, 11565, 11566, 11568, 11569, 11572,
+                    11575, 11576, 11577, 11581, 11583, 11584, 11585,
+                    11643, 11652, 11653];
+
+  RMordautVars_Mining    := [11587, 11588, 11594, 11596, 11598, 11609, 11610];
+
+  RMordautVars_Smithing  := [11611, 11612, 11613];
+
+  RMordautVars_Pirate    := [11570, 11626, 11558];
+
+  RMordautVars_Jewelry  := [11572, 11576, 11652];
+
+  RMordautVars_Items := [RMordautVars_Boots,
+  RMordautVars_Combat, RMordautVars_Cooking,
+  RMordautVars_Crafting, RMordautVars_Drinks,
+  RMordautVars_Farming, RMordautVars_Firemaking,
+  RMordautVars_Fishing, RMordautVars_Hats,
+  RMordautVars_Jewelry, RMordautVars_Magic,
+  RMordautVars_Mining, RMordautVars_Pirate,
+  RMordautVars_Ranged, RMordautVars_Woodcutting,
+  RMordautVars_Smithing];
+
+  SetLength(RMordautVars_Matches, 16);
+
+  RMordautVars_Matches[0].Hints := [
+      'I never leave the house without some sort of jewellery.',
+      'There is no better feeling than'
+    ];
+  RMordautVars_Matches[0].Answers := RMordautVars_Jewelry;
+
+  RMordautVars_Matches[1].Hints := [
+      'I''m feeling dehydrated',
+		  'All this work is making me thirsty',
+			'quenched my thirst',
+      'fish out of water',
+      'drink'
+    ];
+  RMordautVars_Matches[1].Answers := RMordautVars_Drinks;
+
+  RMordautVars_Matches[2].Hints := [
+    'light my fire',
+    'igniting',
+		'sparks from my synapses.',
+    'fire.',
+    'logs',
+		'light'
+    ];
+  RMordautVars_Matches[2].Answers := RMordautVars_Firemaking;
+
+  RMordautVars_Matches[3].Hints := [
+      'fishy',
+      'fishing for answers',
+      'fish',
+			'fishing'
+    ];
+  RMordautVars_Matches[3].Answers := RMordautVars_Fishing;
+
+  RMordautVars_Matches[4].Hints := [
+      'strange headgear',
+      'tip my hat',
+			'thinking cap',
+      'hide one''s face',
+      'shall unmask',
+			'disguised',
+      'headgear',
+      'hat',
+      'cap'
+    ];
+  RMordautVars_Matches[4].Answers := RMordautVars_Hats;
+
+  RMordautVars_Matches[5].Hints := [
+      'wizardry here',
+      'rather mystical',
+			'abracada',
+      'cast',
+      'magic'
+    ];
+  RMordautVars_Matches[5].Answers := RMordautVars_Magic;
+
+  RMordautVars_Matches[6].Hints := [
+      'melee weapon',
+      'prefers melee'
+    ];
+  RMordautVars_Matches[6].Answers := RMordautVars_Combat;
+
+  RMordautVars_Matches[7].Hints := [
+      'hand-to-hand'
+    ];
+  RMordautVars_Matches[7].Answers := RMordautVars_Combat2;
+
+  RMordautVars_Matches[8].Hints := [
+      'me hearties',
+      'puzzle for landlubbers',
+			'mighty pirate'
+    ];
+  RMordautVars_Matches[8].Answers := RMordautVars_Pirate;
+
+  RMordautVars_Matches[9].Hints := [
+      'mighty archer',
+      'as an arrow',
+			'Ranged attack',
+      'range',
+      'arrow'
+    ];
+  RMordautVars_Matches[9].Answers := RMordautVars_Ranged;
+
+  RMordautVars_Matches[10].Hints := [
+      'shiny things',
+      'craft'
+    ];
+  RMordautVars_Matches[10].Answers := RMordautVars_Crafting;
+
+  RMordautVars_Matches[11].Hints := [
+      'mine',
+      'mining',
+      'ore'
+    ];
+  RMordautVars_Matches[11].Answers := RMordautVars_Mining;
+
+  RMordautVars_Matches[12].Hints := [
+      'cooking',
+      'cook',
+      'bake'
+    ];
+  RMordautVars_Matches[12].Answers := RMordautVars_Cooking;
+
+  RMordautVars_Matches[13].Hints := [
+      'farm',
+      'farming'
+    ];
+  RMordautVars_Matches[13].Answers := RMordautVars_Farming;
+
+  RMordautVars_Matches[14].Hints := [
+      'boot'
+    ];
+  RMordautVars_Matches[14].Answers := RMordautVars_Boots;
+
+  RMordautVars_Matches[15].Hints := [
+      'chop',
+      'cut',
+      'tree'
+    ];
+  RMordautVars_Matches[15].Answers := RMordautVars_Woodcutting;
+end;
+
+(*
+RMordaut_InRandom
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function RMordaut_InRandom: boolean;
+
+Checks if we are in the mordaut random.
+
+.. note::
+
+  by Drags111
+
+*)
+function RMordaut_InRandom: boolean;
+begin
+  Result := R_FindNPC('Mr. Mordaut', True, RMordautVars_NPC);
+end;
+
+(*
+RMordaut_TalkTo
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function RMordaut_TalkTo: Boolean;
+
+Talks to Mr. Mordaut to find out what we need to do next. Walks to him and
+initiates the talk if we aren't talking already.
+
+.. note::
+
+  by Drags111
+
+*)
+function RMordaut_TalkTo: Boolean;
+var
+  P: TPoint;
+  T: Integer;
+begin
+  Result := False;
+  if(R_DistanceFromTile(RMordautVars_NPC.Tile) > 5)then
+  begin
+    Result := R_WalkToTile(Point(RMordautVars_NPC.Tile.X, RMordautVars_NPC.Tile.Y+2), 0, 0);
+
+    if not Result then
+    begin
+      R_Debug('Failed to walk to Mordaut.', 'Mordaut');
+      Exit;
+    end;
+
+    wait(100+Random(400));
+  end;
+
+  Result := False;
+  P := R_TileToMS(RMordautVars_NPC.Tile, RMordautVars_NPC.Height / 2);
+  Mouse(P.X, P.Y, 10, 10, True);
+
+  MarkTime(T);
+  while(TimeFromMark(T) < 5000)do
+  begin
+    Wait(250+Random(250));
+    if(R_GetNPCChatName = 'Mr. Mordaut')then
+    begin
+      Result := True;
+      Exit;
+    end;
+  end;
+
+  R_Debug('Walked to but unable to talk to Mordaut', 'Mordaut');
+end;
+
+(*
+RMordaut_SolveNext
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function RMordaut_SolveNext: Boolean;
+
+Solves the "What comes next" exam in the Mordaut Random.
+
+.. note::
+
+  by Drags111
+
+*)
+function RMordaut_SolveNext: Boolean;
+var
+  Current: array[0..2] of Integer;
+  Choices: array[0..3] of Integer;
+  Possibilities: TIntegerArray;
+  Child: TInterfaceChild;
+  I, K, Answer: Integer;
+begin
+  Result := False;
+
+  if not R_ValidInterface(MORDAUT_INTERFACE_NEXT)then
+  begin
+    R_Debug('Unable to solve the "What Comes Next" exam. Interface not valid.', 'Mordaut');
+    Exit;
+  end;
+
+  for I := 6 to 8 do
+  begin
+    Child := R_GetInterfaceChild(MORDAUT_INTERFACE_NEXT, I);
+    if(Child.ComponentID <= 0)then
+    begin
+      R_Debug('Unable to get the current interfaces in the "What Comes Next" exam.', 'Mordaut');
+      Exit;
+    end;
+
+    Current[I-6] := Child.ComponentID;
+  end;
+
+  for I := 0 to High(RMordautVars_Items) do
+  begin
+    for K := 0 to High(Current) do
+    begin
+      if(InIntArray(RMordautVars_Items[I], Current[K]))then
+      begin
+        Possibilities := RMordautVars_Items[I];
+        Break;
+      end;
+    end;
+    if(Possibilities = RMordautVars_Items[I])then
+      Break;
+  end;
+
+  if(Length(Possibilities) = 0)then
+  begin
+    R_Debug('Unable to get the possible answers in the "What Comes Next" exam.', 'Mordaut');
+    Exit;
+  end;
+
+  if(Possibilities = RMordautVars_Mining)then
+  begin
+    K := Length(Possibilities);
+    SetLength(Possibilities, K+3);
+    for I := K to High(Possibilities) do
+      Possibilities[I] := RMordautVars_Smithing[I-K];
+  end;
+
+  for I := 10 to 13 do
+  begin
+    Child := R_GetInterfaceChild(MORDAUT_INTERFACE_NEXT, I);
+    if(Child.ComponentID <= 0)then
+    begin
+      R_Debug('Unable to get the choice interfaces in the "What Comes Next" exam.', 'Mordaut');
+      Exit;
+    end;
+    Choices[I-10] := Child.ComponentID;
+  end;
+
+  Answer := -1;
+
+  for I := 0 to 3 do
+  begin
+    if(InIntArray(Possibilities, Choices[i]))then
+    begin
+      Answer := I + 10;
+      Break;
+    end;
+  end;
+
+  if(Answer = -1)then
+  begin
+    R_Debug('Unable to get the answer in the "What Comes Next" exam.', 'Mordaut');
+    Exit;
+  end;
+
+  Child := R_GetInterfaceChild(MORDAUT_INTERFACE_NEXT, Answer);
+  if(Child.X <= 0)then
+  begin
+    R_Debug('Unable to get the answer interface in the "What Comes Next" exam.', 'Mordaut');
+    Exit;
+  end;
+
+  R_ClickInterface(Child, 1);
+
+  if R_WaitInterfaceClose(MORDAUT_INTERFACE_NEXT, 5000)then
+    Result := True
+  else
+    R_Debug('Something went wrong when closing the "What Comes Next" exam.', 'Mordaut');
+end;
+
+(*
+RMordaut_SolveRelated
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function RMordaut_SolveRelated: Boolean;
+
+Solves the "choose related" exam in the Mordaut Random.
+
+.. note::
+
+  by Drags111
+
+*)
+function RMordaut_SolveRelated: Boolean;
+var
+  Hint: String;
+  I, K, L, II, ComponentID: Integer;
+  Hints: TStringArray;
+  Answers: TIntegerArray;
+  Slot, Confirm: TInterfaceChild;
+begin
+  Result := False
+
+  if not R_ValidInterface(MORDAUT_INTERFACE_RELATED)then
+  begin
+    R_Debug('Unable to solve the Related exam in Mordaut random. Interface not valid.', 'Mordaut');
+    Exit;
+  end;
+
+  Hint := R_GetInterfaceText(MORDAUT_INTERFACE_RELATED, 25);
+  if(Hint = '')then
+  begin
+    R_Debug('Unable to solve the Related exam in Mordaut random. No hint found.', 'Mordaut');
+    Exit;
+  end;
+
+  for I := 0 to High(RMordautVars_Matches) do
+  begin
+    Hints := RMordautVars_Matches[i].Hints;
+    Answers := RMordautVars_Matches[i].Answers;
+
+    for K := 0 to High(Hints) do
+      if(Pos(Hints[K], Hint) > 0)then
+      begin
+        for L := 42 to 56 do
+        begin
+          Slot := R_GetInterfaceChild(MORDAUT_INTERFACE_RELATED, L);
+          ComponentID := Slot.ComponentID;
+          if(ComponentID <= 0)then
+            Continue;
+          for II := 0 to High(Answers)do
+            if(ComponentID = Answers[II])then
+            begin
+              Slot := R_GetInterfaceChild(MORDAUT_INTERFACE_RELATED, L - 15);
+              R_ClickInterface(Slot, 1);
+              wait(600+Random(400));
+            end;
+        end;
+
+        Confirm := R_GetInterfaceChild(MORDAUT_INTERFACE_RELATED, 26);
+        if(Confirm.ID <= 0)then
+        begin
+          R_Debug('Confirm box not found! Failed Mordaut.', 'Mordaut');
+          R_Debug('Failed on: '+Hint, 'Mordaut');
+          Exit;
+        end;
+
+        R_ClickInterface(Confirm, 1);
+
+        if(R_WaitInterfaceClose(MORDAUT_INTERFACE_RELATED, 5000))then
+        begin
+          Result := True;
+          Exit;
+        end else
+        begin
+          R_Debug('Something went wrong when confirming Mordaut Matching', 'Mordaut');
+          Exit;
+        end;
+      end;
+  end;
+end;
+
+(*
+RMordaut_Exit
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function RMordaut_Exit(DoorID: Integer; Dir: String): Boolean;
+
+Leaves the random after it has been completed.
+
+.. note::
+
+  by Drags111
+
+*)
+function RMordaut_Exit(DoorID: Integer; Dir: String): Boolean;
+var
+  Door: TRSObject;
+  OffX, OffY: Extended;
+  P: TPoint;
+  CompassDir: String;
+  T: Integer;
+begin
+  Result := False;
+  Door := R_GetObject(DoorID, OBJ_WALLOBJECT, 50);
+
+  if(Door = NULL_RSOBJECT)then
+  begin
+    R_Debug('Unable to load the Door Object.', 'Mordaut');
+    Exit;
+  end;
+
+  if(R_DistanceFromTile(Door.Tile) > 5)then
+  begin
+    if not R_WalkToTile(Door.Tile, 0, 0)then
+    begin
+      R_Debug('Unable to walk to door.', 'Mordaut');
+      Exit;
+    end;
+
+    wait(500+Random(250));
+  end;
+
+  case LowerCase(Dir) of
+    'north': begin
+        OffX := 0.5;
+        OffY := 0.1;
+        CompassDir := 'n';
+    end;
+    'south-west': begin
+        OffX := 0.9;
+        OffY := 0.5;
+        CompassDir := 'e';
+    end;
+    'south-east': begin
+        OffX := 0.1;
+        OffY := 0.5;
+        CompassDir := 'w';
+    end;
+    'north-west': begin
+        OffX := 0.9;
+        OffY := 0.5;
+        CompassDir := 'e';
+    end;
+  end;
+
+  R_MakeCompass(CompassDir);
+  wait(200+Random(200));
+
+  P := R_TileToMSEx(Door.Tile, OffX, OffY, 600+Random(200));
+  Mouse(P.x, P.y, 10, 10, True);
+  Wait(200+Random(200));
+  R_Flag;
+  MarkTime(T);
+
+  while(TimeFromMark(T) < 10000)do
+  begin
+    Wait(100+Random(100));
+    if(not RMordaut_InRandom)then
+    begin
+      Wait(2000+Random(1000));
+      Result := True;
+      Exit;
+    end;
+  end;
+end;
+
+(*
+RMordaut_Solve
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function RMordaut_Solve: Boolean;
+
+Attempts to complete the Mr. Mordaut random event.
+
+.. note::
+
+  by Drags111
+
+*)
+function RMordaut_Solve: Boolean;
+var
+  T, DoorID: Integer;
+  Dir, Message: String;
+  FinishedExam: Boolean;
+  CloseButton: TInterfaceChild;
+begin
+  Result := False;
+  RMordaut_SetVars;
+  DoorID := -1;
+  MarkTime(T);
+  FinishedExam := False;
+
+  while(RMordaut_InRandom) and (TimeFromMark(T) < 300000)do
+  begin
+    //Writeln('Next: '+ToStr(R_ValidInterface(MORDAUT_INTERFACE_NEXT)));
+    if (not FinishedExam) and
+       (R_GetNPCChatName = '') and
+       (not R_ValidInterface(MORDAUT_INTERFACE_NEXT)) and
+       (not R_ValidInterface(MORDAUT_INTERFACE_RELATED)) and
+       (DoorID = -1) then
+    begin
+      RMordaut_TalkTo;
+      Continue;
+    end;
+
+    if not FinishedExam then
+    begin
+      Message := R_GetNPCChatMessage;
+      if(Message <> '')then
+      begin
+        if(Pos('To exit,', Message) > 0)then
+        begin
+          FinishedExam := True;
+
+          if(Pos('red', Lowercase(Message)) > 0)then
+            DoorID := 2188;
+          if(Pos('green', Lowercase(Message)) > 0)then
+            DoorID := 2193;
+          if(Pos('blue', Lowercase(Message)) > 0)then
+            DoorID := 2189;
+          if(Pos('purple', Lowercase(Message)) > 0)then
+            DoorID := 2192;
+
+          Dir := Between('door in the ', ' ', Message);
+
+          R_Debug('Exam completed. DoorID is '+ToStr(DoorID)+', Dir is '+ToStr(Dir), 'Mordaut');
+        end;
+
+        R_WaitNPCChatChange(True, 5000);
+        Continue;
+      end;
+
+      if(R_ValidInterface(MORDAUT_INTERFACE_NEXT))then
+        RMordaut_SolveNext
+      else if(R_ValidInterface(MORDAUT_INTERFACE_RELATED))then
+        if not RMordaut_SolveRelated then
+        begin
+          CloseButton := R_GetInterfaceChild(MORDAUT_INTERFACE_RELATED, 5);
+          if(CloseButton.ID <= 0)then
+            Continue;
+          R_ClickInterface(CloseButton, 1);
+          R_WaitInterfaceClose(CloseButton.ParentID shr 16, 5000);
+        end;
+      Continue;
+    end;
+
+    if(RMordaut_Exit(DoorID, Dir))then
+      Result := True;
+  end;
+
+  if(TimeFromMark(T) < 300000)then
+    Result := True;
+end;
