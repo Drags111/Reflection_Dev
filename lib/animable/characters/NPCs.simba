@@ -1,0 +1,657 @@
+(*
+NPCs
+====
+
+All routines regarding NPC finding and grabbing.
+
+*)
+
+(*
+R_SortNPCs
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_SortNPCs(NPCs: TNPCArray): TNPCArray;
+
+Sorts NPCs by distance from you.
+
+.. note::
+
+  by Widget edited by lordsaturn
+
+*)
+function R_SortNPCs(NPCs: TNPCArray): TNPCArray;
+var
+  i,i2, L: integer;
+  tpa: TPointArray;
+begin
+  L := GetArrayLength(NPCs);
+  if L < 1 then Exit;
+  SetArrayLength(TPA, L);
+  SetArrayLength(Result, L);
+  for i := 0 to L-1 do
+    TPA[i] := NPCs[i].Tile;
+  SortTPAFrom(TPA, R_GetMyPos);
+  for i := 0 to L-1 do
+    for i2 := 0 to L-1 do
+      if (TPA[i].x=NPCs[i2].Tile.x) and (TPA[i].y=NPCs[i2].Tile.y) then
+        Result[i] := NPCs[i2];
+end;
+
+(*
+R_GetNPCActionArray
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetNPCActionArray(NPCDef: integer): TStringArray;
+
+Retrieves the array of Actions able to be done to the NPC. Used in getting
+npcs, not for scripts.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetNPCActionArray(NPCDef: integer): TStringArray;
+var
+  i, c, bytes: integer;
+begin
+  SetLength(Result, 11);
+  c := 0;
+  for i := 0 to 10 do
+  begin
+    bytes := SmartGetFieldArrayObject(NPCDef, hook_npcdef_GetActions, i);
+    if(bytes > 0)then
+    begin
+      Result[c] := R_GetJavaString(bytes, 512);
+      inc(c);
+    end;
+    SmartFreeObject(bytes);
+  end;
+  SetLength(Result, c);
+end;
+
+(*
+R_GetNPCActionArray
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetAllNPCs(Null: Boolean):array of TNPC;
+
+Stores all the loaded NPCs into TNPCArray. If Null = True
+then it will include Null NPCs.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetAllNPCs(Null: Boolean): TNPCArray;
+var
+  I, C, H, NumNPCs, BaseX, BaseY, LoopCycle: Integer;
+  TheNPC, TheNPCNode, NPCDef, TheBytes: integer;
+  TheName: String;
+begin
+  NumNPCs := SmartGetFieldInt(0,hook_static_NPCCount);
+  if (NumNPCs < 1) then
+    Exit;
+
+  BaseX := SmartGetFieldInt(0, hook_static_BaseX);
+  BaseY := SmartGetFieldInt(0, hook_static_BaseY);
+  LoopCycle := SmartGetFieldInt(0, hook_static_LoopCycle);
+
+  SetArrayLength(Result, NumNPCs);
+  H := NumNPCs-1;
+  for I := 0 to H do
+  try
+    TheNPCNode := SmartGetFieldArrayObject(0, hook_static_NPCNodes, I);
+    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
+    NPCDef := SmartGetFieldObject(TheNPC, hook_npc_NPCDef);
+    TheBytes := SmartGetFieldObject(NPCDef, hook_npcdef_GetName);
+    TheName := Lowercase(Trim(R_GetJavaString(TheBytes, 512)));
+
+    if((not Null) and (TheName = 'null'))then
+      continue;
+
+    with Result[C] do
+    begin
+      Index := SmartGetFieldArrayInt(0, hook_static_NPCIndexArray, I);
+      Level := SmartGetFieldInt(TheNPC, hook_npc_GetLevel);
+      Name := TheName;
+      ID := SmartGetFieldInt(NPCDef, hook_npcdef_GetID);
+
+      Actions := R_GetNPCActionArray(NPCDef);
+
+      Tile.X := BaseX + (SmartGetFieldInt(TheNPC, hook_animable_PixelX) / 512);
+      Tile.Y := BaseY + (SmartGetFieldInt(TheNPC, hook_animable_PixelY) / 512);
+      TileArea.X1 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX1));
+      TileArea.Y1 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY1));
+      TileArea.X2 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX2));
+      TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY2));
+
+      Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
+      Animation := SmartGetFieldInt(TheNPC, hook_character_Animation);
+      Motion := SmartGetFieldInt(TheNPC, hook_character_Motion);
+      HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
+      InCombat :=  LoopCycle < SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus);
+      WalkQueueX := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueX, 0);
+      WalkQueueY := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueY, 0);
+      Interacting := SmartGetFieldInt(TheNPC, hook_character_GetInteracting);
+      Orientation := Round(FixD(180 + (SmartGetFieldInt(TheNPC, hook_character_Orientation)* 45) / 2048));
+    end;
+    Inc(C);
+  finally
+    SmartFreeObject(TheNPCNode);
+    SmartFreeObject(TheNPC);
+    SmartFreeObject(NPCDef);
+    SmartFreeObject(TheBytes);
+  end;
+  SetLength(Result, C);
+end;
+
+(*
+R_GetNPCsMulti
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetNPCsMulti(TheVarArr: TVariantArray; Null: Boolean): TNPCArray;
+
+Returns a TNPCArray of all the npcs that contains one of the variants (names or
+ID's). Then sorts the array from the closest to the farthest. Null determines
+whether to include "null" npc's or not.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetNPCsMulti(TheVarArr: TVariantArray; Null: Boolean): TNPCArray;
+var
+  NumNPCs, BaseX, BaseY, LoopCycle, H, C, I, K, H2: Integer;
+  TheNPCNode, TheNPC, NPCDef, TheBytes, vType, TempID: Integer;
+  TheName: String;
+  NPCs: TNPCArray;
+  B: Boolean;
+begin
+  NumNPCs := SmartGetFieldInt(0,hook_static_NPCCount);
+  if (NumNPCs < 1) then
+    Exit;
+
+  BaseX := SmartGetFieldInt(0, hook_static_BaseX);
+  BaseY := SmartGetFieldInt(0, hook_static_BaseY);
+  LoopCycle := SmartGetFieldInt(0, hook_static_LoopCycle);
+  C := 0;
+
+  SetArrayLength(NPCs, NumNPCs);
+  H := NumNPCs-1;
+  for I := 0 to H do
+  try
+    TheNPCNode := SmartGetFieldArrayObject(0, hook_static_NPCNodes, I);
+    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
+    NPCDef := SmartGetFieldObject(TheNPC, hook_npc_NPCDef);
+    TheBytes := SmartGetFieldObject(NPCDef, hook_npcdef_GetName);
+    TheName := Lowercase(Trim(R_GetJavaString(TheBytes, 512)));
+
+    if((not Null) and (TheName = 'null'))then
+      continue;
+
+    TempID := SmartGetFieldInt(NPCDef, hook_npcdef_GetID);
+
+    H2 :=  High(TheVarArr);
+    B := False;
+    for K := 0 to H2 do
+    begin
+      vType := VarType(TheVarArr[K]);
+      if (vType = varString) then
+        TheVarArr[K] := LowerCase(Trim(TheVarArr[K]));
+      case vType of
+        varInteger: B := TempID = TheVarArr[K];
+        varString: B := (Pos(TheVarArr[K], LowerCase(Trim(TheName))) > 0);
+        else Exit;
+      end;
+      if B then
+        Break;
+    end;
+    if not B then
+      Continue;
+
+    with NPCs[C] do
+    begin
+      Index := SmartGetFieldArrayInt(0, hook_static_NPCIndexArray, I);
+      Level := SmartGetFieldInt(TheNPC, hook_npc_GetLevel);
+      Name := TheName;
+      ID := TempID;
+
+      Actions := R_GetNPCActionArray(NPCDef);
+
+      Tile.X := BaseX + (SmartGetFieldInt(TheNPC, hook_animable_PixelX) / 512);
+      Tile.Y := BaseY + (SmartGetFieldInt(TheNPC, hook_animable_PixelY) / 512);
+      TileArea.X1 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX1));
+      TileArea.Y1 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY1));
+      TileArea.X2 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX2));
+      TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY2));
+
+      Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
+      Animation := SmartGetFieldInt(TheNPC, hook_character_Animation);
+      Motion := SmartGetFieldInt(TheNPC, hook_character_Motion);
+      HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
+      InCombat :=  LoopCycle < SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus);
+      WalkQueueX := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueX, 0);
+      WalkQueueY := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueY, 0);
+      Interacting := SmartGetFieldInt(TheNPC, hook_character_GetInteracting);
+      Orientation := Round(FixD(180 + (SmartGetFieldInt(TheNPC, hook_character_Orientation)* 45) / 2048));
+    end;
+    Inc(C);
+  finally
+    SmartFreeObject(TheNPCNode);
+    SmartFreeObject(TheNPC);
+    SmartFreeObject(NPCDef);
+    SmartFreeObject(TheBytes);
+  end;
+  SetLength(NPCs, C);
+  Result := R_SortNPCs(NPCs);
+end;
+
+(*
+R_GetNPCs
+~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetNPCs(TheVar: Variant; Null: Boolean): TNPCArray;
+
+Returns a TNPCArray of all the npcs that contains the variant (name or
+ID). Then sorts the array from the closest to the farthest. Null determines
+whether to include "null" npc's or not.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetNPCs(TheVar: Variant; Null: Boolean): TNPCArray;
+begin
+  Result := R_GetNPCsMulti([TheVar], Null);
+end;
+
+(*
+R_GetNPCMulti
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetNPCMulti(TheVarArr: TVariantArray; Null: Boolean): TNPC;
+
+Returns a TNPC of the nearest npc that contains one of the variants (names or
+ID's). Null determines whether to include "null" npc's or not.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetNPCMulti(TheVarArr: TVariantArray; Null: Boolean): TNPC;
+var
+  NPCs: TNPCArray;
+begin
+  Result := NULL_NPC;
+  NPCs := R_GetNPCsMulti(TheVarArr, Null);
+
+  if (Length(NPCs) < 1) then
+    Exit;
+
+  Result := NPCs[0];
+end;
+
+(*
+R_GetNPC
+~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetNPC(TheVar: Variant; Null: Boolean): TNPC;
+
+Returns a TNPC of the nearest npc that contains the variant (name or
+ID). Null determines whether to include "null" npc's or not.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetNPC(TheVar: Variant; Null: Boolean): TNPC;
+begin
+  Result := R_GetNPCMulti([TheVar], Null);
+end;
+
+(*
+R_GetNPCsAt
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetNPCsAt(TheTile: TTile; Null: Boolean): TNPCArray;
+
+Returns a TNPCArray of all the NPC's on the given tile. Null determines
+whether or not to include null npcs in your search.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetNPCsAt(TheTile: TTile; Null: Boolean): TNPCArray;
+var
+  I, C, H, NumNPCs, BaseX, BaseY, LoopCycle: Integer;
+  TheNPC, TheNPCNode, NPCDef, TheBytes: integer;
+  TheName: String;
+  TempTile: TTile;
+begin
+  NumNPCs := SmartGetFieldInt(0,hook_static_NPCCount);
+  if (NumNPCs < 1) then
+    Exit;
+
+  BaseX := SmartGetFieldInt(0, hook_static_BaseX);
+  BaseY := SmartGetFieldInt(0, hook_static_BaseY);
+  LoopCycle := SmartGetFieldInt(0, hook_static_LoopCycle);
+
+  SetArrayLength(Result, NumNPCs);
+  H := NumNPCs-1;
+  for I := 0 to H do
+  try
+    TheNPCNode := SmartGetFieldArrayObject(0, hook_static_NPCNodes, I);
+    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
+    NPCDef := SmartGetFieldObject(TheNPC, hook_npc_NPCDef);
+    TheBytes := SmartGetFieldObject(NPCDef, hook_npcdef_GetName);
+    TheName := Lowercase(Trim(R_GetJavaString(TheBytes, 512)));
+
+    if((not Null) and (TheName = 'null'))then
+      continue;
+
+    TempTile.X := BaseX + (SmartGetFieldInt(TheNPC, hook_animable_PixelX) / 512);
+    TempTile.Y := BaseY + (SmartGetFieldInt(TheNPC, hook_animable_PixelY) / 512);
+
+    if(TempTile <> TheTile)then
+      Continue;
+
+    with Result[C] do
+    begin
+      Index := SmartGetFieldArrayInt(0, hook_static_NPCIndexArray, I);
+      Level := SmartGetFieldInt(TheNPC, hook_npc_GetLevel);
+      Name := TheName;
+      ID := SmartGetFieldInt(NPCDef, hook_npcdef_GetID);
+
+      Actions := R_GetNPCActionArray(NPCDef);
+
+      Tile := TempTile
+      TileArea.X1 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX1));
+      TileArea.Y1 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY1));
+      TileArea.X2 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX2));
+      TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY2));
+
+      Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
+      Animation := SmartGetFieldInt(TheNPC, hook_character_Animation);
+      Motion := SmartGetFieldInt(TheNPC, hook_character_Motion);
+      HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
+      InCombat :=  LoopCycle < SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus);
+      WalkQueueX := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueX, 0);
+      WalkQueueY := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueY, 0);
+      Interacting := SmartGetFieldInt(TheNPC, hook_character_GetInteracting);
+      Orientation := Round(FixD(180 + (SmartGetFieldInt(TheNPC, hook_character_Orientation)* 45) / 2048));
+    end;
+    Inc(C);
+  finally
+    SmartFreeObject(TheNPCNode);
+    SmartFreeObject(TheNPC);
+    SmartFreeObject(NPCDef);
+    SmartFreeObject(TheBytes);
+  end;
+  SetLength(Result, C);
+end;
+
+(*
+R_GetNPCAt
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetNPCAt(TheTile: TTile; Null: Boolean): TNPC;
+
+Returns a TNPC of an NPC on the given tile. Null determines whether or not to
+include null npcs in your search.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetNPCAt(TheTile: TTile; Null: Boolean): TNPC;
+var
+  NPCs: TNPCArray;
+begin
+  Result := NULL_NPC;
+  NPCs := R_GetNPCsAt(TheTile, Null);
+
+  if(Length(NPCs) < 1)then
+    Exit;
+
+  Result := NPCs[0];
+end;
+
+(*
+R_FindNPCsMulti
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FindNPCsMulti(TheVarArr: TVariantArray; Null: Boolean; var NPCs: TNPCArray): Boolean;
+
+Returns true if NPCs are found with one of the variants, and stores those NPC's
+in the NPCs var.
+
+.. note::
+
+  by Drags111/lordsaturn/mormonman
+
+*)
+function R_FindNPCsMulti(TheVarArr: TVariantArray; Null: Boolean; var NPCs: TNPCArray): Boolean;
+begin
+  SetLength(NPCs, 0);
+  NPCs := R_GetNPCsMulti(TheVarArr, Null);
+
+  if Length(NPCs) < 1 then
+    Exit;
+
+  Result := (Length(NPCs) > 1);
+end;
+
+(*
+R_FindNPCs
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FindNPCs(TheVar: Variant; Null: Boolean; var NPCs: TNPCArray): Boolean;
+
+Returns true if NPCs are found with the variant, and stores those NPC's
+in the NPCs var.
+
+.. note::
+
+  by Drags111/lordsaturn/mormonman
+
+*)
+function R_FindNPCs(TheVar: Variant; Null: Boolean; var NPCs: TNPCArray): Boolean;
+begin
+  Result := R_FindNPCsMulti([TheVar], Null, NPCs);
+end;
+
+(*
+R_FindNPCMulti
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FindNPCMulti(TheVarArr: TVariantArray; Null: Boolean; var NPC: TNPC): Boolean;
+
+Returns true if an NPC is found with one of the variants, and stores the
+closest NPC in the NPC var.
+
+.. note::
+
+  by Drags111/lordsaturn/mormonman
+
+*)
+function R_FindNPCMulti(TheVarArr: TVariantArray; Null: Boolean; var NPC: TNPC): Boolean;
+begin
+  NPC := NULL_NPC;
+  NPC := R_GetNPCMulti(TheVarArr, Null);
+  Result := NPC <> NULL_NPC;
+end;
+
+(*
+R_FindNPC
+~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FindNPC(TheVar: Variant; Null: Boolean; var NPC: TNPC): Boolean;
+
+Returns true if an NPC is found with the variant, and stores the closest NPC in
+the NPC var.
+
+.. note::
+
+  by Drags111/lordsaturn/mormonman
+
+*)
+function R_FindNPC(TheVar: Variant; Null: Boolean; var NPC: TNPC): Boolean;
+begin
+  Result := R_FindNPCMulti([TheVar], Null, NPC);
+end;
+
+(*
+R_ValidNPCMulti
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ValidNPCMulti(TheVarArr: TVariantArray; Null: Boolean): Boolean;
+
+Returns true if npc designated by TheVarArr(names or IDs) is found.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_ValidNPCMulti(TheVarArr: TVariantArray; Null: Boolean): Boolean;
+var
+  NPCs: TNPCArray;
+begin
+  Result := R_FindNPCsMulti(TheVarArr, Null, NPCs);
+end;
+
+(*
+R_ValidNPC
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ValidNPC(TheVar: Variant; Null: Boolean): Boolean;
+
+Returns true if npc designated by TheVarArr(names or IDs) is found.
+
+.. note::
+
+  by lordsaturn/Drags111
+
+*)
+function R_ValidNPC(TheVar: Variant; Null: Boolean): Boolean;
+var
+  NPC: TNPC;
+begin
+  Result := R_FindNPC(TheVar, Null, NPC);
+end;
+
+(*
+R_GetInteractingNPC
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInteractingNPC(Null: Boolean): TNPC;
+
+Returns the npc that is interacting with you. If no NPC is interacting with
+you, it returns NULL_NPC.
+
+.. note::
+
+  by Drags111/mormonman
+
+*)
+function R_GetInteractingNPC(Null: Boolean): TNPC;
+var
+  MyPlayer, InteractingPlayer: TPlayer;
+  NPCs: TNPCArray;
+  I, H, PlayerIndex: Integer;
+begin
+  Result := NULL_NPC;
+  MyPlayer := R_GetMe;
+  NPCs := R_GetAllNPCs(Null);
+
+  H := High(NPCs);
+  for I := 0 to H do
+  begin
+    PlayerIndex := NPCs[I].Interacting - 32768;
+    if(PlayerIndex < 0)then
+      Continue;
+    InteractingPlayer := R_GetPlayer(PlayerIndex);
+    if(InteractingPlayer.Name = MyPlayer.Name)then
+    begin
+      Result := NPCs[I];
+      Exit;
+    end;
+  end;
+end;
+
+(*
+R_AreWeInteracting
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_AreWeInteracting(var NPC: TNPC; Null: Boolean): Boolean;
+
+Returns true if there is an NPC interacting with you, and if so, sets the NPC
+into the var NPC.
+
+.. note::
+
+  by Drags111/mormonman
+
+*)
+function R_AreWeInteracting(var NPC: TNPC; Null: Boolean): Boolean;
+begin
+  Result := False;
+  NPC := R_GetInteractingNPC(Null);
+  Result := NPC <> NULL_NPC;
+end;
+
+
+
+
+
+
+
+
+
+
+
+
+

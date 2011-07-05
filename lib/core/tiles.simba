@@ -39,70 +39,6 @@ math for converting a Tile into a "minimap" coordinate is provided in TileToMM.
 *)
 
 (*
-R_Tile
-~~~~~~
-
-.. code-block:: pascal
-
-    function R_Tile(X, Y: Integer): TTile;
-
-Converts two integers to a TTile
-
-.. note::
-
-  by Drags111
-
-*)
-function R_Tile(X, Y: Integer): TTile;
-begin
-  Result.X := X;
-  Result.Y := Y;
-end;
-
-(*
-NULL_BOX
-~~~~~~~~
-
-.. code-block:: pascal
-
-    function NULL_BOX: TBox;
-
-Nulls a TBox
-
-.. note::
-
-  by Drags111
-
-*)
-function NULL_BOX: TBox;
-begin
-  Result.X1 := NULL_INT;
-  Result.X2 := NULL_INT;
-  Result.Y1 := NULL_INT;
-  Result.Y2 := NULL_INT;
-end;
-
-(*
-NULL_TILE
-~~~~~~~~~
-
-.. code-block:: pascal
-
-    function NULL_TILE: TTile;
-
-Nulls a TTile
-
-.. note::
-
-  by Drags111
-
-*)
-function NULL_TILE: TTile;
-begin
-  Result := R_Tile(NULL_INT, NULL_INT);
-end;
-
-(*
 R_UpdateRenderInfo
 ~~~~~~~~~~~~~~~~~~
 
@@ -124,7 +60,7 @@ begin
   MarkTime(t);
   while ((RenderData.zX <= 0) and (RenderData.zY <= 0) and (TimeFromMark(t) < 10000)) do
   begin
-    tk := Client.Toolkit();
+    tk := SmartGetFieldObject(0, hook_static_Toolkit);
     vp := SmartGetFieldObject(tk, hook_sdtoolkit_Viewport);
     with RenderData do
     begin
@@ -152,7 +88,8 @@ begin
   	zMin := SmartGetFieldInt(tk, hook_sdtoolkit_zMin);
       zMax := SmartGetFieldInt(tk, hook_sdtoolkit_zMax);
     end;
-    R_FreeObjects([tk, vp]);
+    SmartFreeObject(tk);
+    SmartFreeObject(vp);
   end;
 end;
 
@@ -219,26 +156,27 @@ loading area and on a loaded plane.
 *)
 function R_GetTileHeight(tile: TTile) : integer;
 var
-  x, y, CurPlane, PlaneInstance : integer;
+  x, y, CurPlane, GroundSetting, PlaneInstance : integer;
 begin
-  x := tile.x - Client.BaseX();
-  y := tile.y - Client.BaseY();
+  x := tile.x - SmartGetFieldInt(0, hook_static_BaseX);
+  y := tile.y - SmartGetFieldInt(0, hook_static_BaseY);
   if ((x < 0) or (x > 104) or (y < 0) or (y > 104)) then
   begin
     result := 0;
     exit;
   end;
-  CurPlane:= Client.LoadedPlane();
-  if ((CurPlane < 3) and ((Client.GroundSettingsArray(1, x, y) and 2) <> 0)) then
+  CurPlane := SmartGetFieldInt(0, hook_static_LoadedPlane);
+  GroundSetting := SmartGetFieldArray3DByte(0, hook_static_GroundSettingsArray, 1, X, Y);
+  if ((CurPlane < 3) and ((GroundSetting and 2) <> 0)) then
     CurPlane:= CurPlane + 1;
-  PlaneInstance := Client.PlaneArray(CurPlane);
+  PlaneInstance := SmartGetFieldArrayObject(0, hook_static_PlaneArray, CurPlane);
   result:= (SmartGetFieldArray2DInt(PlaneInstance, hook_sdplane_TileHeights, x, y) +
             SmartGetFieldArray2DInt(PlaneInstance, hook_sdplane_TileHeights, x + 1, y) +
             SmartGetFieldArray2DInt(PlaneInstance, hook_sdplane_TileHeights, x, y + 1) +
             SmartGetFieldArray2DInt(PlaneInstance, hook_sdplane_TileHeights, x + 1, y + 1)) / 4;
   if(Result = -1)then
     writeln('****************TileHight hooks are incorrect.*****************');
-  R_FreeObject(PlaneInstance);
+  SmartFreeObject(PlaneInstance);
 end;
 
 (*
@@ -311,9 +249,9 @@ function R_TileToMSEx(tile: TTile; offx, offy : extended; height : integer) : TP
 var
   pixelX, pixelY, pixelZ: extended;
 begin
-  pixelX:= (tile.x - Client.BaseX() + offX) * 512.0;
+  pixelX:= (tile.x - SmartGetFieldInt(0, hook_static_BaseX) + offX) * 512.0;
   pixelY:= R_GetTileHeight(tile) - height;
-  pixelZ:= (tile.y - Client.BaseY() + offY) * 512.0;
+  pixelZ:= (tile.y - SmartGetFieldInt(0, hook_static_BaseY) + offY) * 512.0;
   Result := R_World3DToScreen(pixelX, pixelY, pixelZ);
   if not PointInBox(Result, IntToBox(MSX1, MSY1, MSX2, MSY2))then
   begin
@@ -482,22 +420,39 @@ Returns the midway point of the 2 given tiles.
 *)
 function R_GetMidTile(Tile1, Tile2: TTile): TTile;
 begin
-  Result := R_Tile((Tile1.x+Tile2.x)/2, (Tile1.y+Tile2.y)/2);
+  Result := Point((Tile1.x+Tile2.x)/2, (Tile1.y+Tile2.y)/2);
 end;
 
-function R_GetCollisionMap(var Blocks: array of TIntegerArray): Boolean;
+(*
+R_GetCollisionMap
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetCollisionMap(var Blocks: array of TIntegerArray): Boolean;
+
+Returns a 2-dimensional array of the information stored in each tile in
+a loaded plane. Used to calculate if a tile is reachable or not.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetCollisionMap(var CollisionMap: array of TIntegerArray): Boolean;
 var
   X, Y: Integer;
   GroundDataArray, MyPlayer, Plane, GroundData, BlocksObj: Integer;
 begin
   GroundDataArray := SmartGetFieldObject(0, hook_static_GetGroundDataArray);
-  MyPlayer := Client.MyPlayer();
+  MyPlayer := SmartGetFieldObject(0, hook_static_MyPlayer);
   Plane := SmartGetFieldByte(MyPlayer, hook_animable_Plane);
 
-  if(R_GetArraySize(GroundDataArray) < Plane)then
+  if(SmartGetFieldArraySize(GroundDataArray, '', 1) < Plane)then
   begin
     Result := False;
-    R_FreeObjects([GroundDataArray, MyPlayer]);
+    SmartFreeObject(GroundDataArray);
+    SmartFreeObject(MyPlayer);
     R_Debug('GroundDataArray Length is less than Plane', 'R_GetCollisionMap');
     Exit;
   end;
@@ -508,69 +463,137 @@ begin
   if(GroundData = 0) or (BlocksObj = 0)then
   begin
     Result := False;
-    R_FreeObjects([GroundDataArray, MyPlayer, GroundData, BlocksObj]);
+    SmartFreeObject(GroundDataArray);
+    SmartFreeObject(MyPlayer);
+    SmartFreeObject(GroundData);
+    SmartFreeObject(BlocksObj);
     R_Debug('GroundData or BlocksObj is null', 'R_GetCollisionMap');
     Exit;
   end;
 
   Result := True;
 
-  SetLength(Blocks, 104);
+  SetLength(CollisionMap, 104);
   for X := 0 to 103 do
   begin
-    SetLength(Blocks[X], 104);
+    SetLength(CollisionMap[X], 104);
     for Y := 0 to 103 do
     begin
-      Blocks[X][Y] := SmartGetFieldArray2DInt(BlocksObj, '', X, Y);
+      CollisionMap[X][Y] := SmartGetFieldArray2DInt(BlocksObj, '', X, Y);
     end;
   end;
-  R_FreeObjects([GroundDataArray, MyPlayer, GroundData, BlocksObj]);
+  SmartFreeObject(GroundDataArray);
+  SmartFreeObject(MyPlayer);
+  SmartFreeObject(GroundData);
+  SmartFreeObject(BlocksObj);
 end;
 
-function R_PathLengthBetweenEx(Start, Dest: TTile; IsObject: Boolean; Blocks: array of TIntegerArray): Integer;
+(*
+R_PathLengthBetweenEx
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_PathLengthBetweenEx(Start, Dest: TTile; IsObject: Boolean; Blocks: array of TIntegerArray): Integer;
+
+Returns the length between 2 tiles via path distance. (Going around objects and
+such).
+
+.. note::
+
+  by Drags111
+
+*)
+function R_PathLengthBetweenEx(Start, Dest: TTile; IsObject: Boolean; CollisionMap: array of TIntegerArray): Integer;
 var
   BaseX, BaseY: Integer;
   x1, y1, x2, y2: Integer;
 begin
   try
-    BaseX := Client.BaseX();
-    BaseY := Client.BaseY();
+    BaseX := SmartGetFieldInt(0, hook_static_BaseX);
+    BaseY := SmartGetFieldInt(0, hook_static_BaseY);
     x1 := Start.X - BaseX;
     y1 := Start.Y - BaseY;
     x2 := Dest.X - BaseX;
     y2 := Dest.Y - BaseY;
 
-    Result := DijkstraDist(x1, y1, x2, y2, isObject, Blocks); // From the plugin
+    Result := DijkstraDist(x1, y1, x2, y2, isObject, CollisionMap); // From the plugin
   except
     Result := -1;
   end;
 end;
 
+(*
+R_PathLengthBetween
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_PathLengthBetween(Start, Dest: TTile; IsObject: Boolean): Integer;
+
+Returns the length between 2 tiles via path distance. (Going around objects and
+such).
+
+.. note::
+
+  by Drags111
+
+*)
 function R_PathLengthBetween(Start, Dest: TTile; IsObject: Boolean): Integer;
 var
-  Blocks: array of TIntegerArray;
+  CollisionMap: array of TIntegerArray;
 begin
   try
-    if not R_GetCollisionMap(Blocks)then
+    if not R_GetCollisionMap(CollisionMap)then
     begin
       R_Debug('Unable to retrieve collision map.', 'R_PathLengthBetween');
       Exit;
     end;
-    Result := R_PathLengthBetweenEx(Start, Dest, IsObject, Blocks); // From the plugin
+    Result := R_PathLengthBetweenEx(Start, Dest, IsObject, CollisionMap);
   except
     Result := -1;
   end;
 end;
 
-function R_CanReachEx(Tile: TTile; IsObject: Boolean; Blocks: array of TIntegerArray): Boolean;
+(*
+R_PathLengthBetween
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_CanReachEx(Tile: TTile; IsObject: Boolean; CollisionMap: array of TIntegerArray): Boolean;
+
+Returns true if a tile is reachable from your current position.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_CanReachEx(Tile: TTile; IsObject: Boolean; CollisionMap: array of TIntegerArray): Boolean;
 begin
   try
-    Result := R_PathLengthBetweenEx(R_GetMyPos, Tile, IsObject, Blocks) <> -1;
+    Result := R_PathLengthBetweenEx(R_GetMyPos, Tile, IsObject, CollisionMap) <> -1;
   except
     Result := False;
   end;
 end;
 
+(*
+R_PathLengthBetween
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_CanReach(Tile: TTile; IsObject: Boolean): Boolean;
+
+Returns true if a tile is reachable from your current position.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_CanReach(Tile: TTile; IsObject: Boolean): Boolean;
 begin
   try

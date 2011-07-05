@@ -1,9 +1,24 @@
-function R_GetClickContinueInterface: TRSChild;
+(*
+R_GetClickContinueInterface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetClickContinueInterface: TInterfaceChild;
+
+Searches for a "Click here to Continue" in the interfaces, and returns the
+TInterfaceChild that contains it.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetClickContinueInterface: TInterfaceChild;
 var
   I, K: Integer;
   ValidInterfaces, ValidChildren: TIntegerArray;
   ChildText: String;
-  Child: TRSChild;
 begin
   ValidInterfaces := R_GetValidInterfaces;
 
@@ -21,16 +36,31 @@ begin
 				Continue;
 			if (Pos('Click here to continue', ChildText) > 0)then
       begin
-				Result := R_GetRSChild(ValidInterfaces[I], K);
+				Result := R_GetInterfaceChild(ValidInterfaces[I], K);
         Exit;
       end;
 		end;
 	end;
 end;
 
+(*
+R_GetNPCChatName
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetNPCChatName: String;
+
+Searches for an NPC name at the top of the chat, if it exists, and returns it.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_GetNPCChatName: String;
 var
-  Cont: TRSChild;
+  Cont: TInterfaceChild;
   InterfaceChildren: TIntegerArray;
   I, Index: Integer;
   Text: String;
@@ -53,9 +83,25 @@ begin
   end;
 end;
 
+(*
+R_GetNPCChatMessages
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetNPCChatMessages: TStringArray;
+
+Searches for each line of an NPC chat message, and returns the lines in a
+TStringArray.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_GetNPCChatMessages: TStringArray;
 var
-  Cont: TRSChild;
+  Cont: TInterfaceChild;
   Children: TIntegerArray;
   Index, I, C: Integer;
   IsName: Boolean;
@@ -94,6 +140,21 @@ begin
   SetLength(Result, C);
 end;
 
+(*
+R_GetNPCChatMessage
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetNPCChatMessage: String;
+
+Returns the NPC Chat message, if one exists, in one string.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_GetNPCChatMessage: String;
 var
   Messages: TStringArray;
@@ -106,11 +167,25 @@ begin
   Result := Trim(Result);
 end;
 
+(*
+R_ClickToContinue
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ClickToContinue: Boolean;
+
+If the click to continue interface exists, it will click it.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_ClickToContinue: Boolean;
 var
-  Cont: TRSChild;
-  T, Color: Integer;
-  TPA: TPointArray;
+  Cont: TInterfaceChild;
+  T: Integer;
 begin
   Result := False;
   Cont := R_GetClickContinueInterface;
@@ -121,7 +196,7 @@ begin
   if(Cont.IsHidden)then
     Exit;
 
-  R_MouseChild(Cont, 1);
+  R_ClickInterface(Cont, 1);
   MarkTime(T);
   while(R_ValidInterface(Cont.ParentID shr 16))do
   begin
@@ -133,38 +208,26 @@ begin
   Result := True;
 end;
 
+(*
+R_ClickContinueExists
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ClickContinueExists: Boolean;
+
+Returns true if the "Click here to continue" text exists.
+
+.. note::
+
+  by Drags111
+
+*)
 function R_ClickContinueExists: Boolean;
 var
-  Cont: TRSChild;
+  Cont: TInterfaceChild;
 begin
   Result := False;
   Cont := R_GetClickContinueInterface;
   Result := Cont.ID > 0;
-end;
-
-function R_WaitNPCChatchange(ClickContinue: Boolean; MaxWait: Integer): Boolean;
-var
-  InitialName, InitialMessage, Name, Message: String;
-  T: Integer;
-begin
-  InitialName := R_GetNPCChatName;
-  InitialMessage := R_GetNPCChatMessage;
-
-  if(ClickContinue)then
-    R_ClickToContinue;
-
-  MarkTime(T);
-  while(TimeFromMark(T) < MaxWait)do
-  begin
-    Name := R_GetNPCChatName;
-    Message := R_GetNPCChatMessage;
-
-    if(InitialName <> Name) or (InitialMessage <> Message)then
-    begin
-      Result := True;
-      Exit;
-    end;
-  end;
-
-  Result := False;
 end;

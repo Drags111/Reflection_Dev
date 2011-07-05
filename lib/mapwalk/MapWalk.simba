@@ -24,7 +24,7 @@ counter clockwise direction
 *)
 function R_GetMinimapAngleDeg: extended;
 begin
-  result:= Client.MapAngle() * 45.0 / 2048.0;
+  Result := SmartGetFieldFloat(0, hook_static_MapAngle) * 45.0 / 2048.0;
 end;
 
 (*
@@ -45,7 +45,7 @@ counter clockwise direction
 *)
 function R_GetMinimapAngleRad: extended;
 begin
-  result:= Client.MapAngle() * pi / 8192.0;
+  Result := SmartGetFieldFloat(0, hook_static_MapAngle) * pi / 8192.0;
 end;
 
 (*
@@ -65,7 +65,7 @@ Camera Position X
 *)
 function R_GetCamPosX: integer;
 begin
-  Result := Client.CamPosX();
+  Result := SmartGetFieldInt(0, hook_static_CamPosX);
 end;
 
 (*
@@ -85,7 +85,73 @@ Camera Position Y
 *)
 function R_GetCamPosY: integer;
 begin
-  Result := Client.CamPosY();
+  Result := SmartGetFieldInt(0, hook_static_CamPosY);
+end;
+
+(*
+R_GetCameraAngle
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetCameraAngle: Integer;
+
+Returns the Camera Angle. 0 = lowest, 100 = highest.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetCameraAngle: Integer;
+var
+  D: Extended;
+begin
+  D := (SmartGetFieldInt(0, hook_static_CameraPitch) / 1024.0);
+  Result := Round((D - 1) * 50);
+end;
+
+(*
+R_SetCameraAngle
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_SetCameraAngle(Angle: Integer): Boolean;
+
+Sets the Camera Angle. 0 = lowest, 100 = highest.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_SetCameraAngle(Angle: Integer): Boolean;
+var
+  C, T: Integer;
+begin
+  Result := False;
+  if(Angle = R_GetCameraAngle)then
+  begin
+    Result := True;
+    Exit;
+  end;
+  if(Angle < R_GetCameraAngle)then
+    C := VK_DOWN
+  else
+    C := VK_UP;
+
+  KeyDown(C);
+  MarkTime(T);
+  while(TimeFromMark(T) < 5000)do
+  begin
+    if(C = VK_DOWN) and (Angle >= R_GetCameraAngle)then
+      Break;
+    if(C = VK_UP) and (Angle <= R_GetCameraAngle)then
+      Break;
+    wait(10+Random(10));
+  end;
+  KeyUp(C);
 end;
 
 (*
@@ -159,9 +225,9 @@ function R_GetDest: TTile;
 var
   xDest, yDest: integer;
 begin
-  xDest := Client.DestX();
-  yDest := Client.DestY();
-  Result := R_Tile(xDest, yDest);
+  xDest := SmartGetFieldInt(0, hook_static_DestX);
+  yDest := SmartGetFieldInt(0, hook_static_DestY);
+  Result := Point(xDest, yDest);
 end;
 
 (*
@@ -368,10 +434,10 @@ var
   a, Speed: integer;
 begin
   a := GetSystemTime;
-  Speed := R_GetSpeed;
+  Speed := R_GetMotion;
   while Speed < 1 do
   begin
-    Speed := R_GetSpeed;
+    Speed := R_GetMotion;
     if GetSystemTime - a > Timeout then Exit;
     Wait(100);
   end;
@@ -399,7 +465,7 @@ var
 begin
   Ticker := (GetSystemTime + 30000);
   if not R_WaitToMove(1500) then Exit;
-  while (R_GetSpeed > 0) do
+  while (R_GetMotion > 0) do
   begin
     Wait(10 + Random(10));
     if SRL_Procs[SRL_AntiBan] <> nil then
@@ -444,7 +510,7 @@ begin
     d1 := R_DistanceFromFlag;
     if (d1 >= Dist) then
     begin
-      if not (R_GetSpeed > 0) then Exit;
+      if not (R_GetMotion > 0) then Exit;
       Inc(m);
       Wait(100 + Random(30));
       if SRL_Procs[SRL_AntiBan] <> nil then
@@ -570,7 +636,7 @@ begin
           SRL_Procs[SRL_AntiBan]();
 
         if GetSystemTime > Timer then Break;
-        if (R_GetSpeed = 0) or ((Index <> High(Path)) and (R_TileOnMM(Path[Index+1]))) then Break;
+        if (R_GetMotion = 0) or ((Index <> High(Path)) and (R_TileOnMM(Path[Index+1]))) then Break;
       end;
 
       if (not (R_DistanceFromTile(Path[Index]) <=5)) and
@@ -702,9 +768,10 @@ begin
     if(Tries > 20)then
     begin
       R_Debug('Failed more than 20 times', 'R_WebWalk');
+      Exit;
     end;
     for I:= High(CtrlPoints) downto 0 do
-      if R_WalkToTile(R_Tile(CtrlPoints[i].x, CtrlPoints[i].y),0, 10) then
+      if R_WalkToTile(Point(CtrlPoints[i].x, CtrlPoints[i].y),0, 10) then
       begin
         Result := I = High(CtrlPoints);
         Break;

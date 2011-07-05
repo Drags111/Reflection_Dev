@@ -1,0 +1,195 @@
+(*
+MyPlayer
+========
+
+All functions regarding your character and it's motion, animation, etc.
+
+*)
+
+(*
+R_GetAnimation
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetAnimation: Integer;
+
+Returns your player's animation.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetAnimation: Integer;
+var
+  MyPlayer: Integer;
+begin
+  MyPlayer := SmartGetFieldObject(0, hook_static_MyPlayer);
+  Result := SmartGetFieldInt(MyPlayer, hook_character_Animation);
+  SmartFreeObject(MyPlayer);
+end;
+
+(*
+R_GetMotion
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMotion: Integer;
+
+Returns your player's motion. (0 = not moving. > 0 = moving.)
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetMotion: Integer;
+var
+  MyPlayer: Integer;
+begin
+  MyPlayer := SmartGetFieldObject(0, hook_static_MyPlayer);
+  Result := SmartGetFieldInt(MyPlayer, hook_character_Motion);
+  SmartFreeObject(MyPlayer);
+end;
+
+(*
+R_IsIdle
+~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_IsIdle: Boolean;
+
+Returns true if your player is idle. (no movement or animation)
+
+.. note::
+
+  by lordsaturn, Drags111
+
+*)
+function R_IsIdle: Boolean;
+var
+  MyPlayer: Integer;
+begin
+  MyPlayer := SmartGetFieldObject(0, hook_static_MyPlayer);
+  Result := (SmartGetFieldInt(MyPlayer, hook_character_Animation) = -1) and
+            (SmartGetFieldInt(MyPlayer, hook_character_Motion) = 0);
+  SmartFreeObject(MyPlayer);
+end;
+
+(*
+R_Moving
+~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_Moving: Boolean;
+
+Returns true if your player is moving.
+
+.. note::
+
+  by lordsaturn
+
+*)
+function R_Moving: Boolean;
+begin
+  Result := (R_GetMotion > 0);
+end;
+
+(*
+R_Animating
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_Animating: Boolean;
+
+Returns true if your player is animating.
+
+.. note::
+
+  by lordsaturn
+
+*)
+function R_Animating: Boolean;
+begin
+  Result := (R_GetAnimation > -1);
+end;
+
+(*
+R_InCombat
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_InCombat: Boolean;
+
+Returns true if your player is in combat.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_InCombat: Boolean;
+var
+  MyPlayer: Integer;
+begin
+  MyPlayer := SmartGetFieldObject(0, hook_static_MyPlayer);
+  Result := (SmartGetFieldInt(0, hook_static_LoopCycle) <
+             SmartGetFieldInt(MyPlayer, hook_character_LoopCycleStatus));
+  SmartFreeObject(MyPlayer);
+end;
+
+(*
+R_GetMe
+~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMe: TPlayer;
+
+Returns a TPlayer of your player.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetMe: TPlayer;
+var
+  Player, NameBytes: Integer;
+begin
+  try
+    Player := SmartGetFieldObject(0, hook_static_MyPlayer);
+    with Result do
+    begin
+      NameBytes := SmartGetFieldObject(Player, hook_player_GetName);
+      Name := R_GetJavaString(NameBytes, 512);
+      SmartFreeObject(NameBytes);
+
+      Level := SmartGetFieldInt(Player, hook_player_GetLevel);
+      Team := SmartGetFieldInt(Player, hook_player_GetTeam);
+
+      Tile.X := SmartGetFieldInt(0, hook_static_BaseX) +
+                (SmartGetFieldInt(Player, hook_animable_PixelX) / 512);
+      Tile.Y := SmartGetFieldInt(0, hook_static_BaseY) +
+                (SmartGetFieldInt(Player, hook_animable_PixelY) / 512);
+
+      Height := IAbs(SmartGetFieldInt(Player, hook_character_GetHeight));
+      Animation := SmartGetFieldInt(Player, hook_character_Animation);
+      Motion := SmartGetFieldInt(Player, hook_character_Motion);
+      HPRatio := SmartGetFieldInt(Player, hook_character_HPRatio) * 100 / $FF;
+      InCombat := SmartGetFieldInt(0, hook_static_LoopCycle) < SmartGetFieldInt(Player, hook_character_LoopCycleStatus);
+      WalkQueueX := SmartGetFieldArrayInt(Player, hook_character_WalkQueueX, 0);
+      WalkQueueY := SmartGetFieldArrayInt(Player, hook_character_WalkQueueY, 0);
+      Interacting := SmartGetFieldInt(Player, hook_character_GetInteracting);
+      Orientation := Round(FixD(180 + (SmartGetFieldInt(Player, hook_character_Orientation)* 45) / 2048));
+    end;
+  finally
+    SmartFreeObject(Player);
+  end;
+end;

@@ -1,26 +1,75 @@
-(*
-Constants
-=========
+(*=====================================
 
-Contains all globally used constants and variables.
+  Constants for the Reflection include
 
-*)
-
-{ Constants used throughout the include. }
+ =====================================*)
 const
-  NULL_INT        = -1;
-  NULL_STRING     = '';
+  NULL_INT = -1;
+  NULL_STRING = '';
 
-  {bank}
+  {Gametab constants}
+  INTERFACE_GAMETAB = 548;
+  INTERFACE_GAMETAB_FACENORTH = 177;
+
+  RTAB_FRIENDSLIST = 99;
+  RTAB_CHAT = 100;
+  RTAB_CLANCHAT = 101;
+  RTAB_OPTIONS = 102;
+  RTAB_EMOTES = 103;
+  RTAB_MUSIC = 104;
+  RTAB_NOTES = 105;
+  RTAB_COMBAT = 128;
+  RTAB_TASKS = 129;
+  RTAB_STATS = 130;
+  RTAB_QUESTS = 131;
+  RTAB_INVENTORY = 132;
+  RTAB_EQUIPMENT = 133;
+  RTAB_PRAYER = 134;
+  RTAB_SPELLBOOK = 135;
+
+  INTERFACE_HITPOINTS = 748;
+  INTERFACE_PRAYER = 749;
+  INTERFACE_RUN = 750;
+  INTERFACE_WORLDMAP = 755;
+  INTERFACE_WORLDMAP_CLOSE = 44;
+
+  SETTING_RUN = 173;
+
+  {Inventory Constants}
+  INTERFACE_INVENTORY = 149;
+  INTERFACE_BANKINVENTORY = 763;
+
+  {Equipment Constants}
+  INTERFACE_EQUIPMENT = 387;
+
+  EQUIPMENT_HELMET     = 8;
+  EQUIPMENT_CAPE       = 11;
+  EQUIPMENT_NECKLACE   = 14;
+  EQUIPMENT_WEAPON     = 17;
+  EQUIPMENT_TORSO      = 20;
+  EQUIPMENT_SHIELD     = 23;
+  EQUIPMENT_LEGS       = 26;
+  EQUIPMENT_GLOVES     = 29;
+  EQUIPMENT_BOOTS      = 32;
+  EQUIPMENT_RING       = 35;
+  EQUIPMENT_AMMO       = 38;
+
+  {Object Constants}
+  OBJ_INTERACTABLE = 1;
+  OBJ_WALLOBJECT = 2;
+  OBJ_WALLDECORATION = 3;
+  OBJ_FLOORDECORATION = 4;
+
+  {Bank Constants}
   INTERFACE_BANK = 762;
   INTERFACE_BANK_BTN_CLOSE = 43;
   INTERFACE_BANK_BTN_DEPOSITBAG = 33;
   INTERFACE_BANK_BTN_DEPOSITEQUIP = 35;
   INTERFACE_BANK_BTN_DEPOSITBEAST = 37;
 
-  {Slots}
   INTERFACE_BANK_SLOTS = 93;
   INTERFACE_BANK_SLOTS_MAX = 515;
+
   INTERFACE_BANK_SCROLLBAR = 114;
   INTERFACE_BANK_SCROLLBAR_BAR = 1;
   INTERFACE_BANK_SCROLLBAR_BARTOP = 2;
@@ -28,47 +77,37 @@ const
   INTERFACE_BANK_SCROLLBAR_UP = 4;
   INTERFACE_BANK_SCROLLBAR_DOWN = 5;
 
-  {Pinscreen}
   INTERFACE_PINSCREEN = 13;
 
   TEXTURE_BANKTABSELECTED = 1419;
 
-  {Constant used to get the item ID of player's equipment.}
-  EQUIPMENT_CONSTANT = 1073741824;
+  {Misc Constants}
+  CROSSHAIR_NONE = 0;
+  CROSSHAIR_YELLOW = 1;
+  CROSSHAIR_RED = 2;
+  INTERFACE_LOGIN_SCREEN = 596;
+  INTERFACE_LOBBY_SCREEN = 907;
 
-  {Equipment slot numbers}
-  EQUIPMENT_HELMET     = 0;
-  EQUIPMENT_CAPE       = 1;
-  EQUIPMENT_NECKLACE   = 2;
-  EQUIPMENT_WEAPON     = 3;
-  EQUIPMENT_TORSO      = 4;
-  EQUIPMENT_SHIELD     = 5;
-  EQUIPMENT_LEGS       = 6;
-  EQUIPMENT_GLOVES     = 7;
-  EQUIPMENT_BOOTS      = 8;
-  EQUIPMENT_RING       = 9;
-  EQUIPMENT_AMMO       = 10;
+(*=====================================
 
-{ var R_UseDebug: Boolean;
-  Description: Whether or not to display debugging during run-time. }
-var
-  R_UseDebug, R_ExitOnRandoms: Boolean;
-  R_ContinueIfOutdated: Boolean;
+   Types for the Reflection include
 
-var
-  SKILL_STRINGS: TStringArray; // Array of all the skills
-
+ =====================================*)
 type
-{Stores the rotation matrix used by the client to render to the main
- screen, along with offsets.}
+  {Essentially a TPoint, a tile is a global coordinace on the runescape grid.}
+  TTile = TPoint;
+  TTileArray = TPointArray;
+
+  {Stores the rotation matrix used by the client to render to the main
+   screen, along with offsets.}
   TRenderData = record
     xOff,xX,xY,xZ : extended;
     yOff,yX,yY,yZ : extended;
     zOff,zX,zY,zZ : extended;
   end;
 
-{Stores information about the rendered world including ranges
- for acceptable values, and scaling factors.}
+  {Stores information about the rendered world including ranges
+   for acceptable values, and scaling factors.}
   TRender = record
     xScale,yScale : extended;
     xMin,xMax : extended;
@@ -76,17 +115,9 @@ type
     zMax,zMin : extended;
   end;
 
-{equivlent to a TPoint, but signifies a global tile position in the
- Runescape client. Not to be used for any other purpose.}
-  TTile = TPoint;
-
-{Same as TTile, but in an array.}
-  TTileArray = array of TTile;
-
-{ type TRSChild;
+  { type TInterfaceChild;
   Contains informations pertaining to Interface Children}
-type
-  TRSChild = record
+  TInterfaceChild = record
     Actions: TStringArray;
     ID, ComponentID, ParentID, Stack: Integer;
     TextureID, ModelID, ModelZoom, TextColor: Integer;
@@ -100,24 +131,13 @@ type
     BoundsArrayIndex: Integer;
   end;
 
-{ type TRSComponent;
+{ type TInterfaceComponent;
   Contains informations pertaining to Interface Children Components. Same as
   TRSChild but different name for referencing purposes.}
 type
-  TRSComponent = TRSChild;
+  TInterfaceComponent = TInterfaceChild;
 
-type
-  TRSPlayer = record
-    Tile: TTile;
-    TileArea: TBox;
-    Name: String;
-    Index, Level, Team, Height: Integer;
-    Animation, Motion, HPRatio: Integer;
-    InCombat: Boolean;
-    WalkQueueX, WalkQueueY: Integer;
-    Interacting, Orientation: Integer;
-  end;
-
+  {A record that holds the information regarding to NPC's in the game.}
   TNPC = record
     Tile: TTile;
     TileArea: TBox;
@@ -129,150 +149,170 @@ type
     Interacting, Orientation: integer;
     Actions: TStringArray;
   end;
-
   TNPCArray = array of TNPC;
 
-type
-  {Array of TRSPlayer}
-  TRSPlayerArray = array of TRSPlayer;
+  {A record that holds the information regarding to players (including yours)
+   in the game.}
+  TPlayer = record
+    Tile: TTile;
+    Name: String;
+    Index, Level, Team, Height: Integer;
+    Animation, Motion, HPRatio: Integer;
+    InCombat: Boolean;
+    WalkQueueX, WalkQueueY: Integer;
+    Interacting, Orientation: Integer;
+  end;
+  TPlayerArray = array of TPlayer;
 
-{ type TBankItem;
-  Contains informations pertaining to bank items. }
-type
+  {Contains informations pertaining to Objects}
+  TRSObject = record
+    ObjType: integer;
+    ID: Integer;
+    Tile: TTile;
+    TileArea: TBox;
+  end;
+  TRSObjectArray = array of TRSObject;
+
+  {Holds information pertaining to a ground item}
+  TGroundItem = record
+    ID: Integer;
+    Stack: Integer;
+    Tile: TTile;
+  end;
+  TGroundItemArray = array of TGroundItem;
+
+  {Holds information pertaining to an inventory slot}
+  TInvItem = record
+    ID, StackSize, Slot: integer;
+    Name: String;
+    Actions: TStringArray;
+  end;
+  TInvItemArray = array of TInvItem;
+
+  {Holds information about an equipment slot}
+  TEquipmentItem = record
+    ID: Integer;
+    Name: string;
+    IsAmmo: Boolean;
+    Count: Integer;
+    Actions: TStringArray;
+  end;
+  TEquipmentSet = array of TEquipmentItem;
+
+  {Holds informations pertaining to bank items}
   TBankItem = Record
     ID, Slot, StackSize: Integer;
     Name: String;
   end;
-
-{ type TBankItemArray;
-  An array of bank items. }
-type
   TBankItemArray = array of TBankItem;
 
-type
-{Contains informations pertaining to Objects}
-  TRSObject = record
-    ID, ObjType: Integer;
-    Tile: TTile;
-    TileArea: TBox;
-  end;
+(*=====================================
 
-{ObjectDefinition}
-  TRSObjectDef = record
-    name : string;
-    actions : TStringArray;
-  end;
+   Vars for the Reflection include
 
-{Array of TRSObject}
-  TRSObjectArray = array of TRSObject;
-
-{ type TRSClient;
-  Contains function pointers to all of the static hooks. }
-type
-  TRSClient = record
-    LoginIndex: function: Integer;
-    ChatLines: function: Integer;
-    CameraYaw: function: Integer;
-    MyPlayer: function: Integer;
-    BaseX: function: Integer;
-    BaseY: function: Integer;
-    NPCIndexArray: function(Index: Integer): Integer;
-    LoopCycle: function: Integer;
-    NPCNC: function: Integer;
-    ItemDefLoader: function: Integer;
-    ObjectDefLoader: function: Integer;
-    NPCNodes: function(Index: Integer): Integer;
-    NPCCount: function: Integer;
-    GroundSettingsArray: function(Plane, X, Y: Integer): Integer;
-    LoadedPlane: function: Integer;
-    PlaneArray: function(Index: Integer): Integer;
-    Toolkit: function: Integer;
-    CollapsedMenuItems: function: Integer;
-    MenuOptionCount: function: Integer;
-    MenuCollapsedOptionsCount: function: Integer;
-    MenuX: function: Integer;
-    MenuY: function: Integer;
-    MenuWidth: function: Integer;
-    MenuHeight: function: Integer;
-    MenuX2: function: Integer;
-    MenuY2: function: Integer;
-    MenuWidth2: function: Integer;
-    MenuHeight2: function: Integer;
-    MenuNodeList: function: Integer;
-    MenuOpen: function: Boolean;
-    IsMenuTabbed: function: Boolean;
-    Interfaces: function: Integer;
-    ValidInterfaces: function(Index: Integer): Boolean;
-    InterfaceBoundsArray: function(Index: Integer): Integer;
-    InterfaceDismissBounds: function(Index: Integer): Boolean;
-    InterfaceNC: function: Integer;
-    Settings: function: Integer;
-    GroundItemCache: function: Integer;
-    GroundDataArray: function(Plane: Integer): Integer;
-    SkillExperiences: function(Index: Integer): Integer;
-    SkillLevels: function(Index: Integer): Integer;
-    MapAngle: function: Extended;
-    DestX: function: Integer;
-    DestY: function: Integer;
-    PlayerCount: function: Integer;
-    PlayerIndexArray: function(Index: Integer): Integer;
-    Players: function(Index: Integer): Integer;
-    CamPosX: function: Integer;
-    CamPosY: function: Integer;
-    GroundTiles: function(Plane, X, Y: Integer): Integer;
-    CrossHairColor: function: Integer;
-  end;
-
+ =====================================*)
 var
-  Client: TRSClient;
+  R_SuppressDebug, R_ContinueIfOutdated, R_ExitOnRandoms: Boolean;
 
-(*
-R_SetupGlobals
-~~~~~~~~~~~~~~
+(*=====================================
 
-.. code-block:: pascal
+            Nulling functions
 
-    procedure R_SetupGlobals;
-
-Sets up variables that need to be declared.
-
-.. note::
-
-  by Drags111
-
-*)
-procedure R_SetupGlobals;
+ =====================================*)
+function NULL_TILE: TTile;
 begin
-  R_UseDebug := True;
-  SKILL_STRINGS := ['attack', 'defence', 'strength', 'hitpoints', 'range',
-                    'prayer', 'magic', 'cooking', 'woodcutting', 'fletching',
-                    'fishing', 'firemaking', 'crafting', 'smithing', 'mining',
-                    'herblore', 'agility', 'thieving', 'slayer', 'farming',
-                    'runecrafting', 'hunter', 'construction', 'summoning',
-                    'dungeoneering'];
+  Result.X := NULL_INT;
+  Result.Y := NULL_INT;
 end;
 
-(*
-R_Debug
-~~~~~~~
-
-.. code-block:: pascal
-
-    Procedure R_Debug(Debug, InTags: String);
-
-Writes debug notes if R_UseDebug is true. (By default it is true, but you can
-turn it off by setting R_UseDebug to false AFTER SetupReflection.
-
-.. note::
-
-  by Drags111
-
-*)
-Procedure R_Debug(Debug, InTags: String);
+function NULL_BOX: TBox;
 begin
-  if not R_UseDebug then Exit;
-  If (InTags = '') then
-    Writeln('[Reflection] ' + Debug)
-  else
-    Writeln('[' + InTags + '] ' + Debug);
+  Result.X1 := -1;
+  Result.Y1 := -1;
+  Result.X2 := -1;
+  Result.Y2 := -1;
+end;
+
+function NULL_NPC: TNPC;
+begin
+  with Result do
+  begin
+    Tile := NULL_TILE;
+    Name := NULL_STRING;
+    Index := NULL_INT;
+    Level := NULL_INT;
+    ID := NULL_INT;
+    Height := NULL_INT;
+    Animation := NULL_INT;
+    Motion := NULL_INT;
+    HPRatio := NULL_INT;
+    InCombat := False;
+    WalkQueueX := NULL_INT;
+    WalkQueueY := NULL_INT;
+    Interacting := NULL_INT;
+    Orientation := NULL_INT;
+    Actions := [];
+  end;
+end;
+
+function NULL_PLAYER: TPlayer;
+begin
+  with Result do
+  begin
+    Tile := NULL_TILE;
+    Name := NULL_STRING;
+    Index := NULL_INT;
+    Level := NULL_INT;
+    Team := NULL_INT;
+    Height := NULL_INT;
+    Animation := NULL_INT;
+    Motion := NULL_INT;
+    HPRatio := NULL_INT;
+    InCombat := False;
+    WalkQueueX := NULL_INT;
+    WalkQueueY := NULL_INT;
+    Interacting := NULL_INT;
+    Orientation := NULL_INT;
+  end;
+end;
+
+function NULL_RSOBJECT: TRSObject;
+begin
+  Result.ID := NULL_INT;
+  Result.ObjType := NULL_INT;
+  Result.Tile := NULL_TILE;
+  Result.TileArea := NULL_BOX;
+end;
+
+function NULL_GROUNDITEM: TGroundItem;
+begin
+  Result.ID := NULL_INT;
+  Result.Stack := NULL_INT;
+  Result.Tile := NULL_TILE;
+end;
+
+function NULL_INVITEM: TInvItem;
+begin
+  Result.ID := NULL_INT;
+  Result.StackSize := NULL_INT;
+  Result.Slot := NULL_INT;
+  Result.Name := NULL_STRING;
+  Result.Actions := [];
+end;
+
+function NULL_EQUIPMENT: TEquipmentItem;
+begin
+  Result.ID := NULL_INT;
+  Result.Name := NULL_STRING;
+  Result.IsAmmo := False;
+  Result.Count := Null_INT;
+  Result.Actions := [];
+end;
+
+function NULL_BANKITEM: TBankItem;
+begin
+  Result.ID := NULL_INT;
+  Result.Slot := NULL_INT;
+  Result.StackSize := NULL_INT;
+  Result.Name := NULL_STRING;
 end;

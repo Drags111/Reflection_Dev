@@ -1,0 +1,513 @@
+(*
+GroundItems
+===========
+
+Routines related to the retrieval of Ground Items (bones, meat, w/e monsters
+drop, etc).
+
+*)
+
+(*
+R_GetGroundItems
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetAllGroundItems(MaxDist: Integer): TGroundItemArray;
+
+Retrieves all of the ground items within a circle with a radius of MaxDist.
+Stores them in a TGroundItemArray. Based off of Method's orginal R_GetItemsAt.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetAllGroundItems(MaxDist: Integer): TGroundItemArray;
+var
+  Cache, Hash, Plane, Nodes, Size, Index, Tail, Cur, Next,
+  UID, List: Integer;
+  H, I, BX, BY, endx, endy: Integer;
+  Tiles: TTileArray;
+begin
+  SetLength(Result, 0);
+  BX := SmartGetFieldInt(0, hook_static_BaseX);
+  BY := SmartGetFieldInt(0, hook_static_BaseY);
+  EndX := BX + 104;
+  EndY := BY + 104;
+
+  Cache := SmartGetFieldObject(0, hook_static_GroundItemCache);
+  Nodes := SmartGetFieldObject(cache, hook_nodecache_GetNodes);
+  SmartFreeObject(Cache);
+  Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
+  Size := SmartGetFieldArraySize(Nodes, '', 1);
+
+  Tiles := R_SortedCircleTPA(R_GetMyPos, MaxDist);
+  H := High(Tiles);
+
+  for I := 0 to H do
+  begin
+    List := 0;
+    Hash := Tiles[I].X or (Tiles[I].Y shl 14) or (Plane shl 28);
+    Index := Hash and (Size - 1);
+
+    Tail := SmartGetFieldArrayObject(Nodes, '', Index);
+    Cur := SmartGetFieldObject(Tail, hook_node_Next);
+
+    try
+      while (not (SmartIsEqual(Tail, Cur))) do
+      begin
+        UID := SmartGetFieldLongL(Cur, hook_node_GetID);
+        if (UID = Hash) then
+        begin
+          List := SmartGetFieldObject(Cur, hook_nodelistcache_GetNodeList);
+          Break;
+        end;
+
+        Next := SmartGetFieldObject(Cur, hook_node_Next);
+        SmartFreeObject(Cur);
+        Cur := Next;
+      end;
+    finally
+      SmartFreeObject(Cur);
+      SmartFreeObject(Tail);
+    end;
+
+    if(List = 0)then
+      Continue;
+
+    Tail := SmartGetFieldObject(list, hook_nodelist_Head);
+    List := 0;
+    Cur := SmartGetFieldObject(tail, hook_node_Next);
+    while (not (SmartIsEqual(tail, cur))) do
+    begin
+      SetArrayLength(Result, GetArrayLength(Result) + 1);
+      with Result[High(Result)] do
+      begin
+        ID := SmartGetFieldInt(Cur, hook_item_GetID);
+        Stack := SmartGetFieldInt(Cur, hook_item_GetStack);
+        Tile.X := Tiles[I].X;
+        Tile.Y := Tiles[I].Y;
+      end;
+      Next := SmartGetFieldObject(Cur, hook_node_Next);
+      SmartFreeObject(Cur);
+      Cur := Next;
+    end;
+
+    SmartFreeObject(Cur);
+    SmartFreeObject(Tail);
+    SmartFreeObject(List);
+  end;
+  SmartFreeObject(Nodes);
+end;
+
+(*
+R_GetGroundItemsEx
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetGroundItemsEx(IDs: TIntegerArray; MaxDist: Integer): TGroundItemArray;
+
+Retrieves all of the ground items within a circle with a radius of MaxDist that
+contain one of the IDs specified. Stores them in a TGroundItemArray.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetGroundItemsEx(IDs: TIntegerArray; MaxDist: Integer): TGroundItemArray;
+var
+  Cache, Hash, Plane, Nodes, Size, Index, Tail, Cur, Next,
+  UID, List, TheID: Integer;
+  H, I, BX, BY, endx, endy: Integer;
+  Tiles: TTileArray;
+begin
+  SetLength(Result, 0);
+  BX := SmartGetFieldInt(0, hook_static_BaseX);
+  BY := SmartGetFieldInt(0, hook_static_BaseY);
+  EndX := BX + 104;
+  EndY := BY + 104;
+
+  Cache := SmartGetFieldObject(0, hook_static_GroundItemCache);
+  Nodes := SmartGetFieldObject(cache, hook_nodecache_GetNodes);
+  SmartFreeObject(Cache);
+  Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
+  Size := SmartGetFieldArraySize(Nodes, '', 1);
+
+  Tiles := R_SortedCircleTPA(R_GetMyPos, MaxDist);
+  H := High(Tiles);
+
+  for I := 0 to H do
+  begin
+    List := 0;
+    Hash := Tiles[I].X or (Tiles[I].Y shl 14) or (Plane shl 28);
+    Index := Hash and (Size - 1);
+
+    Tail := SmartGetFieldArrayObject(Nodes, '', Index);
+    Cur := SmartGetFieldObject(Tail, hook_node_Next);
+
+    try
+      while (not (SmartIsEqual(Tail, Cur))) do
+      begin
+        UID := SmartGetFieldLongL(Cur, hook_node_GetID);
+        if (UID = Hash) then
+        begin
+          List := SmartGetFieldObject(Cur, hook_nodelistcache_GetNodeList);
+          Break;
+        end;
+
+        Next := SmartGetFieldObject(Cur, hook_node_Next);
+        SmartFreeObject(Cur);
+        Cur := Next;
+      end;
+    finally
+      SmartFreeObject(Cur);
+      SmartFreeObject(Tail);
+    end;
+
+    if(List = 0)then
+      Continue;
+
+    Tail := SmartGetFieldObject(list, hook_nodelist_Head);
+    List := 0;
+    Cur := SmartGetFieldObject(tail, hook_node_Next);
+    while (not (SmartIsEqual(tail, cur))) do
+    begin
+      TheID := SmartGetFieldInt(Cur, hook_item_GetID);
+      if InIntArray(IDs, TheID)then
+      begin
+        SetArrayLength(Result, GetArrayLength(Result) + 1);
+        with Result[High(Result)] do
+        begin
+          ID := TheID;
+          Stack := SmartGetFieldInt(Cur, hook_item_GetStack);
+          Tile.X := Tiles[I].X;
+          Tile.Y := Tiles[I].Y;
+        end;
+      end;
+      Next := SmartGetFieldObject(Cur, hook_node_Next);
+      SmartFreeObject(Cur);
+      Cur := Next;
+    end;
+
+    SmartFreeObject(Cur);
+    SmartFreeObject(Tail);
+    SmartFreeObject(List);
+  end;
+  SmartFreeObject(Nodes);
+end;
+
+(*
+R_GetGroundItems
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetGroundItems(ID, MaxDist: Integer): TGroundItemArray;
+
+Retrieves all of the ground items within a circle with a radius of MaxDist that
+contains the ID specified. Stores them in a TGroundItemArray.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetGroundItems(ID, MaxDist: Integer): TGroundItemArray;
+begin
+  Result := R_GetGroundItemsEx([ID], MaxDist);
+end;
+
+(*
+R_GetGroundItemEx
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetGroundItemEx(IDs: TIntegerArray; MaxDist: Integer): TGroundItem;
+
+Retrieves the nearest ground item within a circle with a radius of MaxDist that
+contains one of the IDs specified. Stores it in a TGroundItem.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetGroundItemEx(IDs: TIntegerArray; MaxDist: Integer): TGroundItem;
+var
+  Cache, Hash, Plane, Nodes, Size, Index, Tail, Cur, Next,
+  UID, List, TheID: Integer;
+  H, I, BX, BY, endx, endy: Integer;
+  Tiles: TTileArray;
+begin
+  Result := NULL_GROUNDITEM;
+  BX := SmartGetFieldInt(0, hook_static_BaseX);
+  BY := SmartGetFieldInt(0, hook_static_BaseY);
+  EndX := BX + 104;
+  EndY := BY + 104;
+
+  Cache := SmartGetFieldObject(0, hook_static_GroundItemCache);
+  Nodes := SmartGetFieldObject(cache, hook_nodecache_GetNodes);
+  SmartFreeObject(Cache);
+  Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
+  Size := SmartGetFieldArraySize(Nodes, '', 1);
+
+  Tiles := R_SortedCircleTPA(R_GetMyPos, MaxDist);
+  H := High(Tiles);
+
+  for I := 0 to H do
+  begin
+    List := 0;
+    Hash := Tiles[I].X or (Tiles[I].Y shl 14) or (Plane shl 28);
+    Index := Hash and (Size - 1);
+
+    Tail := SmartGetFieldArrayObject(Nodes, '', Index);
+    Cur := SmartGetFieldObject(Tail, hook_node_Next);
+
+    try
+      while (not (SmartIsEqual(Tail, Cur))) do
+      begin
+        UID := SmartGetFieldLongL(Cur, hook_node_GetID);
+        if (UID = Hash) then
+        begin
+          List := SmartGetFieldObject(Cur, hook_nodelistcache_GetNodeList);
+          Break;
+        end;
+
+        Next := SmartGetFieldObject(Cur, hook_node_Next);
+        SmartFreeObject(Cur);
+        Cur := Next;
+      end;
+    finally
+      SmartFreeObject(Cur);
+      SmartFreeObject(Tail);
+    end;
+
+    if(List = 0)then
+      Continue;
+
+    Tail := SmartGetFieldObject(list, hook_nodelist_Head);
+    List := 0;
+    Cur := SmartGetFieldObject(tail, hook_node_Next);
+    while (not (SmartIsEqual(tail, cur))) do
+    begin
+      TheID := SmartGetFieldInt(Cur, hook_item_GetID);
+      if InIntArray(IDs, TheID)then
+      begin
+        with Result do
+        begin
+          ID := TheID;
+          Stack := SmartGetFieldInt(Cur, hook_item_GetStack);
+          Tile.X := Tiles[I].X;
+          Tile.Y := Tiles[I].Y;
+
+          SmartFreeObject(Cur);
+          SmartFreeObject(Tail);
+          SmartFreeObject(List);
+          SmartFreeObject(Nodes);
+
+          Exit;
+        end;
+      end;
+      Next := SmartGetFieldObject(Cur, hook_node_Next);
+      SmartFreeObject(Cur);
+      Cur := Next;
+    end;
+
+    SmartFreeObject(Cur);
+    SmartFreeObject(Tail);
+    SmartFreeObject(List);
+  end;
+  SmartFreeObject(Nodes);
+end;
+
+(*
+R_GetGroundItem
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetGroundItem(ID, MaxDist: Integer): TGroundItem;
+
+Retrieves the nearest ground item within a circle with a radius of MaxDist that
+contains the ID specified. Stores it in a TGroundItem.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetGroundItem(ID, MaxDist: Integer): TGroundItem;
+begin
+  Result := R_GetGroundItemEX([ID], MaxDist);
+end;
+
+(*
+R_FindGroundItemsEx
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FindGroundItemsEx(IDs: TIntegerArray; MaxDist: Integer; var Items: TGroundItemArray): Boolean;
+
+Returns true if the items are found with the IDs specified, and if so, stores
+them in the Items var.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_FindGroundItemsEx(IDs: TIntegerArray; MaxDist: Integer; var Items: TGroundItemArray): Boolean;
+begin
+  Items := R_GetGroundItemsEx(IDs, MaxDist);
+  Result := (Length(Items) > 0);
+end;
+
+(*
+R_FindGroundItems
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FindGroundItems(ID, MaxDist: Integer; var Items: TGroundItemArray): Boolean;
+
+Returns true if the items are found with the ID specified, and if so, stores
+them in the Items var.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_FindGroundItems(ID, MaxDist: Integer; var Items: TGroundItemArray): Boolean;
+begin
+  Items := R_GetGroundItemsEx([ID], MaxDist);
+  Result := (Length(Items) > 0);
+end;
+
+(*
+R_FindGroundItemEx
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FindGroundItemEx(IDs: TIntegerArray; MaxDist: Integer; var Item: TGroundItem): Boolean;
+
+Returns true if the item is found with the IDs specified, and if so, stores it
+in the Item var.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_FindGroundItemEx(IDs: TIntegerArray; MaxDist: Integer; var Item: TGroundItem): Boolean;
+begin
+  Item := R_GetGroundItemEx(IDs, MaxDist);
+  Result := Item <> NULL_GROUNDITEM;
+end;
+
+(*
+R_FindGroundItem
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_FindGroundItem(ID, MaxDist: Integer; var Item: TGroundItem): Boolean;
+
+Returns true if the item is found with the ID specified, and if so, stores it
+in the Item var.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_FindGroundItem(ID, MaxDist: Integer; var Item: TGroundItem): Boolean;
+begin
+  Item := R_GetGroundItemEx([ID], MaxDist);
+  Result := Item <> NULL_GROUNDITEM;
+end;
+
+(*
+R_GetGroundItemsAt
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetGroundItemsAt(TheTile: TTile): TGroundItemArray;
+
+Returns all the TGroundItems at the given tile.
+
+.. note::
+
+  by
+  Method
+
+*)
+function R_GetGroundItemsAt(TheTile: TTile): TGroundItemArray;
+var
+  Cache, Hash, Plane, Nodes, Size, Index, Tail, Cur, Next,
+  UID, List: Integer;
+begin
+  SetLength(Result, 0);
+
+  Cache := SmartGetFieldObject(0, hook_static_GroundItemCache);
+  Nodes := SmartGetFieldObject(cache, hook_nodecache_GetNodes);
+  SmartFreeObject(Cache);
+  Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
+  Size := SmartGetFieldArraySize(Nodes, '', 1);
+
+  Hash := TheTile.X or (TheTile.Y shl 14) or (Plane shl 28);
+  Index := Hash and (Size - 1);
+
+  Tail := SmartGetFieldArrayObject(Nodes, '', Index);
+  Cur := SmartGetFieldObject(Tail, hook_node_Next);
+
+  try
+    while (not (SmartIsEqual(Tail, Cur))) do
+    begin
+      UID := SmartGetFieldLongL(Cur, hook_node_GetID);
+      if (UID = Hash) then
+      begin
+        List := SmartGetFieldObject(Cur, hook_nodelistcache_GetNodeList);
+        Break;
+      end;
+
+      Next := SmartGetFieldObject(Cur, hook_node_Next);
+      SmartFreeObject(Cur);
+      Cur := Next;
+    end;
+  finally
+    SmartFreeObject(Cur);
+    SmartFreeObject(Tail);
+  end;
+
+  if(List = 0)then
+    Exit;
+
+  Tail := SmartGetFieldObject(list, hook_nodelist_Head);
+  Cur := SmartGetFieldObject(tail, hook_node_Next);
+  while (not (SmartIsEqual(tail, cur))) do
+  begin
+    SetArrayLength(Result, GetArrayLength(Result) + 1);
+    with Result[High(Result)] do
+    begin
+      ID := SmartGetFieldInt(Cur, hook_item_GetID);
+      Stack := SmartGetFieldInt(Cur, hook_item_GetStack);
+      Tile := TheTile;
+    end;
+    Next := SmartGetFieldObject(Cur, hook_node_Next);
+    SmartFreeObject(Cur);
+    Cur := Next;
+  end;
+
+  SmartFreeObject(Cur);
+  SmartFreeObject(Tail);
+  SmartFreeObject(List);
+  SmartFreeObject(Nodes);
+end;

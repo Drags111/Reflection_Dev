@@ -1,0 +1,274 @@
+(*
+Timing
+======
+
+Contains all the "Wait for..." routines used throughout scripts.
+
+*)
+
+(*
+R_WaitInterfaceOpen
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitInterfaceOpen(Index, WaitTime: Integer): Boolean;
+
+Waits until the interface is opened up, or the timer runs out. Results true
+if it opened.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WaitInterfaceOpen(Index, WaitTime: Integer): Boolean;
+var
+  T: Integer;
+begin
+  MarkTime(T);
+  while (TimeFromMark(T) < WaitTime) do
+  begin
+    if R_ValidInterface(Index)then
+      Break;
+    wait(25);
+  end;
+  Result := R_ValidInterface(Index);
+end;
+
+(*
+R_WaitInterfaceClose
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitInterfaceClose(Obj: Integer): TStringArray;
+
+Waits until the interface closes up, or the timer runs out. Results true
+if it closed.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WaitInterfaceClose(Index, WaitTime: Integer): Boolean;
+var
+  T: Integer;
+begin
+  MarkTime(T);
+  while (TimeFromMark(T) < WaitTime) do
+  begin
+    if not R_ValidInterface(Index)then
+      Break;
+    wait(25);
+  end;
+  Result := not R_ValidInterface(Index);
+end;
+
+(*
+R_WaitOptionMulti
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitOptionMulti(S: TStringArray; Time: Integer): Boolean;
+
+Waits to select an option, and if it finds it, selects it
+
+.. note::
+
+  by Naike
+
+*)
+function R_WaitOptionMulti(S: TStringArray; Time: Integer): Boolean;
+var
+  T: Integer;
+begin
+  Result := False;
+  T := GetSystemTime + Time;
+  while (GetSystemTime < T) do
+  begin
+    if R_ChooseOptionMulti(S) then
+    begin
+      Result := True;
+      Exit;
+    end;
+    Wait(20 + Random(10));
+  end;
+end;
+
+(*
+R_WaitOption
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitOption(S: String; Time: Integer): Boolean;
+
+Waits to select an option, and if it finds it, selects it
+
+.. note::
+
+  by Naike
+
+*)
+function R_WaitOption(S: String; Time: Integer): Boolean;
+begin
+  Result := R_WaitOptionMulti([S], Time);
+end;
+
+(*
+R_WaitUpTextMulti
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitUpTextMulti(S: TStringArray; Time: Integer): Boolean;
+
+Waits for an uptext in the UpText array.
+
+.. note::
+
+  by Naike
+
+*)
+function R_WaitUpTextMulti(S: TStringArray; Time: Integer): Boolean;
+var
+  T: Integer;
+begin
+  Result := False;
+  T := GetSystemTime + Time;
+  while (GetSystemTime < T) do
+  begin
+    if R_IsUpTextMulti(S) then
+    begin
+      Result := True;
+      Exit;
+    end;
+    Wait(20 + Random(10));
+  end;
+end;
+
+(*
+R_WaitUpText
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitUpText(S: String; Time: Integer): Boolean;
+
+Waits for the UpText
+
+.. note::
+
+  by Naike
+
+*)
+function R_WaitUpText(S: String; Time: Integer): Boolean;
+begin
+  Result := R_WaitUpTextMulti([S], Time);
+end;
+
+(*
+R_WaitNPCChatchange
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitNPCChatchange(ClickContinue: Boolean; MaxWait: Integer): Boolean;
+
+Waits for the NPC Chat to change the message. If ClickContinue is true, it will
+click to continue first, then wait for the chat to change.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WaitNPCChatchange(ClickContinue: Boolean; MaxWait: Integer): Boolean;
+var
+  InitialName, InitialMessage, Name, Message: String;
+  T: Integer;
+begin
+  InitialName := R_GetNPCChatName;
+  InitialMessage := R_GetNPCChatMessage;
+
+  if(ClickContinue)then
+    R_ClickToContinue;
+
+  MarkTime(T);
+  while(TimeFromMark(T) < MaxWait)do
+  begin
+    Name := R_GetNPCChatName;
+    Message := R_GetNPCChatMessage;
+
+    if(InitialName <> Name) or (InitialMessage <> Message)then
+    begin
+      Result := True;
+      Exit;
+    end;
+  end;
+
+  Result := False;
+end;
+
+(*
+R_WaitToStopAnimating
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitToStopAnimating(MaxWait: Integer): Boolean;
+
+Waits until your player is not animating anymore.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WaitToStopAnimating(MaxWait: Integer): Boolean;
+var
+  T: Integer;
+begin
+  Result := False;
+  MarkTime(T);
+  while(R_Animating)do
+  begin
+    if(TimeFromMark(T) >= MaxWait)then
+      Break;
+    Wait(20+Random(10));
+  end;
+  Result := (TimeFromMark(T) < MaxWait);
+end;
+
+(*
+R_WaitToAnimate
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitToAnimate: Boolean;
+
+Waits until your player is animating.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WaitToAnimate(MaxWait: Integer): Boolean;
+var
+  T: Integer;
+begin
+  Result := False;
+  MarkTime(T);
+  while(not R_Animating)do
+  begin
+    if(TimeFromMark(T) >= MaxWait)then
+      Break;
+    Wait(20+Random(10));
+  end;
+  Result := (TimeFromMark(T) < MaxWait);
+end;

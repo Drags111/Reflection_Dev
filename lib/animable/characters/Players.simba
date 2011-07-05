@@ -1,0 +1,404 @@
+(*
+Players
+=======
+
+Contains all routines regarding to grabbing player information.
+
+*)
+
+(*
+R_SortPlayers
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_SortPlayers(Players: TRSPlayerArray): TRSPlayerArray;
+
+Sorts the players by distance from you.
+
+.. note::
+
+  by lordsaturn
+
+*)
+function R_SortPlayers(Players: TPlayerArray): TPlayerArray;
+var
+  I, K: integer;
+  TPA: TPointArray;
+begin
+  if (High(Players) < 0) then Exit;
+  SetArrayLength(TPA, High(Players) + 1);
+  SetArrayLength(Result, High(Players) + 1);
+  for I := 0 to High(Players) do TPA[I] := Players[I].Tile;
+  SortTPAFrom(TPA, R_GetMyPos);
+  for I := 0 to High(Players) do
+    for K := 0 to High(Players) do
+      if(TPA[I].x = Players[K].Tile.x) and (TPA[I].y = Players[K].Tile.y)then
+        Result[I] := Players[K];
+end;
+
+(*
+R_GetAllPlayers
+~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetAllPlayers: TPlayerArray;
+
+Returns all of the players in the loaded area.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetAllPlayers: TPlayerArray;
+var
+  I, H, NumPlayers, IndexPos, Player, NameBytes, LoopCycle: integer;
+  BaseX, BaseY: Integer;
+begin
+  NumPlayers := SmartGetFieldInt(0, hook_static_PlayerCount);
+  SetArrayLength(Result, NumPlayers);
+
+  if (NumPlayers < 1)then
+    Exit;
+
+  BaseX := SmartGetFieldInt(0, hook_static_BaseX);
+  BaseY := SmartGetFieldInt(0, hook_static_BaseY);
+  LoopCycle := SmartGetFieldInt(0, hook_static_LoopCycle);
+
+  H := NumPlayers -1;
+  for I := 0 to H do
+  try
+    IndexPos := SmartGetFieldArrayInt(0, hook_static_PlayerIndexArray, I);
+    Player := SmartGetFieldArrayObject(0, hook_static_GetPlayers, IndexPos);
+
+    with Result[I] do
+    begin
+      Index := IndexPos;
+
+      NameBytes := SmartGetFieldObject(Player, hook_player_GetName);
+      Name := R_GetJavaString(NameBytes, 512);
+      SmartFreeObject(NameBytes);
+
+      Level := SmartGetFieldInt(Player, hook_player_GetLevel);
+      Team := SmartGetFieldInt(Player, hook_player_GetTeam);
+      Tile.X := BaseX + (SmartGetFieldInt(Player, hook_animable_PixelX) / 512);
+      Tile.Y := BaseY + (SmartGetFieldInt(Player, hook_animable_PixelY) / 512);
+      Height := IAbs(SmartGetFieldInt(Player, hook_character_GetHeight));
+      Animation := SmartGetFieldInt(Player, hook_character_Animation);
+      Motion := SmartGetFieldInt(Player, hook_character_Motion);
+      HPRatio := SmartGetFieldInt(Player, hook_character_HPRatio) * 100 / $FF;
+      InCombat := LoopCycle < SmartGetFieldInt(Player, hook_character_LoopCycleStatus);
+      WalkQueueX := SmartGetFieldArrayInt(Player, hook_character_WalkQueueX, 0);
+      WalkQueueY := SmartGetFieldArrayInt(Player, hook_character_WalkQueueY, 0);
+      Interacting := SmartGetFieldInt(Player, hook_character_GetInteracting);
+      Orientation := Round(FixD(180 + (SmartGetFieldInt(Player, hook_character_Orientation)* 45) / 2048));
+    end;
+  finally
+    SmartFreeObject(Player);
+  end;
+end;
+
+(*
+R_GetPlayersMulti
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetPlayersMulti(TheVarArr: TVariantArray): TPlayerArray;
+
+Returns a TPlayerArray of all the players in the area that match the
+specified variants (names or indices).
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetPlayersMulti(TheVarArr: TVariantArray): TPlayerArray;
+var
+  NumPlayers, BaseX, BaseY, LoopCycle, H, C, I, K, H2: Integer;
+  Player, NameBytes, vType, IndexPos: Integer;
+  TheName: String;
+  PlayerArray: TPlayerArray;
+  B: Boolean;
+begin
+  NumPlayers := SmartGetFieldInt(0,hook_static_PlayerCount);
+  SetArrayLength(PlayerArray, NumPlayers);
+
+  if (NumPlayers < 1) then
+    Exit;
+
+  BaseX := SmartGetFieldInt(0, hook_static_BaseX);
+  BaseY := SmartGetFieldInt(0, hook_static_BaseY);
+  LoopCycle := SmartGetFieldInt(0, hook_static_LoopCycle);
+  C := 0;
+
+  H := NumPlayers-1;
+  for I := 0 to H do
+  try
+    IndexPos := SmartGetFieldArrayInt(0, hook_static_PlayerIndexArray, I);
+    Player := SmartGetFieldArrayObject(0, hook_static_GetPlayers, IndexPos);
+
+    NameBytes := SmartGetFieldObject(Player, hook_player_GetName);
+    TheName := R_GetJavaString(NameBytes, 512);
+
+    H2 := High(TheVarArr);
+    B := False;
+    for K := 0 to H2 do
+    begin
+      vType := VarType(TheVarArr[K]);
+      if (vType = varString) then
+        TheVarArr[K] := LowerCase(Trim(TheVarArr[K]));
+      case vType of
+        varInteger: B := IndexPos = TheVarArr[K];
+        varString: B := (Pos(TheVarArr[K], LowerCase(Trim(TheName))) > 0);
+        else Exit;
+      end;
+      if B then
+        Break;
+    end;
+    if not B then
+      Continue;
+
+    with PlayerArray[C] do
+    begin
+      Index := IndexPos;
+      Name := TheName;
+      Level := SmartGetFieldInt(Player, hook_player_GetLevel);
+      Team := SmartGetFieldInt(Player, hook_player_GetTeam);
+      Tile.X := BaseX + (SmartGetFieldInt(Player, hook_animable_PixelX) / 512);
+      Tile.Y := BaseY + (SmartGetFieldInt(Player, hook_animable_PixelY) / 512);
+      Height := IAbs(SmartGetFieldInt(Player, hook_character_GetHeight));
+      Animation := SmartGetFieldInt(Player, hook_character_Animation);
+      Motion := SmartGetFieldInt(Player, hook_character_Motion);
+      HPRatio := SmartGetFieldInt(Player, hook_character_HPRatio) * 100 / $FF;
+      InCombat := LoopCycle < SmartGetFieldInt(Player, hook_character_LoopCycleStatus);
+      WalkQueueX := SmartGetFieldArrayInt(Player, hook_character_WalkQueueX, 0);
+      WalkQueueY := SmartGetFieldArrayInt(Player, hook_character_WalkQueueY, 0);
+      Interacting := SmartGetFieldInt(Player, hook_character_GetInteracting);
+      Orientation := Round(FixD(180 + (SmartGetFieldInt(Player, hook_character_Orientation)* 45) / 2048));
+    end;
+    Inc(C);
+  finally
+    SmartFreeObject(Player);
+    SmartFreeObject(NameBytes);
+  end;
+
+  SetArrayLength(PlayerArray, C);
+  Result := R_SortPlayers(PlayerArray);
+end;
+
+(*
+R_GetPlayers
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetPlayers(TheVar: Variant): TPlayerArray;
+
+Returns a TPlayerArray of all the players in the area that match the
+specified variant(name or index).
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetPlayers(TheVar: Variant): TPlayerArray;
+begin
+  Result := R_GetPlayersMulti([TheVar]);
+end;
+
+(*
+R_GetPlayerMulti
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetPlayerMulti(TheVarArr: TVariantArray): TPlayer;
+
+Returns a TPlayer of the player in the area that matches the specified variants
+(names or indices). Returns the closest one to you, if multiples are found.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetPlayerMulti(TheVarArr: TVariantArray): TPlayer;
+var
+  PlayerArray: TPlayerArray;
+begin
+  Result := NULL_PLAYER;
+  PlayerArray := R_GetPlayersMulti(TheVarArr);
+  if(Length(PlayerArray) < 1)then
+    Exit;
+  Result := PlayerArray[0];
+end;
+
+(*
+R_GetPlayer
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetPlayer(TheVar: Variant): TPlayer;
+
+Returns a TPlayer of the player in the area that matches the specified variant
+(name or index).
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetPlayer(TheVar: Variant): TPlayer;
+begin
+  Result := R_GetPlayerMulti([TheVar]);
+end;
+
+(*
+R_GetPlayersByLevelEx
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetPlayersByLevelEx(Levels: TIntegerArray): TPlayerArray;
+
+Returns a TPlayerArray of all the players in the area that have one of the
+levels specified. Sorts the list from closest to you.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetPlayersByLevelEx(Levels: TIntegerArray): TPlayerArray;
+var
+  NumPlayers, BaseX, BaseY, LoopCycle, H, C, I: Integer;
+  Player, NameBytes, IndexPos, TempLevel: Integer;
+  PlayerArray: TPlayerArray;
+begin
+  NumPlayers := SmartGetFieldInt(0,hook_static_PlayerCount);
+  SetArrayLength(PlayerArray, NumPlayers);
+
+  if (NumPlayers < 1) then
+    Exit;
+
+  BaseX := SmartGetFieldInt(0, hook_static_BaseX);
+  BaseY := SmartGetFieldInt(0, hook_static_BaseY);
+  LoopCycle := SmartGetFieldInt(0, hook_static_LoopCycle);
+  C := 0;
+
+  H := NumPlayers-1;
+  for I := 0 to H do
+  try
+    IndexPos := SmartGetFieldArrayInt(0, hook_static_PlayerIndexArray, I);
+    Player := SmartGetFieldArrayObject(0, hook_static_GetPlayers, IndexPos);
+
+    TempLevel := SmartGetFieldInt(Player, hook_player_GetLevel);
+
+    if(not InIntArray(Levels, TempLevel))then
+      Continue;
+
+    with PlayerArray[C] do
+    begin
+      Index := IndexPos;
+
+      NameBytes := SmartGetFieldObject(Player, hook_player_GetName);
+      Name := R_GetJavaString(NameBytes, 512);
+      SmartFreeObject(NameBytes);
+
+      Level := TempLevel;
+      Team := SmartGetFieldInt(Player, hook_player_GetTeam);
+      Tile.X := BaseX + (SmartGetFieldInt(Player, hook_animable_PixelX) / 512);
+      Tile.Y := BaseY + (SmartGetFieldInt(Player, hook_animable_PixelY) / 512);
+      Height := IAbs(SmartGetFieldInt(Player, hook_character_GetHeight));
+      Animation := SmartGetFieldInt(Player, hook_character_Animation);
+      Motion := SmartGetFieldInt(Player, hook_character_Motion);
+      HPRatio := SmartGetFieldInt(Player, hook_character_HPRatio) * 100 / $FF;
+      InCombat := LoopCycle < SmartGetFieldInt(Player, hook_character_LoopCycleStatus);
+      WalkQueueX := SmartGetFieldArrayInt(Player, hook_character_WalkQueueX, 0);
+      WalkQueueY := SmartGetFieldArrayInt(Player, hook_character_WalkQueueY, 0);
+      Interacting := SmartGetFieldInt(Player, hook_character_GetInteracting);
+      Orientation := Round(FixD(180 + (SmartGetFieldInt(Player, hook_character_Orientation)* 45) / 2048));
+    end;
+    Inc(C);
+  finally
+    SmartFreeObject(Player);
+  end;
+
+  SetArrayLength(PlayerArray, C);
+  Result := R_SortPlayers(PlayerArray);
+end;
+
+(*
+R_GetPlayersByLevel
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetPlayersByLevel(Level: Integer): TPlayerArray;
+
+Returns a TPlayerArray of all the players in the area that have the level
+specified. Sorts the list from closest to you.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetPlayersByLevel(Level: Integer): TPlayerArray;
+begin
+  Result := R_GetPlayersByLevelEx([Level]);
+end;
+
+(*
+R_GetPlayerByLevelEx
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetPlayerByLevelEx(Levels: TIntegerArray): TPlayer;
+
+Returns a TPlayer of the players in the area that has one of the levels
+specified. Chooses the closest to you.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetPlayerByLevelEx(Levels: TIntegerArray): TPlayer;
+var
+  PlayerArray: TPlayerArray;
+begin
+  Result := NULL_PLAYER;
+  PlayerArray := R_GetPlayersByLevelEx(Levels);
+    if(Length(PlayerArray) < 1)then
+    Exit;
+  Result := PlayerArray[0];
+end;
+
+(*
+R_GetPlayerByLevel
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetPlayerByLevel(Level: Integer): TPlayer;
+
+Returns a TPlayer of the players in the area that has the level specified.
+Chooses the closest to you.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetPlayerByLevel(Level: Integer): TPlayer;
+begin
+  Result := R_GetPlayerByLevelEx([Level]);
+end;
