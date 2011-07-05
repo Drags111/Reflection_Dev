@@ -16,7 +16,7 @@ R_GetInventoryInterfaceIndex
 
 Returns the inventory interface index, depending on if the bank is open or not.
 If it is open, the interface index is 763. If it's just normal inventory with no
-bank open, the index is 149
+bank open, the index is 679
 
 .. note::
 

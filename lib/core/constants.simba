@@ -36,7 +36,7 @@ const
   SETTING_RUN = 173;
 
   {Inventory Constants}
-  INTERFACE_INVENTORY = 149;
+  INTERFACE_INVENTORY = 679;
   INTERFACE_BANKINVENTORY = 763;
 
   {Equipment Constants}
