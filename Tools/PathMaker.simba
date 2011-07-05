@@ -11,7 +11,7 @@
 program PathMaker;
 {$DEFINE SMART}
 {$i srl\srl.scar}
-{$i Reflection_Dev\Reflection.simba}
+{$i Reflection\Reflection.simba}
 
 const
 
@@ -201,7 +201,6 @@ begin
   Smart_Signed := SIGNED;
 
   SetupSRL;
-  SetupReflectionEx(true);
   Writeln(R_GetMyPos);
   ThreadSafeCall('OpenForm',v);
 end.
