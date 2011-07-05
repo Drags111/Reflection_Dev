@@ -1,152 +1,26 @@
 (*
-Core
-====
-
-Contains routines necessary for function that couldn't be filed in
-other places.
-
-*)
-
-(*
-R_LatestRevision
-~~~~~~~~~~~~~~~~
+R_Debug
+~~~~~~~
 
 .. code-block:: pascal
 
-    function R_LatestRevision(WhatKind: string): Integer;
+    procedure R_Debug(Debug, InTags: String);
 
-Gets Hooks.simba information from pyroryan's server.
-
-.. note::
-
-  by Naike, Harry
-
-*)
-function R_LatestRevision(WhatKind: string): Integer;
-var
-  S: String;
-  I: Integer;
-begin
-  case whatKind of
-    'clientversion':
-    begin
-      S := GetPage('http://reflection.harry.lu/Hooks.simba');
-      I := Pos('ClientVersion', S);
-      Delete(S, 1, I+15);
-      S := Copy(S, 1, Pos(';', S)-1);
-      Result := StrToIntDef(S, -1);
-      if Result = -1 then
-        WriteLn('[Reflection] Failed to get Hook Revision!');
-    end;
-
-    'hookrevision':
-    begin
-      S := GetPage('http://reflection.harry.lu/Hooks.simba');
-      I := Pos('HookRev', S);
-      Delete(S, 1, I+9);
-      S := Copy(S, 1, Pos(';', S)-1);
-      Result := StrToIntDef(S, -1);
-      if Result = -1 then
-        WriteLn('[Reflection] Failed to get Hook Revision!');
-    end;
-    else
-      WriteLn('[Reflection] r_GetCurrentGit - invalid option!');
-  end;
-end;
-
-(*
-R_UpdateHooks
-~~~~~~~~~~~~~
-
-.. code-block:: pascal
-
-    Procedure R_UpdateHooks(Terminate: boolean);
-
-Tries to update to new hooks!
-
-.. note::
-
-  by Naike, Harry
-
-*)
-Procedure R_UpdateHooks;
-var
-  MyFile, ClientRev, RevHook: Integer;
-begin
-  ClientRev := R_LatestRevision('clientversion');
-  RevHook := R_LatestRevision('hookrevision');
-  If (ClientRev <= ClientVersion) and (RevHook <= HookRev) then
-  begin
-    if(Client.LoginIndex() = -1) then
-    begin
-      WriteLn('[Reflection] No new hooks have been uploaded yet; please be patient!');
-      if not R_ContinueIfOutdated then
-        TerminateScript;
-    end;
-  end else
-  begin
-    WriteLn('[Reflection] You''re using outdated hooks (version ' + ToStr(ClientVersion) + '.' + ToStr(HookRev) + '); updating you to version' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '!');
-    WriteLn('[Reflection] If you manually fixed your hooks, please make sure hookrevision values are greater than or equal to the online hooks to prevent overwriting.');
-    MyFile := RewriteFile(AppPath + 'includes/Reflection_Dev/lib/core/hooks.simba', False);
-    WriteFileString(MyFile, GetPage('http://reflection.harry.lu/Hooks.simba'));
-    CloseFile(MyFile);
-    WriteLn('[Reflection] Updated you to ' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '; please restart your script!');
-    TerminateScript;
-  end;
-end;
-
-(*
-R_FreeObjects
-~~~~~~~~~~~~~
-
-.. code-block:: pascal
-
-    procedure R_FreeObjects(Objects: TIntegerArray);
-
-Properly frees multiple objects using a try-catch statement.
-
-.. note::
-
-  by Drags111
-
-Example:
-  R_FreeObjects([ThisNode, ThatNode, TheOtherNode]);
-
-*)
-procedure R_FreeObjects(Objects: TIntegerArray);
-var
-  I: Integer;
-begin
-  for I := 0 to High(Objects) do
-  begin
-    try
-      SmartFreeObject(Objects[i]);
-    except
-    end;
-  end;
-end;
-
-(*
-R_FreeObject
-~~~~~~~~~~~~
-
-.. code-block:: pascal
-
-    procedure R_FreeObject(Obj: Integer);
-
-Properly frees an object using a try-catch statement.
+Writes debug notes if R_UseDebug is true. (By default it is true, but you can
+turn it off by setting R_UseDebug to false AFTER SetupReflection.
 
 .. note::
 
   by Drags111
 
 *)
-procedure R_FreeObject(Obj: Integer);
+procedure R_Debug(Debug, InTags: String);
 begin
-  try
-    SmartFreeObject(Obj);
-  except
-  end;
+  if R_SuppressDebug then Exit;
+  If (InTags = '') then
+    Writeln('[Reflection] ' + Debug)
+  else
+    Writeln('[' + InTags + '] ' + Debug);
 end;
 
 (*
@@ -208,23 +82,53 @@ begin
 end;
 
 (*
-R_GetArraySize
-~~~~~~~~~~~~~~
+R_GetMyPos
+~~~~~~~~~~
 
 .. code-block:: pascal
 
-    function R_GetArraySize(arrayObject : Integer) : Integer;
+    function R_GetMyPos: TTile;
 
-Retrives the size of the array object through smart.
+Returns your current tile.
 
 .. note::
 
-  by pyroryan
+  by Benland100
 
 *)
-function R_GetArraySize(arrayObject : Integer) : Integer;
+function R_GetMyPos: TTile;
+var
+  Me: Integer;
 begin
-  Result := SmartGetFieldArraySize(arrayObject, '', 1);
+  Me := SmartGetFieldObject(0, hook_static_MyPlayer);
+  Result.x := SmartGetFieldInt(0, hook_static_BaseX) + SmartGetFieldInt(Me, hook_animable_PixelX) / 512;
+  Result.y := SmartGetFieldInt(0, hook_static_BaseY) + SmartGetFieldInt(Me, hook_animable_PixelY) / 512;
+  SmartFreeObject(Me);
+end;
+
+(*
+R_GetMyLocPos
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMyLocPos: TTile;
+
+Returns your local position.
+
+.. note::
+
+  by Benland100
+
+*)
+function R_GetMyLocPos: TTile;
+var
+  Me: Integer;
+begin
+  Me := SmartGetFieldObject(0, hook_static_MyPlayer);
+  Result.x := (SmartGetFieldInt(Me, hook_animable_PixelX) - SmartGetFieldInt(0, hook_static_BaseX)) / 512;
+  Result.y := (SmartGetFieldInt(Me, hook_animable_PixelY) - SmartGetFieldInt(0, hook_static_BaseY)) / 512;
+  SmartFreeObject(Me);
 end;
 
 (*
@@ -247,7 +151,7 @@ var
   SettingArray, Data, DL, i: Integer;
 begin
   try
-    SettingArray := Client.Settings();
+    SettingArray := SmartGetFieldObject(0, hook_static_GetSettings);
     Data := SmartGetFieldObject(SettingArray, hook_settingarray_GetData);
 
     DL := SmartGetFieldArraySize(Data, '', 1);
@@ -290,8 +194,8 @@ begin
 end;
 
 (*
-function R_LoggedIn: Boolean;
-~~~~~~~~~~~~
+R_LoggedIn
+~~~~~~~~~~
 
 .. code-block:: pascal
 
@@ -308,56 +212,6 @@ function R_LoggedIn: Boolean;
 var
   LoginIndex: Integer;
 begin
-  LoginIndex := Client.LoginIndex();
+  LoginIndex := SmartGetFieldInt(0, hook_static_LoginIndex);
   Result := (LoginIndex = 10) or (LoginIndex = 11);
-end;
-
-(*
-R_GetMyPos
-~~~~~~~~~~
-
-.. code-block:: pascal
-
-    function R_GetMyPos: TTile;
-
-Returns your current tile.
-
-.. note::
-
-  by Benland100
-
-*)
-function R_GetMyPos: TTile;
-var
-  me: Integer;
-begin
-  me := Client.MyPlayer();
-  Result.x := Client.BaseX() + SmartGetFieldInt(me, hook_animable_PixelX) / 512;
-  Result.y := Client.BaseY() + SmartGetFieldInt(me, hook_animable_PixelY) / 512;
-  R_FreeObject(me);
-end;
-
-(*
-R_GetMyLocPos
-~~~~~~~~~~~~~
-
-.. code-block:: pascal
-
-    function R_GetMyLocPos: TTile;
-
-Returns your local position.
-
-.. note::
-
-  by Benland100
-
-*)
-function R_GetMyLocPos: TTile;
-var
-  me: Integer;
-begin
-  me := Client.MyPlayer();
-  Result.x := (SmartGetFieldInt(me, hook_animable_PixelX) - Client.BaseX()) / 512;
-  Result.y := (SmartGetFieldInt(me, hook_animable_PixelY) - Client.BaseY()) / 512;
-  R_FreeObject(me);
 end;

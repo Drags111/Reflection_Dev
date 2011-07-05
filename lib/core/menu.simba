@@ -1,10 +1,10 @@
-{*
+(*
 Menu
 ====
 
 All routines related to the menu option selectings.
 
-*}
+*)
 
 (*
 R_GetMenuItems
@@ -29,8 +29,12 @@ var
   Temp, ItemList: TStringArray;
 begin
   try
-    NodeList := Client.MenuNodeList();
-    MenuItemNode := R_GetNodeHead(NodeList);
+    NodeList := SmartGetFieldObject(0, hook_static_MenuNodeList);
+
+    Tail := SmartGetFieldObject(NodeList, hook_nodelist_Head);
+    MenuItemNode := SmartGetFieldObject(Tail, hook_node_Next);
+    SmartFreeObject(Tail);
+    Tail := 0;
 
     while(MenuItemNode <> 0)do
     begin
@@ -39,24 +43,28 @@ begin
 
       if(Action = 0) or (Option = 0)then
       begin
-        R_FreeObjects([Action, Option]);
+        SmartFreeObject(Action);
+        SmartFreeObject(Option);
         break;
       end;
 
       Item := Trim(R_GetJavaString(Action, 256) + ' ' +
                    R_GetJavaString(Option, 256));
-      R_FreeObjects([Action, Option]);
+
+      SmartFreeObject(Action);
+      SmartFreeObject(Option);
       SetLength(ItemList, Length(ItemList)+1);
       ItemList[High(ItemList)] := R_TrimHTML(Item);
 
       Last := MenuItemNode;
-      MenuItemNode := R_GetNodeNext(Last);
+      MenuItemNode := SmartGetFieldObject(Last, hook_node_Next);
 
-      R_FreeObject(Last);
+      SmartFreeObject(Last);
     end;
 
   finally
-    R_FreeObjects([MenuItemNode, NodeList, Action, Option, Last, Tail]);
+    SmartFreeObject(MenuItemNode);
+    SmartFreeObject(NodeList);
   end;
 
   //Have to reverse the array because it loads up backwards...
@@ -90,14 +98,17 @@ Returns a  2-dimensional string array of all of the options in a tabbed menu.
 function R_GetMenuItemsTabbed: array of TStringArray;
 var
   Action, Option: Integer;
-  NodeSubList, GroupNode: Integer;
+  NodeSubList, GroupNode, Tail: Integer;
   SubMenu, MenuItemNode, Last, Last2: Integer;
   Item: String;
   Items: TStringArray;
 begin
   try
-    NodeSubList := Client.CollapsedMenuItems();
-    GroupNode := R_GetNodeSubHead(NodeSubList);
+    NodeSubList := SmartGetFieldObject(0, hook_static_GetCollapsedMenuItems);
+
+    Tail := SmartGetFieldObject(NodeSubList, hook_nodesublist_getHead);
+    GroupNode := SmartGetFieldObject(Tail, hook_nodesub_Next);
+    SmartFreeObject(Tail);
 
     while(GroupNode <> 0)do
     begin
@@ -105,7 +116,10 @@ begin
       if (SubMenu <= 0) then
         break;
 
-      MenuItemNode := R_GetNodeSubHead(SubMenu);
+      Tail := SmartGetFieldObject(SubMenu, hook_nodelist_Head);
+      MenuItemNode := SmartGetFieldObject(Tail, hook_node_Next);
+      SmartFreeObject(Tail);
+      Tail := 0;
 
       while (MenuItemNode <> 0) do
       begin
@@ -115,20 +129,21 @@ begin
 
         if(Action = 0) and (Option = 0)then
         begin
-          R_FreeObjects([Action, Option]);
+          SmartFreeObject(Action);
+          SmartFreeObject(Option);
           break;
         end;
 
         Item := Trim(R_GetJavaString(Action, 512) + ' ' +
                      R_GetJavaString(Option, 512));
-        R_FreeObjects([Action, Option]);
+        SmartFreeObject(Action);
+        SmartFreeObject(Option);
         SetLength(Items, Length(Items)+1);
         Items[High(Items)] := Trim(R_TrimHTML(Lowercase(Item)));
 
         Last2 := MenuItemNode;
-        MenuItemNode := R_GetNodeSubNext(Last2);
-
-        R_FreeObject(Last2);
+        MenuItemNode := SmartGetFieldObject(Last2, hook_nodesub_Next);
+        SmartFreeObject(Last2);
       end;
 
       if(Length(Items) > 0)then
@@ -139,13 +154,15 @@ begin
       end;
 
       Last := GroupNode;
-      GroupNode := R_GetNodeSubNext(Last);
+      GroupNode := SmartGetFieldObject(Last, hook_nodesub_Next);
 
-      R_FreeObjects([Last, SubMenu, MenuItemNode]);
+      SmartFreeObject(Last);
+      SmartFreeObject(SubMenu);
+      SmartFreeObject(MenuItemNode);
     end;
   finally
-    R_FreeObjects([GroupNode, NodeSubList, SubMenu, MenuItemNode,
-                   Action, Option, Last, Last2]);
+    SmartFreeObject(GroupNode);
+    SmartFreeObject(NodeSubList);
   end;
 end;
 
@@ -173,12 +190,12 @@ var
   Dimensions: TBox;
 begin
   Result := False;
-  if not Client.MenuOpen() then
+  if not SmartGetFieldBoolean(0, hook_static_MenuOpen) then
     Exit;
-  MX := Client.MenuX();
-  MY := Client.MenuY();
-  MW := Client.MenuWidth();
-  MH := Client.MenuHeight();
+  MX := SmartGetFieldInt(0, hook_static_MenuX);
+  MY := SmartGetFieldInt(0, hook_static_MenuY);
+  MW := SmartGetFieldInt(0, hook_static_MenuWidth);
+  MH := SmartGetFieldInt(0, hook_static_MenuHeight);
 
   MenuItems := R_GetMenuItems;
 
@@ -187,13 +204,13 @@ begin
       if(Pos(Trim(Lowercase(Options[L])), MenuItems[I]) > 0)then
       begin
         Option := MenuItems[I];
-        xOff := RandomRange(0, 4 + Random(Length(Option) * 4 - 4));
+        xOff := RandomRange(4, 4 + Random(Length(Option) * 4 - 4));
         yOff := 21 + (16 * I) + RandomRange(2, 10);
         MMouse(MX + xOff, MY + yOff, 0, 0);
 
         GetMousePos(X, Y);
         Dimensions := IntToBox(MX, MY, MX + MW, MY + MH);
-        if(Client.MenuOpen() and PointInBox(Point(X, Y), Dimensions))then
+        if(SmartGetFieldBoolean(0, hook_static_MenuOpen) and PointInBox(Point(X, Y), Dimensions))then
         begin
           Result := true;
           Exit;
@@ -226,7 +243,8 @@ var
   Dimensions: TBox;
 begin
   Result := False;
-  if(not Client.MenuOpen()) or (not Client.IsMenuTabbed())then
+  if(not SmartGetFieldBoolean(0, hook_static_MenuOpen)) or
+    (not SmartGetFieldBoolean(0, hook_static_IsMenuTabbed))then
     Exit;
 
   MenuItems := R_GetMenuItemsTabbed;
@@ -236,29 +254,29 @@ begin
       for L := 0 to High(Options)do
         if(Pos(Trim(Lowercase(Options[L])), MenuItems[I][K]) > 0)then
         begin
-          if not Client.MenuOpen() then
+          if not SmartGetFieldBoolean(0, hook_static_MenuOpen) then
             Exit;
-          MX := Client.MenuX();
-          MY := Client.MenuY();
-          MW := Client.MenuWidth();
-          MH := Client.MenuHeight();
+          MX := SmartGetFieldInt(0, hook_static_MenuX);
+          MY := SmartGetFieldInt(0, hook_static_MenuY);
+          MW := SmartGetFieldInt(0, hook_static_MenuWidth);
+          MH := SmartGetFieldInt(0, hook_static_MenuHeight);
 
           Option := MenuItems[I][K];
-          xOff := RandomRange(0, 4 + Random(Length(Option) * 4 - 4));
+          xOff := RandomRange(4, 4 + Random(Length(Option) * 4 - 4));
           yOff := 21 + (16 * I) + RandomRange(2, 10);
           MMouse(MX + xOff, MY + yOff, 0, 0);
           GetMousePos(X, Y);
           Dimensions := IntToBox(MX, MY, MX + MW, MY + MH);
-          if not Client.MenuOpen() or not PointInBox(Point(X, Y), Dimensions)then
+          if not SmartGetFieldBoolean(0, hook_static_MenuOpen) or not PointInBox(Point(X, Y), Dimensions)then
             Exit;
           wait(100+Random(1000));
 
-          MX := Client.MenuX2();
-          MY := Client.MenuY2();
-          MW := Client.MenuWidth2();
-          MH := Client.MenuHeight2();
+          MX := SmartGetFieldInt(0, hook_static_MenuX2);
+          MY := SmartGetFieldInt(0, hook_static_MenuY2);
+          MW := SmartGetFieldInt(0, hook_static_MenuWidth2);
+          MH := SmartGetFieldInt(0, hook_static_MenuHeight2);
 
-          xOff := RandomRange(0, 10);
+          xOff := RandomRange(4, 10);
           MMouse(MX + xOff, Y, 0, 2);
           wait(100+Random(100));
           xOff := RandomRange(0, 4 + Random(Length(Option) * 4 - 4));
@@ -267,15 +285,15 @@ begin
           GetMousePos(X, Y);
           Dimensions := IntToBox(MX, MY, MX + MW, MY + MH);
 
-          if(Client.MenuOpen() and PointInBox(Point(X, Y), Dimensions))then
+          if(SmartGetFieldBoolean(0, hook_static_MenuOpen) and PointInBox(Point(X, Y), Dimensions))then
           begin
             Result := True;
             Exit;
           end else
           begin
-            MX := Client.MenuX();
-            MY := Client.MenuY();
-            MMouse(MX - 10, MY - 10, 3, 3);
+            MX := SmartGetFieldInt(0, hook_static_MenuX);
+            MY := SmartGetFieldInt(0, hook_static_MenuY);
+            MMouse(MX - 15, MY - 15, 3, 3);
           end;
         end;
 end;
@@ -301,31 +319,43 @@ var
 begin
   Result := False;
   MarkTime(T);
-  while not Client.MenuOpen() do
+  while not SmartGetFieldBoolean(0, hook_static_MenuOpen) do
   begin
     if(TimeFromMark(T) > 500)then
       Exit;
     wait(50+Random(50));
   end;
 
-  case Client.IsMenuTabbed() of
+  case SmartGetFieldBoolean(0, hook_static_IsMenuTabbed) of
     true: Result := R_MMouseMenuTabbed(Options);
     false: Result := R_MMouseMenu(Options);
   end;
 
-  if(Client.MenuOpen() and Result)then
+  if(SmartGetFieldBoolean(0, hook_static_MenuOpen) and Result)then
   begin
     Result := False;
     GetMousePos(X, Y);
     Mouse(X, Y, 0, 0, True);
     MarkTime(T);
-    while Client.MenuOpen() do
+    while SmartGetFieldBoolean(0, hook_static_MenuOpen) do
     begin
       if(TimeFromMark(T) > 3000)then
         Exit;
       wait(50+Random(50));
     end;
     Result := True;
+  end else
+  begin
+    MarkTime(T);
+    while(SmartGetFieldBoolean(0, hook_static_MenuOpen))do
+    begin
+      if(TimeFromMark(T) > 3000)then
+        Exit;
+      X := SmartGetFieldInt(0, hook_static_MenuX);
+      Y := SmartGetFieldInt(0, hook_static_MenuY);
+      MMouse(X, Y-25, 50, 10);
+      Wait(50+Random(50));
+    end;
   end;
 end;
 
@@ -372,9 +402,9 @@ var
   I, K, L: Integer;
 begin
   Result := False;
-  if(Client.MenuOptionCount() <= 0)then
+  if(SmartGetFieldInt(0, hook_static_MenuOptionCount) <= 0)then
     Exit;
-  if(Client.IsMenuTabbed())then
+  if(SmartGetFieldBoolean(0, hook_static_IsMenuTabbed))then
   begin
     MenuItemsTabbed := R_GetMenuItemsTabbed;
     for I := 0 to High(MenuItemsTabbed)do
@@ -441,7 +471,7 @@ var
   MoreOptions, I: Integer;
 begin
   Result := '';
-  case Client.IsMenuTabbed() of
+  case SmartGetFieldBoolean(0, hook_static_IsMenuTabbed) of
     true: begin
       MenuItemsTabbed := R_GetMenuItemsTabbed;
       if (Length(MenuItemsTabbed) > 0)then
@@ -526,108 +556,4 @@ Description: Returns true if UpText is found.
 function R_IsUpText(UpText: string): Boolean;
 begin
   Result := R_IsUpTextMulti([UpText]);
-end;
-
-(*
-R_WaitOptionMulti
-~~~~~~~~~~~~~~~~~
-
-.. code-block:: pascal
-
-    function R_WaitOptionMulti(S: TStringArray; Time: Integer): Boolean;
-
-Waits to select an option, and if it finds it, selects it
-
-.. note::
-
-  by Naike
-
-*)
-function R_WaitOptionMulti(S: TStringArray; Time: Integer): Boolean;
-var
-  T: Integer;
-begin
-  Result := False;
-  T := GetSystemTime + Time;
-  while (GetSystemTime < T) do
-  begin
-    if R_ChooseOptionMulti(S) then
-    begin
-      Result := True;
-      Exit;
-    end;
-    Wait(20 + Random(10));
-  end;
-end;
-
-(*
-R_WaitOption
-~~~~~~~~~~~~
-
-.. code-block:: pascal
-
-    function R_WaitOption(S: String; Time: Integer): Boolean;
-
-Waits to select an option, and if it finds it, selects it
-
-.. note::
-
-  by Naike
-
-*)
-function R_WaitOption(S: String; Time: Integer): Boolean;
-begin
-  Result := r_WaitOptionMulti([S], Time);
-end;
-
-(*
-R_WaitUpTextMulti
-~~~~~~~~~~~~~~~~~
-
-.. code-block:: pascal
-
-    function R_WaitUpTextMulti(S: TStringArray; Time: Integer): Boolean;
-
-Waits for an uptext in the UpText array.
-
-.. note::
-
-  by Naike
-
-*)
-function R_WaitUpTextMulti(S: TStringArray; Time: Integer): Boolean;
-var
-  T: Integer;
-begin
-  Result := False;
-  T := GetSystemTime + Time;
-  while (GetSystemTime < T) do
-  begin
-    if R_IsUpTextMulti(S) then
-    begin
-      Result := True;
-      Exit;
-    end;
-    Wait(20 + Random(10));
-  end;
-end;
-
-(*
-R_WaitUpText
-~~~~~~~~~~~~
-
-.. code-block:: pascal
-
-    function R_WaitUpText(S: String; Time: Integer): Boolean;
-
-Waits for the UpText
-
-.. note::
-
-  by Naike
-
-*)
-function R_WaitUpText(S: String; Time: Integer): Boolean;
-begin
-  Result := r_WaitUpTextMulti([S], Time);
 end;

@@ -1,0 +1,262 @@
+(*
+Equipment
+=========
+
+Routines regarding to your players equipped items.
+
+Constants used for these functions:
+  EQUIPMENT_HELMET     = 8;
+  EQUIPMENT_CAPE       = 11;
+  EQUIPMENT_NECKLACE   = 14;
+  EQUIPMENT_WEAPON     = 17;
+  EQUIPMENT_TORSO      = 20;
+  EQUIPMENT_SHIELD     = 23;
+  EQUIPMENT_LEGS       = 26;
+  EQUIPMENT_GLOVES     = 29;
+  EQUIPMENT_BOOTS      = 32;
+  EQUIPMENT_RING       = 35;
+  EQUIPMENT_AMMO       = 38;
+
+*)
+
+(*
+R_GetEquippedItemAt
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetEquippedItemAt(Slot: Integer): TEquipment;
+
+Returns a TEquipmentItem of the item in the specified equipment slot. (see
+constants at top of page.)
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetEquippedItemAt(Slot: Integer): TEquipmentItem;
+var
+  Child, ID, NameBytes: Integer;
+begin
+  Result := NULL_EQUIPMENT;
+
+  if not R_GameTab(RTAB_EQUIPMENT)then
+  begin
+    R_Debug('Unable to tab to equipment.', '');
+    Exit;
+  end;
+
+  try
+    Child := R_GetInterfaceChildRef(INTERFACE_EQUIPMENT, Slot);
+    ID := SmartGetFieldInt(Child, hook_interface_GetComponentID);
+    if (ID > 0) then
+    begin
+      Result.ID := ID;
+
+      try
+        NameBytes := SmartGetFieldObject(Child, hook_interface_GetComponentName);
+        Result.Name := R_TrimHTML(R_GetJavaString(NameBytes, 512));
+      finally
+        SmartFreeObject(NameBytes);
+      end;
+
+      Result.Count := SmartGetFieldInt(Child, hook_interface_GetComponentStackSize);
+      Result.Actions := R_GetInterfaceActions(Child);
+      Result.IsAmmo := (Result.Count > 1);
+    end;
+  finally
+    SmartFreeObject(Child);
+  end;
+end;
+
+(*
+R_GetEquipment
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetEquipment: TEquipmentSet;
+
+Returns a TEquipmentSet of your character.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetEquipment: TEquipmentSet;
+var
+  I: Integer;
+begin
+  SetLength(Result, 0);
+
+  if not R_GameTab(RTAB_EQUIPMENT)then
+  begin
+    R_Debug('Unable to tab to equipment.', '');
+    Exit;
+  end;
+
+  SetLength(Result, 11);
+  for I := 0 to 10 do
+    Result[I] := R_GetEquippedItemAt((I*3)+8);
+end;
+
+(*
+R_GetEquippedIDAt
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetEquippedIDAt(Slot: Integer): Integer;
+
+Returns a the ID of the item in the slot. See const list at top of page or in
+Constants.simba for the list of valid inputs.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetEquippedIDAt(Slot: Integer): Integer;
+var
+  Equipment: TEquipmentItem;
+begin
+  Equipment := R_GetEquippedItemAt(Slot);
+  Result := Equipment.ID;
+end;
+
+(*
+R_GetEquippedNameAt
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetEquippedNameAt(Slot: Integer): String;
+
+Returns a the name of the item in the slot. See const list at top of page or in
+Constants.simba for the list of valid inputs.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetEquippedNameAt(Slot: Integer): String;
+var
+  Equipment: TEquipmentItem;
+begin
+  Equipment := R_GetEquippedItemAt(Slot);
+  Result := Equipment.Name;
+end;
+
+(*
+R_HasItemEquippedAt
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_HasItemEquippedAt(Slot: Integer): Boolean;
+
+Returns true if there is an item equipped at the slot. See const list at top of
+page or in Constants.simba for the list of valid inputs.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_HasItemEquippedAt(Slot: Integer): Boolean;
+var
+  Equipment: TEquipmentItem;
+begin
+  Equipment := R_GetEquippedItemAt(Slot);
+  Result := (Equipment.ID > 0);
+end;
+
+(*
+R_IsEquippedEx
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_IsEquippedEx(TheVarArr: TVariantArray): Boolean;
+
+Returns true if the there is an item equipped with at least one of the Names or
+IDs you input as TheVarArr.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_IsEquippedEx(TheVarArr: TVariantArray): Boolean;
+var
+  Equipment: TEquipmentSet;
+  I, K, vType: Integer;
+  B: Boolean;
+begin
+  Result := False;
+  Equipment := R_GetEquipment;
+
+  for K := 0 to High(Equipment) do
+    for I := 0 to High(TheVarArr) do
+    begin
+      vType := VarType(TheVarArr[I]);
+      if (vType = varString) then
+        TheVarArr[I] := LowerCase(Trim(TheVarArr[I]));
+      case vType of
+        varInteger: B := (Equipment[K].ID = TheVarArr[I]);
+        varString: B := (Pos(TheVarArr[I], LowerCase(Trim(Equipment[K].Name))) > 0);
+        else Exit;
+      end;
+      if not B then
+        Continue;
+      Result := True;
+      Exit;
+    end;
+end;
+
+(*
+R_IsEquipped
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_IsEquipped(TheVar: Variant): Boolean;
+
+Returns true if the there is an item equipped with the Name or ID you input as
+TheVar.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_IsEquipped(TheVar: Variant): Boolean;
+begin
+  Result := R_IsEquippedEx([TheVar]);
+end;
+
+(*
+R_GetAmmoCount
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetAmmoCount: Integer;
+
+Returns the number of arrows or bolts etc, you have equipped.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetAmmoCount: Integer;
+var
+  Ammo: TEquipmentItem;
+begin
+  Ammo := R_GetEquippedItemAt(EQUIPMENT_AMMO);
+  Result := Ammo.Count;
+end;

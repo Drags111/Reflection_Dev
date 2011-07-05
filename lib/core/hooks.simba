@@ -1,354 +1,350 @@
 const
-ClientVersion = 653;
-HookRev = 2;
+ClientVersion = 655;
+HookRev = 6;
 
 
 {Static Hooks}
-hook_static_LoginIndex = 'vh.v';
-hook_static_GetChatLines = 'q.m';
-hook_static_CameraYaw = 'bga.f';
-hook_static_MyPlayer = 'bq.s';
-hook_static_BaseX = 'wb.k';
-hook_static_BaseY = 'cp.eb';
-hook_static_NPCIndexArray = 'ii.I';
-hook_static_LoopCycle = 'qaa.M';
-hook_static_GetNPCNC = 'naa.n';
-hook_static_GetItemDefLoader = 'fu.j';
-hook_static_GetObjectDefLoader = '';
-hook_static_NPCNodes = 'vc.I';
-hook_static_NPCCount = 'ds.a';
-hook_static_GroundSettingsArray = 'pm.e';
-hook_static_LoadedPlane = 'dd.k';
-hook_static_PlaneArray = 'sda.s';
-hook_static_Toolkit = 'ad.e';
-hook_static_GetCollapsedMenuItems = 'nc.s';
-hook_static_MenuOptionCount = 'pia.j';
-hook_static_MenuCollapsedOptionsCount = 'ig.h';
-hook_static_MenuX = 'po.B';
-hook_static_MenuY = 'si.v';
-hook_static_MenuWidth = 'pw.s';
-hook_static_MenuHeight = 'aca.j';
-hook_static_MenuX2 = 'uj.c';
-hook_static_MenuY2 = 'aw.a';
-hook_static_MenuWidth2 = 'qd.B';
-hook_static_MenuHeight2 = 'mfa.k';
-hook_static_MenuNodeList = 'sv.I';
-hook_static_MenuOpen = 'un.e';
-hook_static_IsMenuTabbed = 'aa.b';
-hook_static_GetInterfaces = 'bj.b';
-hook_static_ValidInterfaces = 'sj.g';
-hook_static_GetInterfaceBoundsArray = 'fq.e';
-hook_static_InterfaceDismissBounds = 'ld.c';
-hook_static_InterfaceNC = 'va.a';
-hook_static_GetSettings = 'nu.d';
-hook_static_GroundItemCache = 'lca.c';
-hook_static_GetGroundDataArray = 'uga.c';
-hook_static_GetSkillExperiences = 'ol.i';
-hook_static_GetSkillLevels = 'r.w';
-hook_static_MapAngle = 'aca.o';
-hook_static_DestX = 'kn.F';
-hook_static_DestY = 'saa.k';
-hook_static_PlayerCount = 'mg.c';
-hook_static_PlayerIndexArray = 'un.j';
-hook_static_GetPlayers = 'rp.v';
-hook_static_CamPosX = 'si.q';
-hook_static_CamPosY = 'rs.n';
-hook_static_GroundTiles = 'kca.w';
-hook_static_GetCrossHairColor = 'ln.J';
-hook_static_isSpellSelected = 'aka.h';
-hook_static_getMinimapSetting = 'kj.b';
-hook_static_getMinimapAngle = 'ln.L';
-hook_static_getSelfInteracting = 'wb.k';
+hook_static_LoginIndex = 'rj.p';
+hook_static_CamPosX = 'su.o';
+hook_static_CamPosY = 'mo.q';
+hook_static_CamPosZ = 'sg.m';
+hook_static_CameraPitch = 'pq.t';
+hook_static_CameraYaw = 'hba.p';
+hook_static_GetChatLines = 'du.a';
+hook_static_MyPlayer = 'ur.M';
+hook_static_BaseX = 'ph.w';
+hook_static_BaseY = 'ko.d';
+hook_static_NPCIndexArray = 'pba.h';
+hook_static_LoopCycle = 'iia.N';
+hook_static_GetNPCNC = 'qja.e';
+hook_static_GetItemDefLoader = 'vj.e';
+hook_static_GetObjectDefLoader = 'll.o';
+hook_static_NPCNodes = 'vi.B';
+hook_static_NPCCount = 'qd.b';
+hook_static_GroundSettingsArray = 'nw.L';
+hook_static_LoadedPlane = 'tp.p';
+hook_static_PlaneArray = 'gn.j';
+hook_static_Toolkit = 'rr.U';
+hook_static_GetCollapsedMenuItems = 'sr.e';
+hook_static_MenuOptionCount = 'rh.e';
+hook_static_MenuCollapsedOptionsCount = 'nl.g';
+hook_static_MenuX = 'tca.a';
+hook_static_MenuY = 'jfa.m';
+hook_static_MenuWidth = 'jl.h';
+hook_static_MenuHeight = 'rd.q';
+hook_static_MenuX2 = 'aja.b';
+hook_static_MenuY2 = 'oq.A';
+hook_static_MenuWidth2 = 'an.wb';
+hook_static_MenuHeight2 = 'od.I';
+hook_static_MenuNodeList = 'gl.K';
+hook_static_MenuOpen = 'co.K';
+hook_static_IsMenuTabbed = 'jk.g';
+hook_static_GetInterfaces = 'hv.d';
+hook_static_ValidInterfaces = 'uo.d';
+hook_static_GetInterfaceBoundsArray = 'cc.g';
+hook_static_InterfaceDismissBounds = 'gg.A';
+hook_static_InterfaceNC = 'ei.n';
+hook_static_GetSettings = 'bu.g';
+hook_static_GroundItemCache = 'ud.d';
+hook_static_GetGroundDataArray = 'fm.z';
+hook_static_GetSkillExperiences = 'dq.l';
+hook_static_GetSkillLevels = 'cca.g';
+hook_static_MapAngle = 'er.m';
+hook_static_DestX = 'wn.K';
+hook_static_DestY = 'fg.n';
+hook_static_PlayerCount = 'vk.k';
+hook_static_PlayerIndexArray = 'dt.G';
+hook_static_GetPlayers = 'oq.J';
+hook_static_GroundTiles = 'gj.h';
+hook_static_GetCrossHairColor = 'cr.c';
 
 {Class SDModel}
-class_SDModel = 'lda';
-hook_sdmodel_GetIndices1 = 'Cb';
-hook_sdmodel_GetIndices2 = 'q';
-hook_sdmodel_GetIndices3 = 'I';
-hook_sdmodel_GetPointsX = 'S';
-hook_sdmodel_GetPointsY = 'R';
-hook_sdmodel_GetPointsZ = 'xb';
+class_SDModel = 'qo';
+hook_sdmodel_GetIndices1 = 'db';
+hook_sdmodel_GetIndices2 = 'Ab';
+hook_sdmodel_GetIndices3 = 'kb';
+hook_sdmodel_GetPointsX = 'C';
+hook_sdmodel_GetPointsY = 'H';
+hook_sdmodel_GetPointsZ = 'L';
 
 {Class ChatLine}
-class_ChatLine = 'nba';
-hook_chatline_GetName = 'f';
-hook_chatline_GetMessage = 'l';
+class_ChatLine = 'ct';
+hook_chatline_GetName = 'p';
+hook_chatline_GetMessage = 'c';
 
 {Class Animable}
-class_Animable = 'vca';
-hook_animable_PixelX = 'm';
-hook_animable_PixelY = 'j';
-hook_animable_Plane = 'x';
+class_Animable = 'gn';
+hook_animable_PixelX = 'n';
+hook_animable_PixelY = 'q';
+hook_animable_Plane = 'y';
 
 {Class Player}
-class_Player = 'af';
-hook_player_GetLevel = 'pd';
-hook_player_GetName = 'Qc';
-hook_player_GetTeam = 'vd';
-hook_player_PlayerDef = 'Tc';
+class_Player = 'rv';
+hook_player_GetLevel = 'Fd';
+hook_player_GetName = 'ld';
+hook_player_GetTeam = 'Gd';
+hook_player_PlayerDef = 'fd';
 
 {Class Character}
-class_Character = 'oha';
-hook_character_Animation = 'bc';
-hook_character_Motion = 'M';
-hook_character_WalkQueueX = 'Cb';
-hook_character_WalkQueueY = 'U';
-hook_character_GetHeight = 'nc';
+class_Character = 'cl';
+hook_character_Animation = 'Db';
+hook_character_Motion = 'yb';
+hook_character_WalkQueueX = 'fc';
+hook_character_WalkQueueY = 'Ec';
+hook_character_GetHeight = 'sb';
 hook_character_LoopCycleStatus = 'Kb';
-hook_character_HPRatio = 'mb';
-hook_character_GetInteracting = 'uc';
-hook_character_Orientation = 'Ec';
+hook_character_HPRatio = 'Rb';
+hook_character_GetInteracting = 'Jc';
+hook_character_Orientation = 'Jb';
 
 {Class AnimableNode}
-class_AnimableNode = 'qj';
-hook_AnimableNode_GetAnimable = 'e';
-hook_AnimableNode_GetNext = 'i';
+class_AnimableNode = 'fl';
+hook_AnimableNode_GetAnimable = 'd';
+hook_AnimableNode_GetNext = 'c';
 
 {Class AnimableEntity}
-class_AnimableEntity = 'mc';
-hook_animableentity_GetAreaX1 = 'C';
-hook_animableentity_GetAreaX2 = 'H';
+class_AnimableEntity = 'gl';
+hook_animableentity_GetAreaX1 = 'G';
+hook_animableentity_GetAreaX2 = 'L';
 hook_animableentity_GetAreaY1 = 'D';
-hook_animableentity_GetAreaY2 = 'J';
+hook_animableentity_GetAreaY2 = 'H';
 
 {Class PlayerDef}
-class_PlayerDef = 'tw';
-hook_playerdef_GetEquipment = 'r';
+class_PlayerDef = 'sk';
+hook_playerdef_GetEquipment = 'n';
 
 {Class NodeCache}
-class_NodeCache = 'ld';
-hook_nodecache_GetNodes = 'e';
+class_NodeCache = 'wv';
+hook_nodecache_GetNodes = 'j';
 
 {Class Item}
-class_Item = 'aca';
-hook_item_GetID = 'm';
-hook_item_GetStack = 'n';
+class_Item = 'um';
+hook_item_GetID = 'n';
+hook_item_GetStack = 'q';
 
 {Class ItemDefLoader}
-class_ItemDefLoader = 'aka';
-hook_itemdefloader_GetMRUNodes = 'f';
+class_ItemDefLoader = 'oaa';
+hook_itemdefloader_GetMRUNodes = 'o';
 
 {Class ItemDef}
-class_ItemDef = 'mba';
-hook_itemdef_GetLoader = 'tb';
-hook_itemdef_GetGroundActions = 'jb';
-hook_itemdef_GetActions = 'Y';
+class_ItemDef = 'vu';
+hook_itemdef_GetLoader = 'yb';
+hook_itemdef_GetGroundActions = 'db';
+hook_itemdef_GetActions = 'eb';
 
 {Class MRUNodes}
-class_MRUNodes = 'gw';
-hook_mrunodes_GetNodeCache = 'k';
-hook_mrunodes_GetList = 'l';
-hook_mrunodes_GetInitialCount = 'b';
-hook_mrunodes_GetSpaceLeft = 'j';
+class_MRUNodes = 'oi';
+hook_mrunodes_GetNodeCache = 'E';
+hook_mrunodes_GetList = 'x';
+hook_mrunodes_GetInitialCount = 'a';
+hook_mrunodes_GetSpaceLeft = 'm';
 
 {Class ObjectDef}
-class_ObjectDef = '';
-hook_objectdef_GetName = '';
-hook_objectdef_GetActions = '';
-hook_objectdef_getChildrenIDs = '';
+class_ObjectDef = 'dea';
+hook_objectdef_GetName = 'v';
+hook_objectdef_GetActions = 'W';
+hook_objectdef_getChildrenIDs = 'fb';
 
 {Class ObjectDefLoader}
-class_ObjectDefLoader = '';
-hook_objectdefloader_GetMRUNodes = '';
+class_ObjectDefLoader = 'lh';
+hook_objectdefloader_GetMRUNodes = 'p';
 
 {Class NPC}
-class_NPC = 'uba';
-hook_npc_NPCDef = 'gd';
+class_NPC = 'lia';
+hook_npc_NPCDef = 'Tc';
 hook_npc_GetLevel = 'md';
 
 {Class NPCDef}
-class_NPCDef = 'vl';
-hook_npcdef_GetActions = 'tb';
-hook_npcdef_GetName = 'x';
-hook_npcdef_GetLevel = 'E';
-hook_npcdef_GetID = 'f';
+class_NPCDef = 'nea';
+hook_npcdef_GetActions = 'v';
+hook_npcdef_GetName = 'fb';
+hook_npcdef_GetLevel = 'Bb';
+hook_npcdef_GetID = 'T';
 
 {Class NPCDefLoader}
-class_NPCDefLoader = 'dea';
-hook_npcdefloader_ModelRef = 'p';
+class_NPCDefLoader = 'dga';
+hook_npcdefloader_ModelRef = 'k';
 
 {Class NPCNode}
-class_NPCNode = 'oba';
+class_NPCNode = 'eaa';
 hook_npcnode_GetNPC = 'o';
 
 {Class SDViewport}
-class_SDViewport = 'nca';
-hook_sdviewport_xOff = 'B';
-hook_sdviewport_xX = 'm';
-hook_sdviewport_xY = 'w';
-hook_sdviewport_xZ = 'z';
-hook_sdviewport_yOff = 't';
-hook_sdviewport_yX = 'G';
-hook_sdviewport_yY = 'A';
-hook_sdviewport_yZ = 'h';
-hook_sdviewport_zOff = 'l';
-hook_sdviewport_zX = 'f';
-hook_sdviewport_zY = 'v';
-hook_sdviewport_zZ = 'p';
+class_SDViewport = 'vr';
+hook_sdviewport_xOff = 'm';
+hook_sdviewport_xX = 'y';
+hook_sdviewport_xY = 'z';
+hook_sdviewport_xZ = 'G';
+hook_sdviewport_yOff = 'E';
+hook_sdviewport_yX = 'u';
+hook_sdviewport_yY = 't';
+hook_sdviewport_yZ = 'p';
+hook_sdviewport_zOff = 'i';
+hook_sdviewport_zX = 'F';
+hook_sdviewport_zY = 'l';
+hook_sdviewport_zZ = 'v';
 
 {Class SDToolkit}
-class_SDToolkit = 'lga';
-hook_sdtoolkit_Viewport = 'z';
-hook_sdtoolkit_xMin = 'w';
-hook_sdtoolkit_xMax = 'Q';
-hook_sdtoolkit_yMin = 'x';
-hook_sdtoolkit_yMax = 'A';
-hook_sdtoolkit_zMin = 'hb';
-hook_sdtoolkit_zMax = 'v';
-hook_sdtoolkit_xScale = 'L';
-hook_sdtoolkit_yScale = 'J';
+class_SDToolkit = 'sfa';
+hook_sdtoolkit_Viewport = 'ib';
+hook_sdtoolkit_xMin = 'Q';
+hook_sdtoolkit_xMax = 'bb';
+hook_sdtoolkit_yMin = 'D';
+hook_sdtoolkit_yMax = 'U';
+hook_sdtoolkit_zMin = 'eb';
+hook_sdtoolkit_zMax = 'H';
+hook_sdtoolkit_xScale = 'W';
+hook_sdtoolkit_yScale = 'I';
 
 {Class SDPlane}
 class_SDPlane = 's';
-hook_sdplane_TileHeights = 'a';
+hook_sdplane_TileHeights = 'k';
 
 {Class NodeListCache}
-class_NodeListCache = 'cq';
-hook_nodelistcache_GetNodeList = 'l';
+class_NodeListCache = 'rj';
+hook_nodelistcache_GetNodeList = 'q';
 
 {Class NodeList}
-class_NodeList = 'iw';
-hook_nodelist_Current = 'm';
-hook_nodelist_Head = 'd';
+class_NodeList = 'll';
+hook_nodelist_Current = 'p';
+hook_nodelist_Head = 'm';
 
 {Class Node}
-class_Node = 'ub';
-hook_node_Next = 'c';
+class_Node = 'oh';
+hook_node_Next = 'j';
 hook_node_GetID = 'g';
-hook_node_Previous = 'e';
+hook_node_Previous = 'c';
 
 {Class MenuGroupNode}
-class_MenuGroupNode = 'vg';
-hook_MenuGroupNode_GetNodeSubListItems = 'y';
+class_MenuGroupNode = 'im';
+hook_MenuGroupNode_GetNodeSubListItems = 'N';
 
 {Class NodeSubList}
-class_NodeSubList = 'rw';
-hook_nodesublist_GetHead = 'k';
+class_NodeSubList = 'uda';
+hook_nodesublist_GetHead = 'l';
 
 {Class NodeSub}
-class_NodeSub = 'sb';
-hook_nodesub_Next = 'r';
+class_NodeSub = 'sga';
+hook_nodesub_Next = 'p';
 
 {Class Menu}
-class_Menu = 'via';
-hook_menu_Option = 'D';
-hook_menu_Action = 'L';
-hook_menu_getID = '';
-
+class_Menu = 'iha';
+hook_menu_Action = 'K';
+hook_menu_Option = 'N';
 
 {Class Interface}
-class_Interface = 'jfa';
-hook_interface_GetTextColor = 'gc';
-hook_interface_GetModelID = 'Uc';
-hook_interface_GetX = 'fd';
-hook_interface_GetY = 'Sc';
-hook_interface_GetWidth = 'Mc';
-hook_interface_GetHeight = 'hd';
-hook_interface_IsHidden = 'N';
-hook_interface_GetModelZoom = 'K';
-hook_interface_GetParentID = 'wb';
-hook_interface_GetID = 'ad';
-hook_interface_GetComponentID = 'n';
-hook_interface_GetComponentStackSize = 'd';
-hook_interface_GetActions = 'Xb';
-hook_interface_GetComponentName = 'Rc';
-hook_interface_GetText = 'qc';
-hook_interface_GetTextureID = 'nc';
-hook_interface_GetChildren = 'dd';
-hook_interface_GetBoundsArrayIndex = 'w';
-hook_interface_GetHorizontalScrollBarSize = 'pd';
-hook_interface_GetVerticalScrollBarSize = 'Bc';
-hook_interface_GetHorizontalScrollBarPosition = 'm';
-hook_interface_GetHorizontalScrollBarThumbSize = 'Mc';
-hook_interface_GetVerticalScrollBarPosition = 'A';
-hook_interface_GetVerticalScrollBarThumbSize = 'hd';
+class_Interface = 'bl';
+hook_interface_GetTextColor = 'qc';
+hook_interface_GetModelID = 'mb';
+hook_interface_GetX = 'od';
+hook_interface_GetY = 'Zb';
+hook_interface_GetWidth = 'Ec';
+hook_interface_GetHeight = 'Lc';
+hook_interface_IsHidden = 'cc';
+hook_interface_GetModelZoom = 'fc';
+hook_interface_GetParentID = 'oc';
+hook_interface_GetID = 'Gb';
+hook_interface_GetComponentID = 'pb';
+hook_interface_GetComponentStackSize = 'Hb';
+hook_interface_GetActions = 'uc';
+hook_interface_GetComponentName = 'c';
+hook_interface_GetText = 'jb';
+hook_interface_GetTextureID = 'Wb';
+hook_interface_GetChildren = 'd';
+hook_interface_GetBoundsArrayIndex = 'o';
+hook_interface_GetHorizontalScrollBarSize = 'lc';
+hook_interface_GetVerticalScrollBarSize = 'e';
+hook_interface_GetHorizontalScrollBarPosition = 'cb';
+hook_interface_GetHorizontalScrollBarThumbSize = 'Ec';
+hook_interface_GetVerticalScrollBarPosition = 'Pb';
+hook_interface_GetVerticalScrollBarThumbSize = 'Lc';
 
 {Class InterfaceNode}
-class_interfacenode = 'ev';
-hook_interfacenode_GetID = 'l';
+class_interfacenode = 'tp';
+hook_interfacenode_GetID = 'q';
 
 {Class SettingArray}
-class_SettingArray = 'tj';
-hook_settingarray_GetData = 'i';
+class_SettingArray = 'hka';
+hook_settingarray_GetData = 'd';
 
 {Class SoftReference}
-class_SoftReference = 'eq';
-hook_softreference_GetReference = 'z';
+class_SoftReference = 'qt';
+hook_softreference_GetReference = 'D';
 
 {Class HardReference}
-class_HardReference = 'wca';
-hook_hardreference_GetObject = 'F';
+class_HardReference = 'nda';
+hook_hardreference_GetObject = 'H';
 
 {Class Ground}
-class_Ground = 'uo';
-hook_ground_AnimableList = 'i';
-hook_ground_WallObject1 = 'd';
-hook_ground_WallObject2 = 'l';
-hook_ground_WallDecoration1 = 'g';
-hook_ground_WallDecoration2 = 'm';
-hook_ground_FloorDecoration = 'a';
+class_Ground = 'kp';
+hook_ground_AnimableList = 'x';
+hook_ground_WallObject1 = 'w';
+hook_ground_WallObject2 = 'e';
+hook_ground_WallDecoration1 = 'f';
+hook_ground_WallDecoration2 = 'r';
+hook_ground_FloorDecoration = 'c';
 
 {Class WallObjectData}
-class_WallObjectData = 'tja';
-hook_WallObjectData_GetID = 'V';
-hook_WallObjectData_GetModel = 'ab';
-hook_WallObjectData_GetOrientation = '';
+class_WallObjectData = 'pha';
+hook_WallObjectData_GetID = 'K';
+hook_WallObjectData_GetModel = 'T';
+hook_WallObjectData_GetOrientation = 'Q';
 
 {Class WallDecorationData}
-class_WallDecorationData = 'efa';
-hook_WallDecorationData_GetID = 'ob';
-hook_WallDecorationData_GetModel = 'W';
-hook_WallDecorationData_GetOrientation = '';
+class_WallDecorationData = 'dk';
+hook_WallDecorationData_GetID = 'V';
+hook_WallDecorationData_GetModel = 'O';
+hook_WallDecorationData_GetOrientation = 'gb';
 
 {Class FloorDecorationData}
-class_FloorDecorationData = 'dga';
-hook_FloorDecorationData_GetID = 'rb';
-hook_FloorDecorationData_GetModel = 'db';
-hook_FloorDecorationData_GetOrientation = '';
+class_FloorDecorationData = 'ia';
+hook_FloorDecorationData_GetID = 'S';
+hook_FloorDecorationData_GetModel = 'mb';
+hook_FloorDecorationData_GetOrientation = 'O';
 
 {Class InteractiveObject}
-class_InteractiveObject = 'qp';
-hook_interactiveobject_GetID = 'V';
-hook_interactiveobject_GetModel = 'O';
-hook_interactiveobject_GetOrientation = '';
+class_InteractiveObject = 'an';
+hook_interactiveobject_GetID = 'mb';
+hook_interactiveobject_GetModel = 'Z';
+hook_interactiveobject_GetOrientation = 'M';
 
 {Class InteractiveObject2}
-class_InteractiveObject2 = 'gs';
-hook_interactiveobject2_GetObjectData = 'R';
+class_InteractiveObject2 = 'wd';
+hook_interactiveobject2_GetObjectData = 'jb';
 
 {Class SecondLevelObject}
-class_SecondLevelObject = 'oea';
-hook_secondlevelobject_GetID = 'A';
-hook_secondlevelobject_GetModel = 'O';
-hook_secondlevelobject_GetOrientation = '';
+class_SecondLevelObject = 'wk';
+hook_secondlevelobject_GetID = 'j';
+hook_secondlevelobject_GetModel = 'h';
+hook_secondlevelobject_GetOrientation = 'I';
 
 {Class WallObjectSub2}
-class_WallObjectSub2 = 'fc';
-hook_wallobjectsub2_GetComposite = 'W';
+class_WallObjectSub2 = 'ot';
+hook_wallobjectsub2_GetComposite = 'hb';
 
 {Class WallDecorationSub2}
-class_WallDecorationSub2 = 'lb';
-hook_walldecorationsub2_GetComposite = 'lb';
+class_WallDecorationSub2 = 'pf';
+hook_walldecorationsub2_GetComposite = 'R';
 
 {Class FloorDecorationSub2}
-class_FloorDecorationSub2 = 'oj';
-hook_floordecorationsub2_GetComposite = 'Y';
+class_FloorDecorationSub2 = 'em';
+hook_floordecorationsub2_GetComposite = 'H';
 
 {Class GroundData}
-class_GroundData = 'cf';
-hook_grounddata_GetCollisionFlags = 'o';
-hook_grounddata_GetOffsetX = 'l';
-hook_grounddata_GetOffsetY = 'f';
+class_GroundData = 'uo';
+hook_grounddata_GetCollisionFlags = 's';
+hook_grounddata_GetOffsetX = 'v';
+hook_grounddata_GetOffsetY = 'n';
 
 {Class GraphicsToolkit}
 class_GraphicsToolkit = 'ha';
-hook_graphicstoolkit_GetIndex = 'g';
+hook_graphicstoolkit_GetIndex = 'f';
 
 {Class GrandExchange}
-class_GrandExchange = 'up';
-hook_grandexchange_GetStatus = 'i';
-hook_grandexchange_GetID = 'l';
-hook_grandexchange_GetPrice = 'a';
-hook_grandexchange_GetTotal = 'h';
-hook_grandexchange_GetTransferred = 'e';
-hook_grandexchange_GetSpent = 'k';
+class_GrandExchange = 'li';
+hook_grandexchange_GetStatus = 'a';
+hook_grandexchange_GetID = 'g';
+hook_grandexchange_GetPrice = 'b';
+hook_grandexchange_GetTotal = 'k';
+hook_grandexchange_GetTransferred = 'd';
+hook_grandexchange_GetSpent = 'l';
