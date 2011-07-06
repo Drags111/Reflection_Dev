@@ -193,3 +193,30 @@ begin
     SmartFreeObject(Player);
   end;
 end;
+
+(*
+R_GetSkillLevel
+~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetSkillLevel(skill: Integer): Integer;
+
+Returns 'skill' Level.
+
+.. note::
+
+  by KingKong
+
+*)
+
+function R_GetSkillLevel(Skill: Integer): Integer;
+var
+  lvl: String;
+begin
+  if Skill = RSKILL_TOTAL then
+    lvl:= ExtractFromStr(R_GetInterfaceText(INTERFACE_SKILLS, Skill), Numbers)
+  else
+    lvl:= R_GetInterfaceText(INTERFACE_SKILLS, Skill);
+  Result:= StrToInt(lvl);
+end;
