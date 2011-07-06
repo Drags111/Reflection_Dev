@@ -35,6 +35,36 @@ const
 
   SETTING_RUN = 173;
 
+  {Skill Constants}
+  INTERFACE_SKILLS      = 320;
+
+  RSKILL_ATTACK          = 197;
+  RSKILL_STRENGTH        = 8;
+  RSKILL_DEFENCE         = 25;
+  RSKILL_RANGED          = 49;
+  RSKILL_PRAYER          = 73;
+  RSKILL_MAGIC           = 90;
+  RSKILL_RUNECRAFTING    = 107;
+  RSKILL_CONSTRUCTION    = 131;
+  RSKILL_DUNGEONEERING   = 155;
+  RSKILL_CONSTITUTION    = 190;
+  RSKILL_AGILITY         = 16;
+  RSKILL_HERBLORE        = 33;
+  RSKILL_THIEVING        = 57;
+  RSKILL_CRAFTING        = 81;
+  RSKILL_FLETCHING       = 98;
+  RSKILL_SLAYER          = 115;
+  RSKILL_HUNTER          = 139;
+  RSKILL_MINING          = 183;
+  RSKILL_SMITHING        = 176;
+  RSKILL_FISHING         = 41;
+  RSKILL_COOKING         = 65;
+  RSKILL_FIREMAKING      = 169;
+  RSKILL_WOODCUTTING     = 162;
+  RSKILL_FARMING         = 123;
+  RSKILL_SUMMONING       = 147;
+  RSKILL_TOTAL           = 201;
+
   {Inventory Constants}
   INTERFACE_INVENTORY = 679;
   INTERFACE_BANKINVENTORY = 763;
