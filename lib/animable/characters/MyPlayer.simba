@@ -161,7 +161,7 @@ Returns a TPlayer of your player.
 *)
 function R_GetMe: TPlayer;
 var
-  Player, NameBytes: Integer;
+  Player, NameBytes, I: Integer;
 begin
   try
     Player := SmartGetFieldObject(0, hook_static_MyPlayer);
@@ -188,6 +188,12 @@ begin
       WalkQueueY := SmartGetFieldArrayInt(Player, hook_character_WalkQueueY, 0);
       Interacting := SmartGetFieldInt(Player, hook_character_GetInteracting);
       Orientation := Round(FixD(180 + (SmartGetFieldInt(Player, hook_character_Orientation)* 45) / 2048));
+      
+      for I := 0 to 24 do
+      begin
+        Experience[I] := SmartGetFieldArrayInt(0, hook_static_GetSkillExperiences, I);
+        Levels[I] := SmartGetFieldArrayInt(0, hook_static_GetSkillLevels, I);
+      end;
     end;
   finally
     SmartFreeObject(Player);
