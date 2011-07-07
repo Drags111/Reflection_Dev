@@ -38,6 +38,11 @@ math for converting a Tile into a "minimap" coordinate is provided in TileToMM.
 
 *)
 
+function R_GetPlaneIndex : Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_LoadedPlane);
+end;
+
 (*
 R_UpdateRenderInfo
 ~~~~~~~~~~~~~~~~~~
