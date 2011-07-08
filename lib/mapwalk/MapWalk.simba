@@ -621,10 +621,11 @@ begin
   if Inverted then R_InvertTileArray(Path);
   while R_DistanceFromTile(Path[High(Path)]) > 5 do
   begin
-    for Index := High(Path) downto -1 do
-      if (Index > -1) and R_TileOnMM(Path[Index]) then
+    for Index := High(Path) downto 0 do
+      if R_TileOnMM(Path[Index]) then
         Break;
-    if (Index = -1) then Break;
+    if (Index = 0) then
+      Break;
 
     if R_WalkToTileEx(Path[Index], Randomness, 0, false) then
     begin
