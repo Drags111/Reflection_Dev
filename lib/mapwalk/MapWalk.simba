@@ -624,7 +624,7 @@ begin
     for Index := High(Path) downto 0 do
       if R_TileOnMM(Path[Index]) then
         Break;
-    if (Index = 0) then
+    if (Index = -1) then
       Break;
 
     if R_WalkToTileEx(Path[Index], Randomness, 0, false) then
