@@ -201,7 +201,7 @@ Returns experience remaining to the next level up in the specified skill.
 *)
 function R_GetSkillExpToLevel(SkillConst: Integer): Integer;
 var
-  Level: Integer;
+  Level, i: Integer;
 begin
   Level:= R_GetSkillLevel(SkillConst);
   Result:= 0;
@@ -226,6 +226,8 @@ Fills Players[CurrentPlayer].Level array.
 
 *)
 procedure R_GetAllSkillLevels;
+var
+  i : Integer;
 begin
   for i := SKILL_ATTACK to SKILL_DUNGEONEERING do
     Players[CurrentPlayer].Level[i] := R_GetSkillLevel(i);
