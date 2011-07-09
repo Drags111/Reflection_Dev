@@ -774,7 +774,7 @@ begin
       Exit;
     end;
     for I:= High(CtrlPoints) downto 0 do
-      if R_WalkToTile(Point(CtrlPoints[i].x, CtrlPoints[i].y),0, 10) then
+      if R_WalkToTile(CtrlPoints[i],0, 10) then
       begin
         Result := I = High(CtrlPoints);
         Break;
