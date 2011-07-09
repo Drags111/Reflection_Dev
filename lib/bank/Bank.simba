@@ -997,22 +997,28 @@ begin
   Inv := R_InvCount;
   Itm := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Item.Slot);
   R_ClickInterface(Itm, 2);
-  Result := R_WaitOption('Withdraw-X', 3000);
-
-  MarkTime(T);
-  while(R_GetInterfaceText(752, 4) <> 'Enter amount:')do
+  
+  if (not (R_OptionExists('Withdraw-' + IntToStr(Amount)))) then
   begin
-    if(TimeFromMark(T) > 5000)then
-    begin
-      Result := False;
-      R_Debug('Could not enter amount.', 'R_WithdrawX');
-      Exit;
-    end;
-    wait(50+Random(50));
-  end;
+    Result := R_WaitOption('Withdraw-X', 3000);
 
-  wait(500+Random(1000));
-  TypeSend(ToStr(Amount));
+    MarkTime(T);
+    while(R_GetInterfaceText(752, 4) <> 'Enter amount:')do
+    begin
+      if(TimeFromMark(T) > 5000)then
+      begin
+        Result := False;
+        R_Debug('Could not enter amount.', 'R_WithdrawX');
+        Exit;
+      end;
+      wait(50+Random(50));
+    end;
+    
+    wait(500+Random(1000));
+    TypeSend(ToStr(Amount));
+  end else
+    Result := R_WaitOption('Withdraw-' + IntToStr(Amount) + ' ' + Item.Name, 3000);
+
   MarkTime(T);
   while(R_InvCount = Inv)do
   begin
