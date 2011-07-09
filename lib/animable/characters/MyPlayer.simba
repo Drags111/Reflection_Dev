@@ -145,6 +145,95 @@ begin
 end;
 
 (*
+R_GetSkillLevel
+~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetSkillLevel(SkillConst: Integer): Integer;
+
+Returns a skill level(Top) specified by Skill(Please use constants).
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetSkillLevel(SkillConst: Integer): Integer;
+begin
+  Result := SmartGetFieldArrayInt(0, hook_static_GetSkillLevels, SkillConst);
+end;
+
+(*
+R_GetSkillExp
+~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetSkillExp(SkillConst: Integer): Integer;
+
+Returns experience in the specified skill.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetSkillExp(SkillConst: Integer): Integer;
+begin
+  Result := SmartGetFieldArrayInt(0, hook_static_GetSkillExperiences, SkillConst);
+end;
+
+(*
+R_GetSkillExpToLevel
+~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetSkillExpToLevel(SkillConst: Integer): Integer;
+
+Returns experience remaining to the next level up in the specified skill.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetSkillExpToLevel(SkillConst: Integer): Integer;
+var
+  Level, i: Integer;
+begin
+  Level:= R_GetSkillLevel(SkillConst);
+  Result:= 0;
+  for i := 1 to Level do
+    Result := Result + floor(i + 300 * Pow(2.0, i / 7.0));
+  Result:= (Result/4) - SmartGetFieldArrayInt(0, hook_static_GetSkillExperiences, SkillConst);
+end;
+
+(*
+R_GetAllSkillLevels
+~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_GetAllSkillLevels;
+
+Fills Players[CurrentPlayer].Level array.
+
+.. note::
+
+  by mormonman
+
+*)
+procedure R_GetAllSkillLevels;
+var
+  i : Integer;
+begin
+  for i := SKILL_ATTACK to SKILL_DUNGEONEERING do
+    Players[CurrentPlayer].Level[i] := R_GetSkillLevel(i);
+end;
+
+(*
 R_GetMe
 ~~~~~~~
 
@@ -193,3 +282,33 @@ begin
     SmartFreeObject(Player);
   end;
 end;
+
+(*
+R_GetEquipmentID
+~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetEquipmentID(Slot: Integer): Integer;
+
+Returns the item's ID at the specified slot(Use MODEL_EQUIPMENT constants).
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetEquipmentID(Slot: Integer): Integer;
+var
+  Player, PlayerDef: Integer;
+begin
+  try
+    Player := SmartGetFieldObject(0, hook_static_MyPlayer);
+    PlayerDef := SmartGetFieldObject(Player, hook_player_PlayerDef);
+    Result := SmartGetFieldArrayInt(PlayerDef, hook_playerdef_GetEquipment, Slot) - MODEL_EQUIPMENT_CONSTANT;
+  finally
+    SmartFreeObject(Player);
+    SmartFreeObject(PlayerDef);
+  end;
+end;
+
