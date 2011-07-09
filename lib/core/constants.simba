@@ -174,6 +174,7 @@ type
     InCombat: Boolean;
     WalkQueueX, WalkQueueY: Integer;
     Interacting, Orientation: Integer;
+    Experience, Levels: array[0..24] of Integer;
   end;
   TPlayerArray = array of TPlayer;
 
@@ -286,6 +287,8 @@ begin
     WalkQueueY := NULL_INT;
     Interacting := NULL_INT;
     Orientation := NULL_INT;
+    Levels := [];
+    Experience := [];
   end;
 end;
 
