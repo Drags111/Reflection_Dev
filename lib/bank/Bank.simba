@@ -46,6 +46,32 @@ begin
   Result := R_ValidInterface(INTERFACE_PINSCREEN);
 end;
 
+{*******************************************************************************
+function R_DepositBoxScreen: Boolean;
+By: Echo_
+Description: Checks to see if the deposit box is open.
+*******************************************************************************}
+(*
+R_DepositBoxSreen
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_DepositBoxSreen: Boolean;
+
+Returns true if the Deposit Box Screen is up.
+
+.. note::
+
+  by Echo_
+
+*)
+
+function R_DepositBoxScreen: Boolean;
+begin
+  Result := ValidInterface(INTERFACE_DEPOSITBOX);
+end;  
+
 (*
 R_InPin
 ~~~~~~~
