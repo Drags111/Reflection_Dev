@@ -372,11 +372,11 @@ begin
     R_MouseItem(Slot);
     GetMousePos(X, Y);
     Wait(40 + random(40));
-    if(R_OptionExists('All')) then
+    if(R_OptionExists('-All')) then
     begin
       Mouse(X, Y, 0, 0, False);
       Wait(40 + random(40));
-      R_ChooseOption('All')
+      R_ChooseOption('-All')
     end else
     if random(10) = 1 then
     begin
