@@ -653,7 +653,7 @@ begin
     if Tries >= 10 then Break;
   end;
   Result := R_DistanceFromTile(Path[High(Path)]) <= minDistance;
-  R_Flag;
+  R_FFlag(minDistance);
 end;
 
 (*
@@ -673,7 +673,7 @@ Walks the path. See WalkToPathEX for more info.
 *)
 function R_WalkPath(Path: TTileArray): boolean;
 begin
-  Result := R_WalkPathEx(Path, 3, 5, false);
+  Result := R_WalkPathEx(Path, 3, 0, false);
 end;
 
 (*
