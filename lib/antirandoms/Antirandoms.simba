@@ -1,21 +1,21 @@
-{$include_once ./Abyss.simba}
-{$include_once ./Arnav.simba}
-{$include_once ./BeeKeeper.simba}
-{$include_once ./Certer.simba}
-{$include_once ./DrillDemon.simba}
-{$include_once ./Forester.simba}
-{$include_once ./Frog.simba}
-{$include_once ./Gravedigger.simba}
-{$include_once ./Maze.simba}
-{$include_once ./Mime.simba}
-{$include_once ./Molly.simba}
-{$include_once ./Mordaut.simba}
-{$include_once ./Pillory.simba}
-{$include_once ./Pinball.simba}
-{$include_once ./Prison.simba}
-{$include_once ./Quiz.simba}
-{$include_once ./Sandwich.simba}
-{$include_once ./ScapeRune.simba}
+{$i ./Abyss.simba}
+{$i ./Arnav.simba}
+{$i ./BeeKeeper.simba}
+{$i ./Certer.simba}
+{$i ./DrillDemon.simba}
+{$i ./Forester.simba}
+{$i ./Frog.simba}
+{$i ./Gravedigger.simba}
+{$i ./Maze.simba}
+{$i ./Mime.simba}
+{$i ./Molly.simba}
+{$i ./Mordaut.simba}
+{$i ./Pillory.simba}
+{$i ./Pinball.simba}
+{$i ./Prison.simba}
+{$i ./Quiz.simba}
+{$i ./Sandwich.simba}
+{$i ./ScapeRune.simba}
 
 const
   R_RandomCount = 18;
