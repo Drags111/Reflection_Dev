@@ -69,7 +69,7 @@ Returns true if the Deposit Box Screen is up.
 
 function R_DepositBoxScreen: Boolean;
 begin
-  Result := ValidInterface(INTERFACE_DEPOSITBOX);
+  Result := R_ValidInterface(INTERFACE_DEPOSITBOX);
 end;  
 
 (*
