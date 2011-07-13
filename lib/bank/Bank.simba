@@ -46,6 +46,32 @@ begin
   Result := R_ValidInterface(INTERFACE_PINSCREEN);
 end;
 
+{*******************************************************************************
+function R_DepositBoxScreen: Boolean;
+By: Echo_
+Description: Checks to see if the deposit box is open.
+*******************************************************************************}
+(*
+R_DepositBoxSreen
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_DepositBoxSreen: Boolean;
+
+Returns true if the Deposit Box Screen is up.
+
+.. note::
+
+  by Echo_
+
+*)
+
+function R_DepositBoxScreen: Boolean;
+begin
+  Result := ValidInterface(INTERFACE_DEPOSITBOX);
+end;  
+
 (*
 R_InPin
 ~~~~~~~
@@ -346,11 +372,11 @@ begin
     R_MouseItem(Slot);
     GetMousePos(X, Y);
     Wait(40 + random(40));
-    if(R_OptionExists('All')) then
+    if(R_OptionExists('-All')) then
     begin
       Mouse(X, Y, 0, 0, False);
       Wait(40 + random(40));
-      R_ChooseOption('All')
+      R_ChooseOption('-All')
     end else
     if random(10) = 1 then
     begin
