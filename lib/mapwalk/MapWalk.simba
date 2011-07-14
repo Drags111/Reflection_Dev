@@ -580,18 +580,6 @@ begin
   Result := R_WalkToTileEx(Tile, Randomness, FlagDist, true);
 end;
 
-{*******************************************************************************
-function R_WalkPathEx(Path: TTileArray; Randomness: Integer; Inverted: Boolean): Boolean;
-By: Drags111
-Description: Walks the Path of TTileArray from start to finish in a human-like
-  style. It looks for the next tile in path and clicks it as soon as it comes
-  up on the screen, just like a legit player would. This does make it more
-  beneficial to use paths where the tiles are closer together, so it seems more
-  active. All personal preference.
-  Path: The array of Tiles to use as the path.
-  Randomness: The amount of variant you want when walking to tiles.
-  Inverted: If you want it to reverse the path (Walk from end to start).
-*******************************************************************************}
 (*
 R_WalkPathEx
 ~~~~~~~~~~~~
