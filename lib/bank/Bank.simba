@@ -46,11 +46,6 @@ begin
   Result := R_ValidInterface(INTERFACE_PINSCREEN);
 end;
 
-{*******************************************************************************
-function R_DepositBoxScreen: Boolean;
-By: Echo_
-Description: Checks to see if the deposit box is open.
-*******************************************************************************}
 (*
 R_DepositBoxSreen
 ~~~~~~~~~~~
