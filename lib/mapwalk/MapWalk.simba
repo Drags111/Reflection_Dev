@@ -586,7 +586,7 @@ R_WalkPathEx
 
 .. code-block:: pascal
 
-    function R_WalkPathEx(Path: TTileArray; Randomness: Integer; Inverted: Boolean): Boolean;
+    function R_WalkPathEx(Path: TTileArray; Randomness, FlagDistance: Integer; Inverted: Boolean): Boolean;
 
 Walks the Path of TTileArray from start to finish in a human-like style. It
 looks for the next tile in path and clicks it as soon as it comes up on the
@@ -595,6 +595,7 @@ use paths where the tiles are closer together, so it seems more active. All
 personal preference.
 -Path: The array of Tiles to use as the path.
 -Randomness: The amount of variance you want when walking to tiles.
+-FlagDist: The amount of distance from your player to the next tile before continuing walking. 
 -Inverted: If you want it to reverse the path (Walk from end to start).
 
 .. note::
@@ -602,12 +603,12 @@ personal preference.
   by Drags111
 
 *)
-function R_WalkPathEx(Path: TTileArray; Randomness: Integer; Inverted: Boolean): Boolean;
+function R_WalkPathEx(Path: TTileArray; Randomness, FlagDist: Integer; Inverted: Boolean): Boolean;
 var
   Index, Timer, Tries: Integer;
 begin
   if Inverted then R_InvertTileArray(Path);
-  while R_DistanceFromTile(Path[High(Path)]) > 5 do
+  while R_DistanceFromTile(Path[High(Path)]) > FlagDist do
   begin
     for Index := High(Path) downto 0 do
       if R_TileOnMM(Path[Index]) then
@@ -618,14 +619,14 @@ begin
     if R_WalkToTileEx(Path[Index], Randomness, 0, false) then
     begin
       Timer := (GetSystemTime + 30000);
-      while R_DistanceFromTile(Path[Index]) > 5 do
+      while R_DistanceFromTile(Path[Index]) > FlagDist do
       begin
         Wait(10 + Random(10));
         if SRL_Procs[SRL_AntiBan] <> nil then
           SRL_Procs[SRL_AntiBan]();
 
-        if GetSystemTime > Timer then Break;
-        if (R_GetMotion = 0) or ((Index <> High(Path)) and (R_TileOnMM(Path[Index+1]))) then Break;
+        if (GetSystemTime > Timer) or (R_GetMotion = 0) or ((Index <> High(Path)) and (R_TileOnMM(Path[Index+1]))) then
+          Break;
       end;
 
       if (not (R_DistanceFromTile(Path[Index]) <= 5)) and
@@ -638,8 +639,8 @@ begin
     end;
     if Tries >= 10 then Break;
   end;
-  Result := R_DistanceFromTile(Path[High(Path)]) <= 5;
-  R_Flag;
+  R_FFlag(FlagDist);
+  Result := R_DistanceFromTile(Path[High(Path)]) <= FlagDist;
 end;
 
 (*
@@ -659,7 +660,7 @@ Walks the path. See WalkToPathEX for more info.
 *)
 function R_WalkPath(Path: TTileArray): boolean;
 begin
-  Result := R_WalkPathEx(Path, 3, false);
+  Result := R_WalkPathEx(Path, 3, 5, false);
 end;
 
 (*
