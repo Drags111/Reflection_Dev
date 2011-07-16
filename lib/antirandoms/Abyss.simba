@@ -1,12 +1,150 @@
+const
+  RAbyssConst_Append_N = 8995;
+	RAbyssConst_Append_E = 8994;
+	RAbyssConst_Append_S = 8997;
+	RAbyssConst_Append_W = 8996;
+  RAbyssConst_Setting = 531;
+  RAbyssConst_Apology_ID = 210;
+
+var
+  RAbyssVar_AnswerN, RAbyssVar_AnswerE: TIntegerArray;
+  RAbyssVar_AnswerS, RAbyssVar_AnswerW: TIntegerArray;
+
+procedure RAbyss_SetVars;
+begin
+  RAbyssVar_AnswerN := [32, 64, 135236, 67778, 135332, 34017, 202982,
+			101443, 101603, 236743, 33793, 67682, 135172, 236743, 169093,
+			33889, 202982, 67714, 101539];
+
+	RAbyssVar_AnswerE := [4, 6, 101474, 101473, 169124, 169123, 67648,
+			135301, 135298, 67651, 169121, 33827, 67652, 236774, 101479, 33824,
+			202951];
+
+	RAbyssVar_AnswerS := [4228, 32768, 68707, 167011, 38053, 230433, 164897,
+			131072, 168068, 65536, 35939, 103589, 235718, 204007, 100418,
+			133186, 99361, 136357, 1057, 232547];
+
+	RAbyssVar_AnswerW := [105571, 37921, 131204, 235751, 1024, 165029,
+			168101, 68674, 203974, 2048, 100451, 6144, 39969, 69698, 32801,
+			136324, 103523];
+end;
+
 function RAbyss_InRandom: Boolean;
 var
   Appendage: TRSObject;
 begin
-  Result := False;
-  Appendage := R_GetObject(8995, OBJ_INTERACTABLE, 10);
+  Appendage := R_GetObject(RAbyssConst_Append_N, OBJ_INTERACTABLE, 15);
+  Result := Appendage <> NULL_RSOBJECT;
+end;
+
+function RAbyss_GetOddAppendage: Integer;
+var
+  Setting: Integer;
+begin
+  Setting := R_GetSetting(RAbyssConst_Setting);
+  if (Setting = -1) then
+    Exit;
+
+  if InIntArray(RAbyssVar_AnswerN, Setting) then
+  begin
+    Result := RAbyssConst_Append_N;
+    Exit;
+  end;
+
+  if InIntArray(RAbyssVar_AnswerE, Setting) then
+  begin
+    Result := RAbyssConst_Append_E;
+    Exit;
+  end;
+
+  if InIntArray(RAbyssVar_AnswerS, Setting) then
+  begin
+    Result := RAbyssConst_Append_S;
+    Exit;
+  end;
+
+  if InIntArray(RAbyssVar_AnswerW, Setting) then
+  begin
+    Result := RAbyssConst_Append_W;
+    Exit;
+  end;
+
+  R_Debug('Could not find setting match', 'Abyss');
+  Result := -1;
+end;
+
+function RAbyss_HandleAppendage(AppendageID: Integer): Boolean;
+var
+  Appendage: TRSObject;
+  P: TPoint;
+  X, Y: Integer;
+begin
+  Appendage := R_GetObject(AppendageID, OBJ_INTERACTABLE, 15);
+  if (Appendage = NULL_RSOBJECT) then
+  begin
+    R_Debug('Appendage not found', 'Abyss');
+    Exit;
+  end;
+
+  if(R_DistanceFromTile(Appendage.Tile) > 4)then
+  begin
+    if not R_WalkToTile(Appendage.Tile, 1, 0)then
+    begin
+      R_Debug('Unable to walk to Appendage.', 'Abyss');
+      Exit;
+    end;
+    Wait(300+Random(50));
+  end;
+
+  P := R_TileToMS(Appendage.Tile, 0);
+  MMouse(P.x, P.y, 10, 10);
+  wait(25+RandoM(25));
+  if not R_OptionExists('operate') then
+    Exit;
+
+  GetMousePos(X, Y);
+  Mouse(X, Y, 0, 0, false);
+  wait(25+RandoM(25));
+  Result := R_ChooseOption('operate');
+  if not Result then
+    Exit;
+
+  R_WaitToMove(3000);
+  R_Flag;
+
+  Wait(3000+Random(2000));
+
+  Result := not RAbyss_InRandom;
 end;
 
 function RAbyss_Solve: Boolean;
+var
+  T, AppendageID: Integer;
 begin
   Result := False;
+  RAbyss_SetVars;
+
+  MarkTime(T);
+  while (RAbyss_InRandom and (TimeFromMark(T) < 180000)) do
+  begin
+    ClickContinue(True, True);
+
+    AppendageID := RAbyss_GetOddAppendage;
+    if (AppendageID < 0) then
+    begin
+      R_Debug('Odd appendage not found', 'Abyss');
+      Continue;
+    end;
+
+    if not RAbyss_HandleAppendage(AppendageID) then
+    begin
+      R_Debug('Unable to click appendage', 'Abyss');
+    end;
+
+  end;
+
+  Wait(RandomRange(5000, 6000));
+  R_ClickToContinue;
+
+  Result := not RAbyss_InRandom;
 end;

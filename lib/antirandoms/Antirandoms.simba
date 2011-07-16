@@ -203,7 +203,7 @@ end;
 
 function R_SolveNonTalkingRandoms: Boolean;
 var
-  I, iTime: Integer;
+  I, iTime, tTime: Integer;
   Music: String;
   InRand: Boolean;
   T: TTile;
@@ -211,6 +211,7 @@ var
 begin
   //If Not R_LoggedIn then
   //  Exit;
+  MarkTime(tTime);
 
   if not R_RandomVarSet then
     r_SetupRandoms;
@@ -284,6 +285,7 @@ begin
           Exit;
       end;
       R_Debug('Out of random', '');
+      R_Debug('Solving took: ' + ToStr(TimeFromMark(tTime)) + ' ms', '');
       Wait(3000+Random(2000));
 
       Players[CurrentPlayer].Rand := '';
@@ -292,6 +294,7 @@ begin
     end;
 
   end;
+
 end;
 
 {*******************************************************************************
