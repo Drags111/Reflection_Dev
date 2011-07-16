@@ -1,5 +1,24 @@
+const
+  RCerterConst_Portal_ID = 11368;
+  RCerterConst_Question_Interface = 184;
+  RCerterConst_NPCChat_Interface = 0;
+
 var
   RCerterVars_NPC: TNPC;
+  RCerterVars_Model_IDs: TIntegerArray;
+  RCerterVars_Item_Names,
+  RCerterVars_Finished_Strings: TStringArray;
+
+procedure RCerter_SetVars;
+begin
+  RCerterVars_Model_IDs := [2807, 8828, 8829, 8832, 8833, 8834, 8835,
+			8836, 8837];
+  RCerterVars_Item_Names := ['bowl', 'battleaxe', 'fish', 'shield', 'helmet',
+      'ring', 'shears', 'sword', 'spade'];
+  RCerterVars_Finished_Strings := ['Good,', 'matches', 'leave now.',
+     'Correct.', 'can go now.'];
+
+end;
 
 function RCerter_InRandom: Boolean;
 var
@@ -8,12 +27,196 @@ begin
   Result := R_FindNPCMulti(['Giles', 'Miles', 'Niles'], True, RCerterVars_NPC);
   if Result then
   begin
-    Obj := R_GetObject(11368, OBJ_INTERACTABLE, 15);
+    Obj := R_GetObject(RCerterConst_Portal_ID, OBJ_INTERACTABLE, 15);
     Result := (Obj <> NULL_RSOBJECT);
   end;
 end;
 
+function RCerter_TalkTo: Boolean;
+var
+  P: TPoint;
+  X, Y, T: Integer;
+begin
+  Result := (Pos('iles', R_GetNPCChatName) > 0);
+  if not R_FindNPCMulti(['Giles', 'Miles', 'Niles'], True, RCerterVars_NPC)then
+  begin
+    R_Debug('Unable to find Certer.', 'Certer');
+    Exit;
+  end;
+  if(R_DistanceFromTile(RCerterVars_NPC.Tile) > 4)then
+  begin
+    if not R_WalkToTile(RCerterVars_NPC.Tile, 1, 0)then
+    begin
+      R_Debug('Unable to walk to Certer.', 'Certer');
+      Exit;
+    end;
+    Wait(300+Random(50));
+  end;
+  P := R_TileToMS(RCerterVars_NPC.Tile, RCerterVars_NPC.Height/2);
+  MMouse(P.x, P.y, 3, 3);
+  wait(25+Random(25));
+  if not R_OptionExists('talk')then
+    Exit;
+  GetMousePos(X, Y);
+  Mouse(X, Y, 0, 0, False);
+  if not R_ChooseOption('talk')then
+    Exit;
+  if(R_DistanceFromTile(RCerterVars_NPC.Tile) > 1)then
+  begin
+    R_WaitToMove(3000);
+    R_Flag;
+  end;
+  MarkTime(T);
+  while(TimeFromMark(T) < 3000)do
+  begin
+    if(R_ClickContinueExists)then
+      Break;
+    wait(50+Random(50));
+  end;
+  Result := (TimeFromMark(T) < 3000);
+end;
+
+function RCerter_QuestionInterface: Boolean;
+begin
+  Result := R_ValidInterface(RCerterConst_Question_Interface);
+end;
+
+function RCerter_AnswerQuestion: Boolean;
+var
+  PictureIFace, AnswersIFace, TempIFace: TInterfaceChild;
+  AnswerIndex, i: Integer;
+  Answer: String;
+  Names: Array[0..2] of String;
+begin
+  R_Debug('answerquestion', 'Certer');
+
+  AnswersIFace := R_GetInterfaceChild(RCerterConst_Question_Interface, 8);
+
+  PictureIFace := R_GetInterfaceComponent(RCerterConst_Question_Interface, 8 ,3);
+
+  for i := 0 to High(RCerterVars_Model_IDs) do
+    if PictureIFace.ModelID = RCerterVars_Model_IDs[i] then
+    begin
+      Answer := RCerterVars_Item_Names[i];
+      R_Debug('Answer is: ' + Answer, 'Certer');
+      Break;
+    end;
+
+  for i := 0 to 2 do
+  begin
+    TempIFace := R_GetInterfaceComponent(RCerterConst_Question_Interface, 8 , i);
+    if (TempIFace.Text = '') then
+      Continue;
+
+    Names[i] := TempIFace.Text;
+    if (Pos(Answer, Names[i]) > 0) then
+    begin
+      AnswerIndex := i;
+      Break;
+    end;
+  end;
+
+  AnswersIFace := R_GetInterfaceComponent(RCerterConst_Question_Interface, 8, AnswerIndex);
+  R_ClickInterface(AnswersIFace, 1);
+  R_WaitInterfaceClose(RCerterConst_Question_Interface, 3000);
+
+  Result := not RCerter_QuestionInterface;
+end;
+
+function RCerter_Leave: Boolean;
+var
+  Portal: TRSObject;
+  P: TPoint;
+  X, Y: Integer;
+begin
+  R_Debug('leave', 'Certer');
+  Portal := R_GetObject(RCerterConst_Portal_ID, OBJ_INTERACTABLE, 15);
+  if(Portal = NULL_RSOBJECT)then
+  begin
+    R_Debug('Unable to find portal. Go buy Portal 2..', 'Certer');
+    Exit;
+  end;
+
+  if(R_DistanceFromTile(Portal.Tile) > 4)then
+  begin
+    if not R_WalkToTile(Portal.Tile, 1, 0)then
+    begin
+      R_Debug('Unable to walk to Portal.', 'Certer');
+      Exit;
+    end;
+    Wait(300+Random(50));
+  end;
+
+  P := R_TileToMS(Portal.Tile, 0);
+  MMouse(P.x, P.y, 10, 10);
+  wait(25+RandoM(25));
+  Result := R_OptionExists('enter');
+  if not Result then
+    Exit;
+
+  GetMousePos(X, Y);
+  Mouse(X, Y, 0, 0, false);
+  wait(25+RandoM(25));
+  Result := R_ChooseOption('enter');
+  if not Result then
+    Exit;
+
+  R_WaitToMove(3000);
+  R_Flag;
+
+  Wait(3000+Random(2000));
+
+  Result := not RCerter_InRandom;//TO-DO
+end;
+
+function RCerter_Finished: Boolean;
+var
+  NPCChat: String;
+begin
+  NPCChat := R_GetNPCChatMessage;
+  Result := ArrInStr(RCerterVars_Finished_Strings, NPCChat);
+end;
+
 function RCerter_Solve: Boolean;
+var
+  T: Integer;
+  QuestionDone: Boolean;
 begin
   Result := False;
+  QuestionDone := False;
+  RCerter_SetVars;
+
+  MarkTime(T);
+  while(RCerter_InRandom and (TimeFromMark(T) < 600000)) do
+  begin
+
+    if RCerter_QuestionInterface then
+      if not RCerter_AnswerQuestion then
+      begin
+        R_Debug('Unable to answer question', 'Certer');
+        Exit;
+      end;
+
+
+    if RCerter_Finished then
+      if not RCerter_Leave then
+      begin
+        R_Debug('Unable to exit', 'Certer');
+      end;
+
+
+    while(R_ClickContinueExists)do
+    begin
+      R_ClickToContinue;
+      Wait(500+Random(300));
+    end;
+
+
+    if not RCerter_TalkTo then
+    begin
+      R_Debug('Failed to start certer', 'Certer');
+    end;
+  end;
+
+  Result := not RCerter_InRandom;
 end;
