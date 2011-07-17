@@ -1,13 +1,5 @@
 const
-  R_TWOTAIL_1 = 13246;
-  R_TWOTAIL_2 = 7446;
-  R_THREETAIL_1 = 13248;
-  R_THREETAIL_2 = 13247;
-  R_FOURTAIL_1 = 13249;
-  R_FOURTAIL_2 = 13250;
-
   RForestConst_MeatName = 'heasant';
-
   RForestConst_PortalID = 15645;
 
 var
