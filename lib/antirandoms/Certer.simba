@@ -88,8 +88,6 @@ var
   Answer: String;
   Names: Array[0..2] of String;
 begin
-  R_Debug('answerquestion', 'Certer');
-
   AnswersIFace := R_GetInterfaceChild(RCerterConst_Question_Interface, 8);
 
   PictureIFace := R_GetInterfaceComponent(RCerterConst_Question_Interface, 8 ,3);
@@ -129,7 +127,6 @@ var
   P: TPoint;
   X, Y: Integer;
 begin
-  R_Debug('leave', 'Certer');
   Portal := R_GetObject(RCerterConst_Portal_ID, OBJ_INTERACTABLE, 15);
   if(Portal = NULL_RSOBJECT)then
   begin
@@ -166,7 +163,7 @@ begin
 
   Wait(3000+Random(2000));
 
-  Result := not RCerter_InRandom;//TO-DO
+  Result := not RCerter_InRandom;
 end;
 
 function RCerter_Finished: Boolean;

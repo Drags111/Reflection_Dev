@@ -1,5 +1,33 @@
+const
+  R_TWOTAIL_1 = 13246;
+  R_TWOTAIL_2 = 7446;
+  R_THREETAIL_1 = 13248;
+  R_THREETAIL_2 = 13247;
+  R_FOURTAIL_1 = 13249;
+  R_FOURTAIL_2 = 13250;
+
+  RForestConst_MeatName = 'heasant';
+
+  RForestConst_PortalID = 15645;
+
 var
   RForestVars_NPC: TNPC;
+  RForestVars_OneTail, RForestVars_TwoTail,
+  RForestVars_ThreeTail, RForestVars_FourTail: TVariantArray;
+  RForestVars_DroppedItem: Boolean;
+  RForestVars_GroundItem: TGroundItem;
+  RForestVars_ItemName: String;
+
+procedure RForest_SetVars;
+begin
+  RForestVars_OneTail := [7445, 4277];
+  RForestVars_TwoTail := [7446, 13246];
+  RForestVars_ThreeTail := [13248, 13247];
+  RForestVars_FourTail := [13249, 13250];
+  RForestVars_DroppedItem := False;
+  RForestVars_GroundItem := NULL_GROUNDITEM;
+  RForestVars_ItemName := NULL_STRING;
+end;
 
 function RForest_InRandom: Boolean;
 begin
@@ -8,7 +36,303 @@ begin
     Result := PointInBox(R_GetMyPos, IntToBox(2593, 4767, 2611, 4781));
 end;
 
+function RForest_TalkTo: Boolean;
+var
+  P: TPoint;
+  X, Y, T: Integer;
+begin
+  Result := (Pos('Freaky Forester', R_GetNPCChatName) > 0);
+  if not R_FindNPC('Freaky Forester', True, RForestVars_NPC)then
+  begin
+    R_Debug('Unable to find Forester.', 'Forester');
+    Exit;
+  end;
+  if(R_DistanceFromTile(RForestVars_NPC.Tile) > 4)then
+  begin
+    if not R_WalkToTile(RForestVars_NPC.Tile, 1, 0)then
+    begin
+      R_Debug('Unable to walk to Forester.', 'Forester');
+      Exit;
+    end;
+    Wait(300+Random(50));
+  end;
+  P := R_TileToMS(RForestVars_NPC.Tile, RForestVars_NPC.Height/2);
+  MMouse(P.x, P.y, 3, 3);
+  wait(25+Random(25));
+  if not R_OptionExists('talk')then
+    Exit;
+  GetMousePos(X, Y);
+  Mouse(X, Y, 0, 0, False);
+  if not R_ChooseOption('talk')then
+    Exit;
+  if(R_DistanceFromTile(RForestVars_NPC.Tile) > 1)then
+  begin
+    R_WaitToMove(3000);
+    R_Flag;
+  end;
+  MarkTime(T);
+  while(TimeFromMark(T) < 3000)do
+  begin
+    if(R_ClickContinueExists)then
+      Break;
+    wait(50+Random(50));
+  end;
+  Result := (TimeFromMark(T) < 3000);
+  Wait(500);
+end;
+
+function RForest_GetType: TVariantArray;
+var
+  NPCChat, Tails: String;
+begin
+  while R_ClickContinueExists do
+  begin
+    NPCChat := R_GetNPCChatMessage;
+    if (Pos('can leave the area', NPCChat) > 0) then
+    begin
+      R_Debug('Pheasant already killed', 'Forester');
+      Result := [1, 1];
+    end;
+    if (Pos('kill a pheasant', NPCChat) > 0) then
+    begin
+      Tails := Trim(Between('kill a pheasant that has ', ' tails.', NPCChat));
+      case Tails of
+        'one':    Result := RForestVars_OneTail;
+        'two':    Result := RForestVars_TwoTail;
+        'three':  Result := RForestVars_ThreeTail;
+        'four':   Result := RForestVars_FourTail;
+      else
+        begin
+          R_Debug('Unable to parse tail amount', 'Forester');
+          Exit;
+        end;
+      end;
+      R_Debug('Hunting ' + Tails + '-tailed pheasant', 'Forester');
+    end;
+    R_ClickToContinue;
+  end;
+end;
+
+function RForest_DropItem: Boolean;
+var
+  InvItem: TInvItem;
+begin
+  Result := not R_InvFull;
+  if Result then
+    Exit;
+
+  InvItem := R_GetInvItemAt(28);
+  if not (InvItem = NULL_INVITEM) then
+  begin
+    R_DropItem(InvItem.Slot);
+    if R_ItemSlotExists(InvItem.Slot) then
+    begin
+      Result := False;
+      R_Debug('Failed to drop item', 'Forester');
+      Exit;
+    end;
+    with RForestVars_GroundItem do
+    begin
+      ID := InvItem.ID;
+      Stack := InvItem.StackSize;
+      Tile := R_GetMyPos;
+    end;
+    RForestVars_ItemName := 'Take ' + InvItem.Name;
+  end;
+  Result := not (RForestVars_GroundItem = NULL_GROUNDITEM);
+  RForestVars_DroppedItem := Result;
+end;
+
+function RForest_PickupDrop: Boolean;
+var
+  Drop: TGroundItem;
+  P: TPoint;
+begin
+  if not (RForestVars_GroundItem = NULL_GROUNDITEM) then
+  begin
+    if not R_TileOnMS(RForestVars_GroundItem.Tile, 50) then
+    begin
+      if not R_WalkToTile(RForestVars_GroundItem.Tile, 1, 0)then
+      begin
+        R_Debug('Unable to walk to dropped item', 'Forester');
+        Exit;
+      end;
+      Wait(300+Random(50));
+    end;
+    P := R_TileToMS(RForestVars_GroundItem.Tile, 50);
+    MMouse(P.x, P.y, 3, 3);
+    Wait(RandomRange(80, 120));
+    if R_OptionExists(RForestVars_ItemName) then
+    begin
+      GetMousePos(P.x, P.y);
+      Mouse(P.x, P.y, 0, 0, False);
+      if(R_ChooseOption(RForestVars_ItemName)) then
+      begin
+        R_Debug('Picking up dropped item', 'Forester');
+        R_WaitToMove(3000);
+        R_Flag;
+        Wait(500+Random(500));
+      end;
+    end;
+  end;
+
+  Result := not R_FindGroundItem(RForestVars_GroundItem.ID, 15, Drop);
+end;
+
+function RForest_KillPheasant(IDs: TVariantArray): Boolean;
+var
+  Meat: TInvItem;
+  Pheasant: TNPC;
+  P: TPoint;
+  X, Y, T: Integer;
+begin
+  if (Length(IDs) < 2) then
+    Exit;
+
+  if R_InvFull then
+    if not RForest_DropItem then
+    begin
+      R_Debug('Failed to drop item', 'Forester');
+      Exit;
+    end;
+
+  if not R_FindNPCMulti(IDs, True, Pheasant) then
+  begin
+    R_Debug('Unable to find Pheasant', 'Forester');
+    Exit;
+  end;
+
+  if(R_DistanceFromTile(Pheasant.Tile) > 4)then
+  begin
+    if not R_WalkToTile(Pheasant.Tile, 1, 0)then
+    begin
+      R_Debug('Unable to walk to Pheasant.', 'Forester');
+      Exit;
+    end;
+    Wait(300+Random(50));
+  end;
+  P := R_TileToMS(Pheasant.Tile, Pheasant.Height/2);
+  MMouse(P.x, P.y, 3, 3);
+  wait(25+Random(25));
+  if not R_OptionExists('attack')then
+    Exit;
+  GetMousePos(X, Y);
+  Mouse(X, Y, 0, 0, False);
+  if not R_ChooseOption('attack')then
+    Exit;
+
+  MarkTime(T);
+  while(TimeFromMark(T) < 6000)do
+  begin
+    Result := R_ItemExists(RForestConst_MeatName, Meat);
+    if Result then
+      Break;
+    wait(50+Random(50));
+  end;
+end;
+
+function RForest_ReturnMeat: Boolean;
+var
+  Meat: TInvItem;
+begin
+  Result := not R_ItemExists(RForestConst_MeatName, Meat);
+  if Result then
+  begin
+    if RForestVars_DroppedItem then
+      if not RForest_PickupDrop then
+      begin
+        R_Debug('Unable to pick up dropped item', 'Forester');
+        Exit;
+      end;
+    Exit;
+  end;
+
+  if RForest_TalkTo then
+    while R_ClickContinueExists do
+      R_ClickToContinue;
+  Result := not R_ItemExists(RForestConst_MeatName, Meat);
+  if Result then
+    if RForestVars_DroppedItem then
+      if not RForest_PickupDrop then
+      begin
+        R_Debug('Unable to pick up dropped item', 'Forester');
+        Exit;
+      end;
+end;
+
+procedure RForest_Leave;
+var
+  Portal: TRSObject;
+  P: TPoint;
+  X, Y: Integer;
+begin
+  Portal := R_GetObject(RForestConst_PortalID, OBJ_INTERACTABLE, 15);
+  if(Portal = NULL_RSOBJECT)then
+  begin
+    R_Debug('Unable to find portal. Go buy Portal 2..', 'Forest');
+    Exit;
+  end;
+
+  if(R_DistanceFromTile(Portal.Tile) > 4)then
+  begin
+    if not R_WalkToTile(Portal.Tile, 1, 0)then
+    begin
+      R_Debug('Unable to walk to Portal.', 'Forest');
+      Exit;
+    end;
+    Wait(300+Random(50));
+  end;
+
+  P := R_TileToMS(Portal.Tile, 0);
+  MMouse(P.x, P.y, 10, 10);
+  wait(25+RandoM(25));
+  if not R_OptionExists('enter') then
+    Exit;
+
+  GetMousePos(X, Y);
+  Mouse(X, Y, 0, 0, false);
+  wait(25+RandoM(25));
+  if not R_ChooseOption('enter') then
+    Exit;
+
+  R_WaitToMove(3000);
+  R_Flag;
+
+  Wait(3000+Random(2000));
+end;
+
 function RForest_Solve: Boolean;
+var
+  T: Integer;
+  PheasantIDs: TVariantArray;
+  KilledPheasant: Boolean;
 begin
   Result := False;
+  RForest_SetVars;
+
+  MarkTime(T);
+  while (RForest_InRandom and (TimeFromMark(T) < 300000)) do
+  begin
+    while ((not KilledPheasant) and (TimeFromMark(T) < 300000))  do
+    begin
+      if (Length(PheasantIDs) < 2) then
+      begin
+        if RForest_TalkTo then
+          PheasantIDs := RForest_GetType;
+      end else
+      begin
+        if PheasantIDs[1] = 1 then
+          KilledPheasant := True
+        else
+          KilledPheasant := RForest_KillPheasant(PheasantIDs);
+      end;
+    end;
+
+    if RForest_ReturnMeat then
+      RForest_Leave;
+
+  end;
+
+  Result := not RForest_InRandom;
+  R_ClickToContinue;
 end;
