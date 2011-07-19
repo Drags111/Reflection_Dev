@@ -17,7 +17,7 @@ use in object searching functions in this include, not in scripts.
 function R_GetInteractableObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
 var
   Node, Last, Obj: Integer;
-  ID, SecondLevel: Integer;
+  ID, SecondLevel, ModelID: Integer;
 begin
   Node := SmartGetFieldObject(GroundObj, hook_ground_AnimableList);
   while(Node <> 0)do
@@ -39,6 +39,7 @@ begin
   begin
     SecondLevel := SmartGetFieldObject(Obj, hook_interactiveobject2_GetObjectData);
     ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetID) and $FFFF;
+    ModelID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetModelID);
     if(ID = -1) or (ID = 65535)then
     begin
       SmartFreeObject(SecondLevel);
@@ -50,6 +51,7 @@ begin
   if(ID <> -1) and (ID <> 65535)then
   begin
     Result.ID := ID;
+    Result.ModelID := ModelID;
     Result.ObjType := OBJ_INTERACTABLE;
 
     Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);

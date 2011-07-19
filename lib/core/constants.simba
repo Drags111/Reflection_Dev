@@ -183,6 +183,7 @@ type
   TRSObject = record
     ObjType: integer;
     ID: Integer;
+    ModelID: Integer;
     Tile: TTile;
     TileArea: TBox;
   end;

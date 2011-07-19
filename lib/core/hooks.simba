@@ -1,6 +1,6 @@
 const
 ClientVersion = 657;
-HookRev = 2;
+HookRev = 4;
 
 
 {Static Hooks}
@@ -129,7 +129,7 @@ hook_itemdefloader_GetMRUNodes = 'i';
 {Class ItemDef}
 class_ItemDef = 'ti';
 hook_itemdef_GetLoader = 'vb';
-hook_itemdef_GetGroundActions = 't';
+hook_itemdef_GetGroundActions = 'hb';
 hook_itemdef_GetActions = 'mb';
 
 {Class MRUNodes}
@@ -140,10 +140,10 @@ hook_mrunodes_GetInitialCount = 'c';
 hook_mrunodes_GetSpaceLeft = 'p';
 
 {Class ObjectDef}
-class_ObjectDef = '';
-hook_objectdef_GetName = '';
-hook_objectdef_GetActions = '';
-hook_objectdef_getChildrenIDs = '';
+class_ObjectDef = 'fia';
+hook_objectdef_GetName = 'A';
+hook_objectdef_GetActions = 'mb';
+hook_objectdef_getChildrenIDs = 'ab';
 
 {Class ObjectDefLoader}
 class_ObjectDefLoader = 'wea';
@@ -317,6 +317,7 @@ class_SecondLevelObject = 'ck';
 hook_secondlevelobject_GetID = 'D';
 hook_secondlevelobject_GetModel = 'l';
 hook_secondlevelobject_GetOrientation = 'b';
+hook_secondlevelobject_GetModelID = 'h';
 
 {Class WallObjectSub2}
 class_WallObjectSub2 = 'gaa';
