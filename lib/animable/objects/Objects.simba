@@ -85,7 +85,7 @@ use in object searching functions in this include, not in scripts.
 *)
 function R_GetWallObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
 var
-  Obj, ID: Integer;
+  Obj, ID, SecondLevel, ModelID: Integer;
 begin
   Obj := SmartGetFieldObject(GroundObj, hook_ground_WallObject1);
   if(Obj = 0)then
@@ -101,21 +101,33 @@ begin
 
   ID := SmartGetFieldShort(Obj, hook_WallObjectData_GetID) and $FFFF;
   if(ID = -1) or (ID = 65535)then
-    ID := SmartGetFieldInt(Obj, hook_secondlevelobject_GetID) and $FFFF;
-  if(ID = -1) or (ID = 65535)then
-    Exit;
+  begin
+    SecondLevel := SmartGetFieldObject(Obj, hook_wallobjectsub2_GetComposite);
+    ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetID) and $FFFF;
+    ModelID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetModelID);
+    if(ID = -1) or (ID = 65535)then
+    begin
+      SmartFreeObject(SecondLevel);
+      SmartFreeObject(Obj);
+      Exit;
+    end;
+  end;
+  if(ID <> -1) and (ID <> 65535)then
+  begin
+    Result.ID := ID;
+    Result.ModelID := ModelID;
+    Result.ObjType := OBJ_INTERACTABLE;
 
-  Result.ID := ID;
-  Result.ObjType := OBJ_INTERACTABLE;
+    Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
+    Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
 
-  Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
-  Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
+    Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
+    Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
+    Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
+    Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
+  end;
 
-  Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
-  Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
-  Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
-  Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
-
+  SmartFreeObject(SecondLevel);
   SmartFreeObject(Obj);
 end;
 
@@ -137,7 +149,7 @@ use in object searching functions in this include, not in scripts.
 *)
 function R_GetWallDecorationObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
 var
-  Obj, ID: Integer;
+  Obj, ID, SecondLevel, ModelID: Integer;
 begin
   Obj := SmartGetFieldObject(GroundObj, hook_ground_WallDecoration1);
   if(Obj = 0)then
@@ -153,21 +165,33 @@ begin
 
   ID := SmartGetFieldShort(Obj, hook_WallDecorationData_GetID) and $FFFF;
   if(ID = -1) or (ID = 65535)then
-    ID := SmartGetFieldInt(Obj, hook_secondlevelobject_GetID) and $FFFF;
-  if(ID = -1) or (ID = 65535)then
-    Exit;
+  begin
+    SecondLevel := SmartGetFieldObject(Obj, hook_walldecorationsub2_GetComposite);
+    ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetID) and $FFFF;
+    ModelID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetModelID);
+    if(ID = -1) or (ID = 65535)then
+    begin
+      SmartFreeObject(SecondLevel);
+      SmartFreeObject(Obj);
+      Exit;
+    end;
+  end;
+  if(ID <> -1) and (ID <> 65535)then
+  begin
+    Result.ID := ID;
+    Result.ModelID := ModelID;
+    Result.ObjType := OBJ_INTERACTABLE;
 
-  Result.ID := ID;
-  Result.ObjType := OBJ_INTERACTABLE;
+    Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
+    Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
 
-  Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
-  Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
+    Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
+    Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
+    Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
+    Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
+  end;
 
-  Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
-  Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
-  Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
-  Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
-
+  SmartFreeObject(SecondLevel);
   SmartFreeObject(Obj);
 end;
 
@@ -189,7 +213,7 @@ use in object searching functions in this include, not in scripts.
 *)
 function R_GetFloorDecorationObject(GroundObj, BaseX, BaseY: Integer): TRSObject;
 var
-  Obj, ID: Integer;
+  Obj, ID, SecondLevel, ModelID: Integer;
 begin
   Obj := SmartGetFieldObject(GroundObj, hook_ground_FloorDecoration);
   if(Obj = 0)then
@@ -200,21 +224,33 @@ begin
 
   ID := SmartGetFieldShort(Obj, hook_FloorDecorationData_GetID) and $FFFF;
   if(ID = -1) or (ID = 65535)then
-    ID := SmartGetFieldInt(Obj, hook_secondlevelobject_GetID) and $FFFF;
-  if(ID = -1) or (ID = 65535)then
-    Exit;
+  begin
+    SecondLevel := SmartGetFieldObject(Obj, hook_floordecorationsub2_GetComposite);
+    ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetID) and $FFFF;
+    ModelID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetModelID);
+    if(ID = -1) or (ID = 65535)then
+    begin
+      SmartFreeObject(SecondLevel);
+      SmartFreeObject(Obj);
+      Exit;
+    end;
+  end;
+  if(ID <> -1) and (ID <> 65535)then
+  begin
+    Result.ID := ID;
+    Result.ModelID := ModelID;
+    Result.ObjType := OBJ_INTERACTABLE;
 
-  Result.ID := ID;
-  Result.ObjType := OBJ_INTERACTABLE;
+    Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
+    Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
 
-  Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
-  Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
+    Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
+    Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
+    Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
+    Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
+  end;
 
-  Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
-  Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
-  Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
-  Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
-
+  SmartFreeObject(SecondLevel);
   SmartFreeObject(Obj);
 end;
 
