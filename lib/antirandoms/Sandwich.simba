@@ -20,7 +20,7 @@ end;
 
 function RSandwich_InRandom: Boolean;
 begin
-  Result := R_FindNPC(8630, True, RSandwichVars_NPC);
+  Result := R_FindNPC(RSandwichConst_SandwichLadyID, True, RSandwichVar_SandwichLady);
 end;
 
 function RSandwich_TalkToSandwichLady: Boolean;
@@ -78,10 +78,11 @@ begin
   for i := 7 to 48 do
   begin
     model := R_GetInterfaceChild(RSandwichConst_FoodTrayID, i);
-    if (model.ID = NULL_INT or model.ModelID <> ModelID) then Continue;
+    if (model.ID = NULL_INT) or (model.ModelID <> ModelID) then Continue;
     item := R_GetInterfaceChild(RSandwichConst_FoodTrayID, i - 1);
     if (item.ID = NULL_INT) then Continue;
-    if (R_ClickInterface(item, 1)) then Result := True;
+    R_ClickInterface(item, 1);
+    Result := True;
   end;
 end;
 
@@ -167,7 +168,7 @@ begin
       if R_ChooseOption('Exit') then solved := True;
     end;
   end;
-  if (solved and TimeFromMark(t) < 240000) then
+  if (solved) and (TimeFromMark(t) < 240000) then
   begin
     R_WaitToStopAnimating(5000);
     Result := True;
