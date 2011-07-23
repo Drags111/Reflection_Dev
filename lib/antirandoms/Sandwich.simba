@@ -70,7 +70,7 @@ end;
 
 function RSandwich_ChooseFood(ModelID: Integer): Boolean;
 var
-  i, tray: Integer;
+  i: Integer;
   item, model: TInterfaceChild;
 begin
   Result := False;
