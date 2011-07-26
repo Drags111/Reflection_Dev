@@ -21,12 +21,12 @@
 
 {$i ./lib/ground/GroundItems.simba}
 
-{$i ./lib/mapwalk/MapWalk.simba}
-
 {$i ./lib/chat/NPCChat.simba}
 
 {$i ./lib/misc/Timing.simba}
 {$i ./lib/misc/Misc.simba}
+
+{$i ./lib/mapwalk/MapWalk.simba}
 
 {$i ./lib/gametab/GameTab.simba}
 {$i ./lib/gametab/Inventory.simba}

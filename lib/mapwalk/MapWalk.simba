@@ -581,6 +581,47 @@ begin
 end;
 
 (*
+R_WalkToTileMS
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WalkToTileMS(Tile: TPoint; FlagDist: Integer): Boolean;
+
+Walks to the tile using mainscreen.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_WalkToTileMS(Tile:TTile; FlagDist: Integer): boolean;
+var
+  P: TPoint;
+  x, y, t: Integer;
+begin
+  if not LoggedIn then
+    Exit;
+
+  P := R_TileToMS(Tile, 50);
+  if not PointInBox(Point(P.x,P.y), IntToBox(MSX1, MSY1, MSX2, MSY2)) then
+    Exit;
+  MMouse(P.x, P.y, 5, 5);
+  GetMousePos(x, y);
+  if R_WaitUpText('Walk here', 300) then
+    Mouse(x, y, 0, 0, True) else
+    begin
+      Mouse(x, y, 0, 0, False);
+      Wait(RandomRange(400, 500));
+      R_ChooseOption('Walk here');
+    end;
+  Wait(RandomRange(120, 180));
+  t := getsystemtime;
+  R_FFlag(FlagDist);
+  Result := (GetSystemTime - t) < 60000;
+end;
+
+(*
 R_WalkPathEx
 ~~~~~~~~~~~~
 
@@ -730,6 +771,27 @@ begin
 end;
 
 (*
+R_WindPathMS
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WindPathMS(StartTile, TargetTile: TTile): TPointArray;
+
+Generates a blind path of onscreen points!
+
+.. note::
+
+  by mormonman
+
+*)
+function R_WindPathMS(StartTile, TargetTile: TTile): TPointArray;
+begin
+  Result := R_WindPath(StartTile.x, StartTile.y, TargetTile.x, TargetTile.y,
+                        5.0, 2.5, 0.0, 0.0, 1.5, 1.0);
+end;
+
+(*
 R_WindWalk
 ~~~~~~~~~~
 
@@ -753,15 +815,55 @@ begin
   P := T;
   repeat
     M := R_GetMyPos;
-    CtrlPoints := r_WindPath(M.x, M.y, P.X, P.Y, 5.0, 2.5, 0.0, 0.0, 4.5, 2.5);
+    CtrlPoints := R_WindPath(M.x, M.y, P.X, P.Y, 5.0, 2.5, 0.0, 0.0, 4.5, 2.5);
     Inc(Tries);
     if(Tries > 20)then
     begin
-      R_Debug('Failed more than 20 times', 'R_WebWalk');
+      R_Debug('Failed more than 20 times', 'R_WindWalk');
       Exit;
     end;
     for I:= High(CtrlPoints) downto 0 do
       if R_WalkToTile(CtrlPoints[i],0, 10) then
+      begin
+        Result := I = High(CtrlPoints);
+        Break;
+      end;
+  until(Result);
+end;
+
+(*
+R_WindWalkMS
+~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WindWalkMS(T: TTile): Boolean;
+
+Walks blindly using WindPathMS! Does NOT consider walls or obstacles.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_WindWalkMS(T: TTile): Boolean;
+var
+  I, Tries: Integer;
+  M, P: TPoint;
+  CTRLPoints: TPointArray;
+begin
+  P := T;
+  repeat
+    M := R_GetMyPos;
+    CtrlPoints := R_WindPathMS(M, P);
+    Inc(Tries);
+    if(Tries > 20)then
+    begin
+      R_Debug('Failed more than 20 times', 'R_WindWalkMS');
+      Exit;
+    end;
+    for I:= High(CtrlPoints) downto 0 do
+      if R_WalkToTileMS(CtrlPoints[i], 1) then
       begin
         Result := I = High(CtrlPoints);
         Break;
