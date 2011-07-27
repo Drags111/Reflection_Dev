@@ -86,7 +86,7 @@ begin
       Tile.X := BaseX + (SmartGetFieldInt(Player, hook_animable_PixelX) / 512);
       Tile.Y := BaseY + (SmartGetFieldInt(Player, hook_animable_PixelY) / 512);
       Height := IAbs(SmartGetFieldInt(Player, hook_character_GetHeight));
-      Animation := SmartGetFieldInt(Player, hook_character_Animation);
+      Animation := R_GetCharAnimation(Player);
       Motion := SmartGetFieldInt(Player, hook_character_Motion);
       HPRatio := SmartGetFieldInt(Player, hook_character_HPRatio) * 100 / $FF;
       InCombat := LoopCycle < SmartGetFieldInt(Player, hook_character_LoopCycleStatus);
@@ -171,7 +171,7 @@ begin
       Tile.X := BaseX + (SmartGetFieldInt(Player, hook_animable_PixelX) / 512);
       Tile.Y := BaseY + (SmartGetFieldInt(Player, hook_animable_PixelY) / 512);
       Height := IAbs(SmartGetFieldInt(Player, hook_character_GetHeight));
-      Animation := SmartGetFieldInt(Player, hook_character_Animation);
+      Animation := R_GetCharAnimation(Player);
       Motion := SmartGetFieldInt(Player, hook_character_Motion);
       HPRatio := SmartGetFieldInt(Player, hook_character_HPRatio) * 100 / $FF;
       InCombat := LoopCycle < SmartGetFieldInt(Player, hook_character_LoopCycleStatus);
@@ -316,7 +316,7 @@ begin
       Tile.X := BaseX + (SmartGetFieldInt(Player, hook_animable_PixelX) / 512);
       Tile.Y := BaseY + (SmartGetFieldInt(Player, hook_animable_PixelY) / 512);
       Height := IAbs(SmartGetFieldInt(Player, hook_character_GetHeight));
-      Animation := SmartGetFieldInt(Player, hook_character_Animation);
+      Animation := R_GetCharAnimation(Player);
       Motion := SmartGetFieldInt(Player, hook_character_Motion);
       HPRatio := SmartGetFieldInt(Player, hook_character_HPRatio) * 100 / $FF;
       InCombat := LoopCycle < SmartGetFieldInt(Player, hook_character_LoopCycleStatus);
