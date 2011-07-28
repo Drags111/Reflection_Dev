@@ -131,22 +131,21 @@ begin
   if not R_ValidInterface(INTERFACE_CHAT) then
     Exit;
 
-  b := R_GetInterfaceComponent(INTERFACE_CHAT, INTERFACE_CHAT_SCROLL, 1).Bounds;
-
-  TP := Point(RandomRange(b.X1, b.X2), RandomRange(b.Y1, b.Y2));
-
   i := R_GetInterfaceComponent(INTERFACE_CHAT, INTERFACE_CHAT_SCROLL, 3).y;
   if i = 437 then
     Exit;
+
+  b := R_GetInterfaceComponent(INTERFACE_CHAT, INTERFACE_CHAT_SCROLL, 1).Bounds;
+
+  TP := Point(RandomRange(b.X1, b.X2), RandomRange(b.Y1, b.Y2));
 
   MMouse(TP.x, TP.y, 0, 0);
   HoldMouse(TP.X, TP.y, MouseAction(True));
 
   while (not (i = 437)) do
   begin
-    MMouse(TP.x, i + 20, 0, 0);
+    MMouse(TP.x, i + RandomRange(20, 80), 3, 0);
     i := R_GetInterfaceComponent(INTERFACE_CHAT, INTERFACE_CHAT_SCROLL, 3).y
-    Wait(50 + Random(25));
   end;
 
 	Wait(100 + Random(75));
