@@ -1,9 +1,117 @@
+const
+  RPinballConst_ExitID = 15010;
+
+var
+  RPinballVar_PostIDs: TIntegerArray;
+  RPinballVar_Interface: TPoint;
+
 function RPinball_InRandom: Boolean;
 begin
   Result := R_ValidNPC('Flippa', True) and R_ValidNPC('Tilt', True);
 end;
 
-function RPinball_Solve: Boolean;
+procedure RPinball_SetVars;
 begin
-  Result := False
+  RPinballVar_PostIDs := [15000, 15002, 15004, 15006, 15008];
+  RPinballVar_Interface := Point(263, 1); //(parent, child)
+end;
+
+function RPinball_GetScore: Integer;
+var
+  Text: String;
+begin
+  Text := R_GetInterfaceText(RPinballVar_Interface.x, RPinballVar_Interface.y);
+  Result := StrToInt(ReplaceRegExpr('[a-z]|[A-Z]|:| ', Text, '', True));
+end;
+
+function RPinball_TagPost: Boolean;
+var
+  Pillar: TRSObject;
+  P: TPoint;
+  StartScore, CurScore, x, y: Integer;
+begin
+  StartScore := RPinball_GetScore;
+  if R_FindObjectEx(RPinballVar_PostIDs, OBJ_INTERACTABLE, 35, Pillar) then
+  begin
+    P := R_TileToMS(Pillar.Tile, 400);
+    if PointInBox(P, IntToBox(MSX1, MSY1, MSX2, MSY2)) then
+    begin
+      MMouse(P.x, P.y, 5, 5);
+      GetMousePos(x, y);
+      if R_WaitUpText('Tag', 300) then
+        Mouse(x, y, 0, 0, True) else
+      begin
+        Mouse(x, y, 0, 0, False);
+        Wait(500);
+        R_ChooseOption('Tag');
+      end;
+      R_Flag;
+      R_WaitToStopAnimating(2500);
+      Wait(1500);
+    end;
+
+  end;
+  CurScore := RPinball_GetScore;
+  Result := (StartScore < CurScore);
+end;
+
+function RPinball_Leave: Boolean;
+var
+  ExitObj: TRSObject;
+  P: TPoint;
+  x, y: Integer;
+begin
+  SetAngle(True);
+  if R_FindObject(RPinballConst_ExitID, OBJ_INTERACTABLE, 35, ExitObj) then
+  begin
+    R_Debug('Exit found', 'Pinball');
+    if not R_TileOnMS(ExitObj.Tile, 350) then
+      R_WindWalkMS(Point(ExitObj.Tile.x, ExitObj.Tile.y - 4));
+    R_Flag;
+    P := R_TileToMS(ExitObj.Tile, 350);
+    if PointInBox(P, IntToBox(MSX1, MSY1, MSX2, MSY2)) then
+    begin
+      MMouse(P.x, P.y, 5, 5);
+      GetMousePos(x, y);
+      if R_WaitUpText('Exit', 300) then
+        Mouse(x, y, 0, 0, True) else
+      begin
+        Mouse(x, y, 0, 0, False);
+        Wait(RandomRange(400, 500));
+        R_ChooseOption('Exit');
+      end;
+      R_Flag;
+      Wait(RandomRange(5000, 6000));
+    end;
+  end;
+  Result := not RPinball_InRandom;
+end;
+
+function RPinball_Solve: Boolean;
+var
+  T: Integer;
+begin
+  RPinball_SetVars;
+  MarkTime(T);
+  while RPinball_InRandom and (TimeFromMark(T) < 240000) do
+  begin
+    ClickContinue(True, True);
+
+    if (RPinball_GetScore < 10) then
+    begin
+      R_Debug('Tagging Post: ' + ToStr(RPinball_GetScore), 'Pinball');
+      if RPinball_TagPost then
+        R_Debug('Tagged Post: ' + ToStr(RPinball_GetScore), 'Pinball');
+    end else
+    begin
+      R_Debug('Trying to leave', 'Pinball');
+      if RPinball_Leave then
+        Wait(2500);
+    end;
+  end;
+
+
+  R_ClickToContinue;
+
+  Result := not RPinball_InRandom;
 end;
