@@ -10,5 +10,6 @@ end;
 
 function RQuiz_Solve: Boolean;
 begin
-  Result := False
+  //Result := False;
+  if FindQuiz then Result := True;
 end;
