@@ -8,5 +8,6 @@ end;
 
 function RFrog_Solve: Boolean;
 begin
-  Result := False;
+  //Result := False;
+  if SolveFrog then Result := True;
 end;
