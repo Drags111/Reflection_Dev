@@ -10,5 +10,6 @@ end;
 
 function RMolly_Solve: Boolean;
 begin
-  Result := False;
+  //Result := False;
+  if SolveMolly then Result := True;
 end;

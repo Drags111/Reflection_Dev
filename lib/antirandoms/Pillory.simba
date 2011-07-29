@@ -10,5 +10,6 @@ end;
 
 function RPillory_Solve: Boolean;
 begin
-  Result := False;
+  //Result := False;
+  if SolvePilloryPuzzle then Result := True;
 end;
