@@ -29,8 +29,6 @@ Sets chat to desired state.
 }
 
 function R_SetChat(Chat: Integer; State: String): Boolean;
-var
-  s: String;
 begin
   if not R_ValidInterface(INTERFACE_CHAT_OPTIONS) then
     Exit;
@@ -49,7 +47,8 @@ begin
   end;
 
   R_ClickInterface(R_GetInterfaceChild(INTERFACE_CHAT_OPTIONS, Chat), 2);
-  Result := R_WaitOption(State, 500 + Random(250));
+  Wait(500 + Random(250));
+  Result := R_ChooseOption(State);
 end;
 
 (*
@@ -99,11 +98,8 @@ Checks if Text occurs in last line of chat.
 *)
 
 function R_InChat(Text: String): Boolean;
-var
-  s: string;
 begin
-  s := Lowercase(R_LastChatMessage);
-  Result := (Pos(Lowercase(Text), s) > 0);
+  Result := (Pos(Lowercase(Text), Lowercase(R_LastChatMessage)) > 0);
 end;
 
 (*

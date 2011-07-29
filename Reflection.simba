@@ -24,6 +24,7 @@
 
 {$i ./lib/mapwalk/MapWalk.simba}
 
+{$i ./lib/chat/Chat.simba}
 {$i ./lib/chat/NPCChat.simba}
 
 {$i ./lib/misc/Timing.simba}
