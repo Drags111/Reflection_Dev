@@ -8,5 +8,6 @@ end;
 
 function REvilBob_Solve: Boolean;
 begin
-  Result := False
+  //Result := False;
+  if SolveEvilBob then Result := True;
 end;
