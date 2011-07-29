@@ -14,5 +14,6 @@ end;
 
 function RPrison_Solve: Boolean;
 begin
-  Result := False
+  //Result := False;
+  if SolvePrisonPete then Result := True;
 end;
