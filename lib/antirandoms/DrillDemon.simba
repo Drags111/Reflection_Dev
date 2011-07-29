@@ -276,3 +276,4 @@ begin
   end;
   Result := (not RDemon_InRandom) and (TimeFromMark(T) < 240000);
 end;
+

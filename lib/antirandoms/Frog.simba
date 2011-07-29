@@ -10,3 +10,4 @@ function RFrog_Solve: Boolean;
 begin
   Result := False;
 end;
+

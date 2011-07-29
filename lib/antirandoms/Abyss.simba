@@ -77,7 +77,7 @@ function RAbyss_HandleAppendage(AppendageID: Integer): Boolean;
 var
   Appendage: TRSObject;
   P: TPoint;
-  X, Y: Integer;
+  X, Y, T: Integer;
 begin
   Appendage := R_GetObject(AppendageID, OBJ_INTERACTABLE, 15);
   if (Appendage = NULL_RSOBJECT) then
@@ -112,7 +112,9 @@ begin
   R_WaitToMove(3000);
   R_Flag;
 
-  Wait(3000+Random(2000));
+  MarkTime(T);
+  while RAbyss_InRandom and (TimeFromMark(T) < 8000) do
+    Wait(500);
 
   Result := not RAbyss_InRandom;
 end;
@@ -143,7 +145,7 @@ begin
 
   end;
 
-  Wait(RandomRange(5000, 6000));
+  Wait(RandomRange(2000, 3000));
   R_ClickToContinue;
 
   Result := not RAbyss_InRandom;

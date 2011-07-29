@@ -668,3 +668,4 @@ begin
   if(TimeFromMark(T) < 300000)then
     Result := True;
 end;
+

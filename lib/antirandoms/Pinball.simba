@@ -59,7 +59,7 @@ function RPinball_Leave: Boolean;
 var
   ExitObj: TRSObject;
   P: TPoint;
-  x, y: Integer;
+  x, y, T: Integer;
 begin
   SetAngle(True);
   if R_FindObject(RPinballConst_ExitID, OBJ_INTERACTABLE, 35, ExitObj) then
@@ -81,7 +81,10 @@ begin
         R_ChooseOption('Exit');
       end;
       R_Flag;
-      Wait(RandomRange(5000, 6000));
+
+      MarkTime(T);
+      while RPinball_InRandom and (TimeFromMark(T) < 8000) do
+        Wait(500);
     end;
   end;
   Result := not RPinball_InRandom;
@@ -115,3 +118,4 @@ begin
 
   Result := not RPinball_InRandom;
 end;
+

@@ -278,3 +278,4 @@ begin
   end;
   R_Debug('Failed the maze random.', 'Maze');
 end;
+
