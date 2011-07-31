@@ -125,7 +125,7 @@ function RCerter_Leave: Boolean;
 var
   Portal: TRSObject;
   P: TPoint;
-  X, Y: Integer;
+  X, Y, T: Integer;
 begin
   Portal := R_GetObject(RCerterConst_Portal_ID, OBJ_INTERACTABLE, 15);
   if(Portal = NULL_RSOBJECT)then
@@ -161,7 +161,9 @@ begin
   R_WaitToMove(3000);
   R_Flag;
 
-  Wait(3000+Random(2000));
+  MarkTime(T);
+  while RCerter_InRandom and (TimeFromMark(T) < 8000) do
+    Wait(500);
 
   Result := not RCerter_InRandom;
 end;
@@ -191,7 +193,6 @@ begin
       if not RCerter_AnswerQuestion then
       begin
         R_Debug('Unable to answer question', 'Certer');
-        Exit;
       end;
 
 

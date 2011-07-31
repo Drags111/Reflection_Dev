@@ -1,12 +1,250 @@
+const
+  RSandwichConst_NPCID = 8630;
+  RSandwichConst_FoodInterface = 297;
+  RSandwichConst_FoodAssigned = 48;
+
 var
-  RSandwichVars_NPC: TNPC;
+  RSandwichVars_PortalIDs, RSandwichVars_ModelIDs: TIntegerArray;
+  RSandwichVars_ModelNames, RSandwichVars_Finished: TStringArray;
+
+procedure RSandwich_SetVars;
+begin
+  RSandwichVars_PortalIDs := [12731, 11373];
+  RSandwichVars_ModelIDs := [10728, 10732, 10727, 10730, 10726, 45666, 10731];
+  RSandwichVars_ModelNames := ['chocolate', 'triangle', 'roll', 'pie',
+   'baguette', 'doughnut', 'square'];
+  RSandwichVars_Finished := ['leave', 'portal', 'exit'];
+end;
 
 function RSandwich_InRandom: Boolean;
+var
+  SWLady: TNPC;
 begin
-  Result := R_FindNPC(8630, True, RSandwichVars_NPC);
+  Result := R_FindNPC(RSandwichConst_NPCID, True, SWLady);
+end;
+
+function RSandwich_HandleChat: Boolean;
+var
+  Chat: String;
+  P: TPoint;
+  X, Y, T: Integer;
+  SWLady: TNPC;
+begin
+  Result := False;
+
+  Chat := R_GetNPCChatMessage;
+  if (Chat = '') then
+  begin
+    if R_FindNPC(RSandwichConst_NPCID, True, SWLady) then
+    begin
+      if(R_DistanceFromTile(SWLady.Tile) > 4)then
+      begin
+        if not R_WalkToTile(SWLady.Tile, 1, 0)then
+        begin
+          R_Debug('Unable to walk to Sandwich Lady', 'Sandwich');
+          Exit;
+        end;
+        Wait(300+Random(50));
+      end;
+      P := R_TileToMS(SWLady.Tile, SWLady.Height/2);
+      MMouse(P.x, P.y, 3, 3);
+      wait(25+Random(25));
+      if not R_OptionExists('talk')then
+        Exit;
+      GetMousePos(X, Y);
+      Mouse(X, Y, 0, 0, False);
+      if not R_ChooseOption('talk')then
+        Exit;
+
+      MarkTime(T);
+      while (TimeFromMark(T) < 6000) do
+      begin
+        if(R_ClickContinueExists)then
+          Break;
+        wait(500+Random(250));
+      end;
+      if (TimeFromMark(T) > 3000) then
+      begin
+        R_Debug('Unable to talk to Sandwich Lady', 'Sandwich');
+        Exit;
+      end;
+    end else
+    begin
+      R_Debug('Could not find Sandwich Lady', 'Sandwich');
+      Exit;
+    end;
+  end;
+
+  Result := ArrInStr(RSandwichVars_Finished, R_GetNPCChatMessage);
+
+  while ClickContinue(True, True) do
+  begin
+    if not Result then
+      Result := ArrInStr(RSandwichVars_Finished, R_GetNPCChatMessage);
+    Wait(500);
+  end;
+
+  if Result then
+    R_Debug('Finished, trying to exit', 'Sandwich');
+end;
+
+function RSandwich_InterfaceUp: Boolean;
+begin
+  Result := R_ValidInterface(RSandwichConst_FoodInterface);
+end;
+
+function RSandwich_GetTargetString: String;
+begin
+  Result := Trim(Between('Have a', 'for free!',
+                    R_GetInterfaceText(RSandwichConst_FoodInterface,
+                                       RSandwichConst_FoodAssigned)));
+end;
+
+function RSandwich_HandleInterface: Boolean;
+var
+  TargetString: String;
+  TargetModel, i, T: Integer;
+  TempInterface, ClickInterface: TInterfaceChild;
+begin
+  if not RSandwich_InterfaceUp then Exit;
+  TargetModel := -1;
+
+  TargetString := RSandwich_GetTargetString;
+  if (TargetString = '') then
+  begin
+    R_Debug('Unable to retrieve food string', 'Sandwich');
+    Exit;
+  end;
+
+  for i := 0 to High(RSandwichVars_ModelNames) do
+    if (Pos(RSandwichVars_ModelNames[i], TargetString) > 0) then
+    begin
+      R_Debug('Target food: ' + RSandwichVars_ModelNames[i], 'Sandwich');
+      TargetModel := RSandwichVars_ModelIDs[i];
+      Break;
+    end;
+
+  if (TargetModel > 0) then
+  begin
+    for i := 10 to 23 do
+    begin
+      TempInterface := R_GetInterfaceChild(RSandwichConst_FoodInterface, i);
+      if (TargetModel = TempInterface.ModelID) then
+      begin
+        ClickInterface := R_GetInterfaceChild(RSandwichConst_FoodInterface, i);
+        R_Debug('Found model match at child[' + ToStr(i) + ']', 'Sandwich');
+        MarkTime(T);
+        while (TimeFromMark(T) < 8000) do
+        begin
+          Result := not RSandwich_InterfaceUp;
+          if Result then
+          begin
+            R_Debug('Clicked on Target model', 'Sandwich');
+            Exit;
+          end;
+          R_ClickInterface(ClickInterface, 1);
+          Wait(250);
+        end;
+        R_Debug('Clicking timed out', 'Sandwich');
+        Exit;
+      end;
+    end;
+    R_Debug('Unable to match Target model with any model', 'Sandwich');
+    R_Debug('Trying to use child[22]', 'Sandwich');
+    ClickInterface := R_GetInterfaceChild(RSandwichConst_FoodInterface, 22);
+    MarkTime(T);
+    while (TimeFromMark(T) < 8000) do
+    begin
+      Result := not RSandwich_InterfaceUp;
+      if Result then
+      begin
+        R_Debug('Clicked on Target model', 'Sandwich');
+        Exit;
+      end;
+      R_ClickInterface(ClickInterface, 1);
+      Wait(250);
+    end;
+    R_Debug('Clicking timed out', 'Sandwich');
+    Exit;
+  end else
+  begin
+    R_Debug('Unable to match Target string with model ID', 'Sandwich');
+    Exit;
+  end;
+end;
+
+function RSandwich_Leave: Boolean;
+var
+  Portal: TRSObject;
+  P: TPoint;
+  X, Y, T: Integer;
+begin
+  Portal := R_GetObjectEx(RSandwichVars_PortalIDs, OBJ_INTERACTABLE, 30);
+  if(Portal = NULL_RSOBJECT)then
+  begin
+    R_Debug('Unable to find portal. Go buy Portal 2..', 'Sandwich');
+    Exit;
+  end;
+
+  if(R_DistanceFromTile(Portal.Tile) > 4)then
+  begin
+    if not R_WalkToTile(Portal.Tile, 1, 0)then
+    begin
+      R_Debug('Unable to walk to Portal.', 'Sandwich');
+      Exit;
+    end;
+    Wait(300+Random(50));
+  end;
+
+  P := R_TileToMS(Portal.Tile, 0);
+  MMouse(P.x, P.y, 10, 10);
+  wait(25+Random(25));
+  Result := R_OptionExists('enter');
+  if not Result then
+    Exit;
+
+  GetMousePos(X, Y);
+  Mouse(X, Y, 0, 0, false);
+  wait(25+Random(25));
+  Result := R_ChooseOption('enter');
+  if not Result then
+    Exit;
+
+  R_WaitToMove(3000);
+  R_Flag;
+
+  MarkTime(T);
+  while (RSandwich_InRandom and (TimeFromMark(T) < 8000)) do
+  begin
+    if not RSandwich_InRandom then Break;
+    Wait(500);
+  end;
+
+  Result := not RSandwich_InRandom;
 end;
 
 function RSandwich_Solve: Boolean;
+var
+  T: Integer;
 begin
-  Result := False
+  Result := False;
+  RSandwich_SetVars;
+
+  MarkTime(T);
+  while RSandwich_InRandom and (TimeFromMark(T) < 240000) do
+  begin
+    if RSandwich_InterfaceUp then
+      if not RSandwich_HandleInterface then
+      begin
+        R_Debug('Failed to handle food interface', 'Sandwich');
+      end;
+
+    if RSandwich_HandleChat then
+      if not RSandwich_Leave then
+      begin
+        R_Debug('Unable to exit', 'Sandwich');
+      end;
+  end;
+
+  Result := not RSandwich_InRandom;
 end;

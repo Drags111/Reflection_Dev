@@ -155,7 +155,7 @@ function RArnav_Leave: Boolean;
 var
   Portal: TRSObject;
   P: TPoint;
-  X, Y: Integer;
+  X, Y, T: Integer;
 begin
   Result := False;
   Portal := R_GetObject(11369, OBJ_INTERACTABLE, 10);
@@ -182,8 +182,11 @@ begin
   R_WaitToMove(3000);
   R_Flag;
 
-  Wait(3000+Random(2000));
-  Result := True;
+  MarkTime(T);
+  while RArnav_InRandom and (TimeFromMark(T) < 8000) do
+    Wait(500);
+
+  Result := not RArnav_InRandom;
 end;
 
 function RArnav_CheckSolved: Boolean;
