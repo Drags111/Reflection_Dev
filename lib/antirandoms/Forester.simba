@@ -85,9 +85,9 @@ begin
       R_Debug('Pheasant already killed', 'Forester');
       Result := [1, 1];
     end;
-    if (Pos('kill a pheasant', NPCChat) > 0) then
+    if (Pos('Can you kill', NPCChat) > 0) then
     begin
-      Tails := Trim(Between('kill a pheasant that has ', ' tails.', NPCChat));
+      Tails := Trim(Between('Can you kill a ', '-tailed pheasant', NPCChat));
       case Tails of
         'one':    Result := RForestVars_OneTail;
         'two':    Result := RForestVars_TwoTail;

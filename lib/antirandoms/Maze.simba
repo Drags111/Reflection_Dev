@@ -17,6 +17,7 @@ var
   Dirs: TStringArray;
   I: Integer;
 begin
+  R_Debug('Loading Path[' + ToStr(Path) + ']', 'Maze');
   case Path of
     0: begin
       SetLength(Result, 17);
@@ -78,7 +79,7 @@ begin
       SetLength(Tiles, 15);
       SetLength(Dirs, 15);
 
-      Tiles := [Point(2932, 4598), Point(2921, 4600), Point(2909, 4600),
+      Tiles := [Point(2932, 4597), Point(2921, 4599), Point(2909, 4600),
                 Point(2913, 4598), Point(2908, 4596), Point(2919, 4594),
                 Point(2908, 4592), Point(2898, 4585), Point(2903, 4588),
                 Point(2902, 4575), Point(2906, 4586), Point(2916, 4586),
