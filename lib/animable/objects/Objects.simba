@@ -389,7 +389,7 @@ function R_SortedCircleTPA(Center: TPoint; Radius: Integer): TPointArray;
 begin
   SetLength(Result,0);
   Result := TPAFromBox(IntToBox(Center.X - Radius, Center.Y - Radius, Center.X + Radius, Center.Y + Radius));
-  FilterPointsPie(Result, 0, 360, 0, Radius, Center.X, Center.Y);
+  FilterPointsPie(Result, 0, 360, -1, Radius, Center.X, Center.Y);
   SortTPAFrom(Result, Center);
 end;
 
