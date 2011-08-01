@@ -1,12 +1,125 @@
-var
-  RFrogVars_NPC: TNPC;
+const
+  RFrogConst_Herald = 'Frog Herald';
+  RFrogConst_Height = 278;
+  RFrogConst_ExitMsg = 'persuaded';
 
 function RFrog_InRandom: Boolean;
+var
+  NPC: TNPC;
 begin
-  Result := R_FindNPC('Frog Herald', True, RFrogVars_NPC);
+  Result := R_FindNPC(RFrogConst_Herald, True, NPC);
+end;
+
+function RFrog_HandleChat: Boolean;
+var
+  TempChat: String;
+begin
+  while ClickContinue(False, False) do
+  begin
+    TempChat := R_GetNPCChatMessage;
+    Result := (Pos(RFrogConst_ExitMsg, TempChat) > 0);
+    ClickContinue(True, True);
+    if Result then Break;
+    Wait(500);
+  end;
+end;
+
+function RFrog_TalkTo(NPC: TNPC): Boolean;
+var
+  CurrNPC: TNPC;
+  P: TPoint;
+  X, Y, T: Integer;
+begin
+  Result := False;
+
+  if(R_DistanceFromTile(NPC.Tile) > 4)then
+  begin
+    if not R_WalkToTile(NPC.Tile, 1, 0)then
+    begin
+      R_Debug('Unable to walk to NPC', 'Frog');
+      Exit;
+    end;
+    Wait(300+Random(50));
+  end;
+  P := R_TileToMS(NPC.Tile, NPC.Height * (3/4));
+  MMouse(P.x, P.y, 3, 3);
+  wait(25+Random(25));
+  if not R_OptionExists('talk')then
+    Exit;
+  GetMousePos(X, Y);
+  Mouse(X, Y, 0, 0, False);
+  if not R_ChooseOption('talk')then
+    Exit;
+
+  MarkTime(T);
+  while (TimeFromMark(T) < 8000) and (not Result) do
+    Result := ClickContinue(False, False);
+end;
+
+function RFrog_FindCrowned: TNPC;
+var
+  Frogs: TNPCArray;
+  i: Integer;
+begin
+  Result := NULL_NPC;
+  Frogs := R_GetAllNPCs(True);
+  if (Length(Frogs) > 0) then
+    for i := 0 to High(Frogs) do
+      if (Frogs[i].Height = RFrogConst_Height) then
+      begin
+        Result := Frogs[i];
+        Exit;
+      end;
+end;
+
+function RFrog_HandleFrog(Which: Boolean): Boolean;
+var
+  Frog: TNPC;
+begin
+  Result := ClickContinue(False, False);
+  if Result then Exit;
+
+  if Which then
+  begin
+    //R_Debug('Searching for herald', 'Frog');
+    Frog := R_GetNPC(RFrogConst_Herald, True);
+  end else
+  begin
+    //R_Debug('Searching for crowned', 'Frog');
+    Frog := RFrog_FindCrowned;
+  end;
+
+  if (Frog = NULL_NPC) then
+    Exit;
+
+  Result := RFrog_TalkTo(Frog);
 end;
 
 function RFrog_Solve: Boolean;
+var
+  T, TTele: Integer;
+  Herald: Boolean;
 begin
   Result := False;
+  Herald := True;
+  MarkTime(T);
+
+  while (RFrog_InRandom and (TimeFromMark(T) < 240000)) do
+  begin
+    if RFrog_HandleFrog(Herald) then
+    begin
+      Herald := False;
+      if RFrog_HandleChat then
+      begin
+        MarkTime(TTele);
+        while (TimeFromMark(TTele) < 10000) and RFrog_InRandom do
+        begin
+          Wait(500);
+          ClickContinue(True, True);
+        end;
+      end;
+    end;
+  end;
+
+  Result := not RFrog_InRandom;
 end;

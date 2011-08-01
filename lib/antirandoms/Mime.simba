@@ -85,10 +85,12 @@ begin
   MarkTime(T);
   Animation := -1;
 
+  R_ClickToContinue;
+
   while(TimeFromMark(T) < 180000) and (RMime_InRandom)do
   begin
     wait(200+Random(100));
-    if R_ClickToContinue then
+    if ClickContinue(True, True) then
       Continue;
 
     if(R_GetAnimation = RMIMECONST_TELEID)then

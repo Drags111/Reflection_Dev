@@ -146,9 +146,12 @@ end;
 function RArnav_AtChest: Boolean;
 var
   MyTile: TTile;
+  NPCChat: String;
 begin
   MyTile := R_GetMyPos;
-  Result := MyTile = Point(RArnavVars_Chest.Tile.X-1, RArnavVars_Chest.Tile.Y);
+  NPCChat := R_GetNPCChatMessage;
+  Result := (Pos('Ready, lassie', NPCChat) > 0) and
+            (MyTile = Point(RArnavVars_Chest.Tile.X-1, RArnavVars_Chest.Tile.Y));
 end;
 
 function RArnav_Leave: Boolean;

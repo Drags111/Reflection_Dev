@@ -73,18 +73,30 @@ begin
   Result := -1;
 end;
 
+function RAbyss_DoTileOffset(T: TTile; AppendageID: Integer): TTile;
+begin
+  case AppendageID of
+    RAbyssConst_Append_N: Result := Point(T.X, T.Y + 1);
+    RAbyssConst_Append_E: Result := Point(T.X + 1, T.Y);
+    RAbyssConst_Append_S: Result := Point(T.X, T.Y - 1);
+    RAbyssConst_Append_W: Result := Point(T.X - 1, T.Y);
+  end;
+end;
+
 function RAbyss_HandleAppendage(AppendageID: Integer): Boolean;
 var
   Appendage: TRSObject;
   P: TPoint;
   X, Y, T: Integer;
 begin
-  Appendage := R_GetObject(AppendageID, OBJ_INTERACTABLE, 15);
+  Appendage := R_GetObject(AppendageID, OBJ_INTERACTABLE, 25);
   if (Appendage = NULL_RSOBJECT) then
   begin
     R_Debug('Appendage not found', 'Abyss');
     Exit;
   end;
+
+  Appendage.Tile := RAbyss_DoTileOffset(Appendage.Tile, AppendageID);
 
   if(R_DistanceFromTile(Appendage.Tile) > 4)then
   begin
@@ -96,7 +108,7 @@ begin
     Wait(300+Random(50));
   end;
 
-  P := R_TileToMS(Appendage.Tile, 0);
+  P := R_TileToMS(Appendage.Tile, 200);
   MMouse(P.x, P.y, 10, 10);
   wait(25+RandoM(25));
   if not R_OptionExists('operate') then
