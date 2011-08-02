@@ -1,1 +1,147 @@
+(*
+R_SetChat
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. code-block:: pascal
+
+    function R_SetChat: Boolean;
+
+Sets chat to desired state.
+
+.. note::
+
+  by Rick
+
+*)
+
+{
+  Chat Constants
+  RCHAT_GAME    = 31;
+  RCHAT_PUBLIC  = 28;
+  RCHAT_PRIVATE = 25;
+  RCHAT_FRIENDS = 8;
+  RCHAT_CLAN    = 22;
+  RCHAT_TRADE   = 19;
+  RCHAT_ASSIST  = 16;
+}
+
+function R_SetChat(Chat: Integer; State: String): Boolean;
+begin
+  if not R_ValidInterface(INTERFACE_CHAT_OPTIONS) then
+    Exit;
+
+  if (not InIntArray([RCHAT_GAME, RCHAT_PUBLIC, RCHAT_PRIVATE, RCHAT_FRIENDS,
+                      RCHAT_CLAN, RCHAT_TRADE, RCHAT_ASSIST], Chat)) then
+  begin
+    R_Debug('Not a valid Chat', 'R_SetChat');
+    Exit;
+  end;
+
+  if (Pos(Lowercase(State), Lowercase(R_GetInterfaceText(INTERFACE_CHAT_OPTIONS, Chat + 2))) > 0) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  R_ClickInterface(R_GetInterfaceChild(INTERFACE_CHAT_OPTIONS, Chat), 2);
+  Wait(500 + Random(250));
+  Result := R_ChooseOption(State);
+end;
+
+(*
+R_LastChatMessage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_LastChatMessage: String;
+
+Returns the last chat message in a string.
+
+.. note::
+
+  by Rick
+
+*)
+
+function R_LastChatMessage: String;
+var
+  i: Integer;
+begin
+  if not R_ValidInterface(INTERFACE_CHAT) then
+    Exit;
+  for i := 279 downto 180 do
+  begin
+    Result := R_GetInterfaceText(INTERFACE_CHAT, i);
+    if (not (Result = '')) then
+      Exit;
+  end;
+end;
+
+(*
+R_InChat
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_InChat(Text: String): Boolean;
+
+Checks if Text occurs in last line of chat.
+
+.. note::
+
+  by Rick
+
+*)
+
+function R_InChat(Text: String): Boolean;
+begin
+  Result := (Pos(Lowercase(Text), Lowercase(R_LastChatMessage)) > 0);
+end;
+
+(*
+R_FixChat
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_FixChat;
+
+Scrolls the Chat Scrollbar down.
+
+.. note::
+
+  by Rick
+
+*)
+
+procedure R_FixChat;
+var
+  b: TBox;
+  TP: TPoint;
+  i: Integer;
+begin
+  if not R_ValidInterface(INTERFACE_CHAT) then
+    Exit;
+
+  i := R_GetInterfaceComponent(INTERFACE_CHAT, INTERFACE_CHAT_SCROLL, 3).y;
+  if i = 437 then
+    Exit;
+
+  b := R_GetInterfaceComponent(INTERFACE_CHAT, INTERFACE_CHAT_SCROLL, 1).Bounds;
+
+  TP := Point(RandomRange(b.X1, b.X2), RandomRange(b.Y1, b.Y2));
+
+  MMouse(TP.x, TP.y, 0, 0);
+  HoldMouse(TP.X, TP.y, MouseAction(True));
+
+  while (not (i = 437)) do
+  begin
+    MMouse(TP.x, i + RandomRange(20, 80), 3, 0);
+    i := R_GetInterfaceComponent(INTERFACE_CHAT, INTERFACE_CHAT_SCROLL, 3).y
+  end;
+
+	Wait(100 + Random(75));
+  GetMousePos(TP.x, TP.y);
+  ReleaseMouse(TP.x, TP.y, MouseAction(true));
+end;
