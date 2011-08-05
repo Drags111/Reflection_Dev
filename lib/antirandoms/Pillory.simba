@@ -1,3 +1,15 @@
+const
+  RPilloryConst_Diamond   = 0;
+  RPilloryConst_Square    = 1;
+  RPilloryConst_Circle    = 2;
+  RPilloryConst_Triangle  = 3;
+  RPilloryConst_LockIF    = 189;
+  RPilloryConst_PadlockIF = 4;
+
+var
+  RPilloryVars_Combos: array[0..3] of TPoint;
+  RPilloryVars_SouthTile: TPoint;
+
 function RPillory_InRandom: Boolean;
 var
   Tiles: TTileArray;
@@ -6,9 +18,114 @@ begin
             Point(3226, 3407), Point(3228, 3407), Point(3230, 3407),
             Point(2685, 3489), Point(2683, 3489), Point(2681, 3489)];
   Result := PointInTPA(R_GetMyPos, Tiles);
+  if Result then Exit;
+  Result := R_ValidInterface(RPilloryConst_LockIF);
+  if Result then Exit;
+  Result := Pos('Solve the pillory', R_GetInterfaceText(372, 3)) > 0;
+  if Result then Exit;
+  Result := Pos('swinging', R_GetInterfaceText(372, 3)) > 0;
+end;
+
+procedure RPillory_SetVars;
+begin
+  //Point(KeyModelID, LockModelID)
+  RPilloryVars_Combos[RPilloryConst_Diamond] := Point(9749, 9753);
+  RPilloryVars_Combos[RPilloryConst_Square] := Point(9750, 9754);
+  RPilloryVars_Combos[RPilloryConst_Circle] := Point(9751, 9755);
+  RPilloryVars_Combos[RPilloryConst_Triangle] := Point(9752, 9756);
+
+  RPilloryVars_SouthTile := Point(2606, 3105);
+end;
+
+function RPillory_ClickCage: Boolean;
+var
+  Loc, TP: TPoint;
+begin
+  if R_ValidInterface(RPilloryConst_LockIF) then
+    Exit;
+
+  R_Debug('Trying to click cage', 'Pillory');
+
+  if R_DistanceFromTile(RPilloryVars_SouthTile) <= 10 then
+    MakeCompass('s');
+
+  Loc := R_GetMyPos;
+  if R_TileOnMS(Loc, 0) then
+  begin
+    TP := R_TileToMS(Loc, 0);
+    if PointInBox(TP, MSBox) then
+    begin
+      MMouse(TP.x-10, TP.y - 35, 20, 15);
+      Wait(RandomRange(100, 200));
+      if not R_IsUpText('Unlock') then
+        Exit;
+      GetMousePos(TP.x, TP.y);
+      Mouse(TP.x, TP.y, 0, 0, False);
+      Wait(RandomRange(80, 100));
+      if not R_ChooseOption('Unlock') then
+        Exit;
+    end;
+  end;
+
+  Result := R_WaitInterfaceOpen(RPilloryConst_LockIF, 3500);
+end;
+
+function RPillory_ChooseKey: Boolean;
+var
+  LockIF, KeyIF, ClickIF: TInterfaceChild;
+  KeyModelID, i, h, T: Integer;
+begin
+  LockIF := R_GetInterfaceChild(RPilloryConst_LockIF, RPilloryConst_PadlockIF);
+  for i := 0 to 3 do
+    if (RPilloryVars_Combos[i].y = LockIF.ModelID) then
+    begin
+      KeyModelID := RPilloryVars_Combos[i].x;
+      for h := 5 to 7 do
+      begin
+        KeyIF := R_GetInterfaceChild(RPilloryConst_LockIF, h);
+        if KeyModelID = KeyIF.ModelID then
+        begin
+          ClickIF := R_GetInterfaceChild(RPilloryConst_LockIF, 3 + h);
+          R_ClickInterface(ClickIF, mouse_Left);
+          MarkTime(T);
+          while (TimeFromMark(T) < 3500) and not Result do
+          begin
+            KeyIF := R_GetInterfaceChild(RPilloryConst_LockIF, RPilloryConst_PadlockIF);
+            Result := KeyIF.ModelID <> LockIF.ModelID;
+            if Result then
+            begin
+              R_Debug('Lock picked', 'Pillory');
+              Exit;
+            end;
+            Wait(250);
+          end;
+        end;
+      end;
+    end;
+
 end;
 
 function RPillory_Solve: Boolean;
+var
+  T: Integer;
 begin
   Result := False;
+  RPillory_SetVars;
+  MarkTime(T);
+
+  while RPillory_InRandom and (TimeFromMark(T) < 240000) do
+  begin
+    if R_ValidInterface(RPilloryConst_LockIF) then
+      if RPillory_ChooseKey then
+      begin
+        R_Debug('Successfully picked lock', 'Pillory');
+        Wait(RandomRange(800, 1200));
+        Continue;
+      end;
+
+    if RPillory_ClickCage then
+      R_Debug('Opened lock interface', 'Pillory');
+  end;
+
+  Result := not RPillory_InRandom;
 end;

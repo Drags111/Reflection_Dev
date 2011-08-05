@@ -23,7 +23,7 @@ Returns your player's animation.
 *)
 function R_GetAnimation: Integer;
 var
-  MyPlayer, animation, animationdef : Integer;
+  MyPlayer : Integer;
 begin
   MyPlayer := SmartGetFieldObject(0, hook_static_MyPlayer);
   Result := R_GetCharAnimation(MyPlayer);

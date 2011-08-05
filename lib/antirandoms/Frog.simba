@@ -26,7 +26,6 @@ end;
 
 function RFrog_TalkTo(NPC: TNPC): Boolean;
 var
-  CurrNPC: TNPC;
   P: TPoint;
   X, Y, T: Integer;
 begin

@@ -1,14 +1,91 @@
+const
+  RQuizConst_Farming            = 0;
+  RQuizConst_Fish               = 1;
+  RQuizConst_Jewelry            = 2;
+  RQuizConst_Weapons            = 3;
+  RQuizConst_QuestionInterface  = 191;
+  RQuizConst_QuizMasterID       = 2477;
+
 var
-  RQuizVars_NPC: TNPC;
+  RQuizVars_Types: array[0..3] of TIntegerArray;
+
 
 function RQuiz_InRandom: Boolean;
+var
+  NPC: TNPC;
 begin
-  Result := R_FindNPC(2477, True, RQuizVars_NPC);
+  Result := R_FindNPC(2477, True, NPC);
   if Result then
-    Result := (R_DistanceFromTile(RQuizVars_NPC.Tile) < 5);
+    Result := (R_DistanceFromTile(NPC.Tile) < 5);
+end;
+
+procedure RQuiz_SetVars;
+begin
+  RQuizVars_Types[RQuizConst_Farming] := [6195, 6196];
+  RQuizVars_Types[RQuizConst_Fish] := [6189, 6190];
+  RQuizVars_Types[RQuizConst_Jewelry] := [6197, 6198];
+  RQuizVars_Types[RQuizConst_Weapons] := [6192, 6194];
+end;
+
+procedure RQuiz_AnswerQuestion;
+var
+  Slots: array [0..2] of TInterfaceChild;
+  DefSlot: array[0..2] of Integer;
+  ClickInterface: TInterfaceChild;
+  i, h, IntNum: Integer;
+begin
+
+  for i := 0 to 2 do
+  begin
+    Slots[i] := R_GetInterfaceChild(RQuizConst_QuestionInterface, i + 6);
+    //R_Debug('Slots[' +ToStr(i)+ '].ComponentID = ' + ToStr(Slots[i].ComponentID), 'Quiz');
+    for h := RQuizConst_Farming to RQuizConst_Weapons do
+      if InIntArray(RQuizVars_Types[h], Slots[i].ComponentID) then
+        DefSlot[i] := h;
+  end;
+
+  if DefSlot[0] = DefSlot[1] then
+    IntNum := 5;
+  if DefSlot[1] = DefSlot[2] then
+    IntNum := 3;
+  if DefSlot[0] = DefSlot[2] then
+    IntNum := 4;
+
+  if not IntNum > 0 then
+  begin
+    R_Debug('Odd item not found', 'Quiz');
+    Exit;
+  end;
+
+  ClickInterface := R_GetInterfaceChild(RQuizConst_QuestionInterface, IntNum);
+  R_ClickInterface(ClickInterface, mouse_Left);
+  if not R_WaitInterfaceClose(RQuizConst_QuestionInterface, 5000) then
+    R_Debug('Interface hasn''t closed', 'Quiz');
+
+
 end;
 
 function RQuiz_Solve: Boolean;
+var
+  T: Integer;
 begin
-  Result := False
+  Result := False;
+  RQuiz_SetVars;
+  MarkTime(T);
+
+  while RQuiz_InRandom and (TimeFromMark(T) < 240000) do
+  begin
+    if R_ValidInterface(RQuizConst_QuestionInterface) then
+    begin
+      R_Debug('Question interface up', 'Quiz');
+      Wait(RandomRange(1500,2500));
+      RQuiz_AnswerQuestion;
+    end;
+
+    if ClickContinue(True, True) then Continue;
+
+    Wait(RandomRange(500,800));
+  end;
+
+  Result := not RQuiz_InRandom;
 end;

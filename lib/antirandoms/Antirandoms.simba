@@ -135,7 +135,7 @@ begin
   with R_RandomArr[Rand_Pillory] do
   begin                              //Not done
     RandName := 'Pillory';
-    Music := 'pinball wizard';
+    Music := '';
     InRandom := @RPillory_InRandom;
     SolveRandom := @RPillory_Solve;
   end;
