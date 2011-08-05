@@ -1049,6 +1049,7 @@ begin
       R_Debug('Error withdrawing item.', 'R_WithdrawX');
       Exit;
     end;
+    Wait(50+Random(50));
   end;
 end;
 
