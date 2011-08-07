@@ -299,6 +299,148 @@ begin
 end;
 
 (*
+R_MMouseMenu
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_MMouseMenu(Options: TStringArrayOptions: TStringArray; First: Boolean
+Moves the mouse over the first instance of the options provided. Used in
+R_ChooseOptionMulti.
+
+.. note::
+
+  by Drags111 & Shuttleu
+
+*)
+function R_MMouseMenuDual(Options: TStringArray; First: Boolean): Boolean;
+var
+  MenuItems: TStringArray;
+  I, L, X, Y, MX, MY, MW, MH, xOff, yOff: Integer;
+  Option: String;
+  Dimensions: TBox;
+begin
+  Result := False;
+  if not SmartGetFieldBoolean(0, hook_static_MenuOpen) then
+    Exit;
+  if not ((Length(Options) > 1) and (Length(Options) < 3)) then
+    Exit;
+  MX := SmartGetFieldInt(0, hook_static_MenuX);
+  MY := SmartGetFieldInt(0, hook_static_MenuY);
+  MW := SmartGetFieldInt(0, hook_static_MenuWidth);
+  MH := SmartGetFieldInt(0, hook_static_MenuHeight);
+
+  MenuItems := R_GetMenuItems;
+
+  for I := 0 to High(MenuItems)-1 do
+    if(Pos(Trim(Lowercase(Options[0])), MenuItems[I]) > 0)then
+      if(Pos(Trim(Lowercase(Options[1])), MenuItems[I+1]) > 0)then
+      begin
+        if First then
+          Option := MenuItems[I]
+        else
+          Option := MenuItems[I+1];
+        xOff := RandomRange(4, 4 + Random(Length(Option) * 4 - 4));
+        yOff := 21 + (16 * I) + RandomRange(2, 10);
+        MMouse(MX + xOff, MY + yOff, 0, 0);
+
+        GetMousePos(X, Y);
+        Dimensions := IntToBox(MX, MY, MX + MW, MY + MH);
+        if(SmartGetFieldBoolean(0, hook_static_MenuOpen) and PointInBox(Point(X, Y), Dimensions))then
+        begin
+          Result := true;
+          Exit;
+        end else
+          MMouse(MX - 10, MY - 10, 3, 3);
+      end;
+end;
+
+(*
+R_MMouseMenuTabbed
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_MMouseMenuTabbed(Options: TStringArray; First: Boolean): Boolean;
+
+Moves the mouse over the first instance of the options provided. Used in
+R_ChooseOptionMulti.
+
+.. note::
+
+  by Drags111 & Shuttleu
+
+*)
+function R_MMouseMenuTabbedDual(Options: TStringArray; First: Boolean): Boolean;
+var
+  MenuItems: array of TStringArray;
+  I, K, L, X, Y, MX, MY, MW, MH, xOff, yOff: Integer;
+  Option: String;
+  Dimensions: TBox;
+begin
+  Result := False;
+  if(not SmartGetFieldBoolean(0, hook_static_MenuOpen)) or
+    (not SmartGetFieldBoolean(0, hook_static_IsMenuTabbed))then
+    Exit;
+
+  if not ((Length(Options) > 1) and (Length(Options) < 3)) then
+    Exit;
+
+  MenuItems := R_GetMenuItemsTabbed;
+
+  for I := 0 to High(MenuItems)do
+    for K := 0 to High(MenuItems[I])-1 do
+      if(Pos(Trim(Lowercase(Options[0])), MenuItems[I][K]) > 0)then
+        if(Pos(Trim(Lowercase(Options[1])), MenuItems[I][K+1]) > 0)then
+        begin
+          if not SmartGetFieldBoolean(0, hook_static_MenuOpen) then
+            Exit;
+          MX := SmartGetFieldInt(0, hook_static_MenuX);
+          MY := SmartGetFieldInt(0, hook_static_MenuY);
+          MW := SmartGetFieldInt(0, hook_static_MenuWidth);
+          MH := SmartGetFieldInt(0, hook_static_MenuHeight);
+
+          if First then
+            Option := MenuItems[I][K]
+          else
+            Option := MenuItems[I][K+1];
+          xOff := RandomRange(4, 4 + Random(Length(Option) * 4 - 4));
+          yOff := 21 + (16 * I) + RandomRange(2, 10);
+          MMouse(MX + xOff, MY + yOff, 0, 0);
+          GetMousePos(X, Y);
+          Dimensions := IntToBox(MX, MY, MX + MW, MY + MH);
+          if not SmartGetFieldBoolean(0, hook_static_MenuOpen) or not PointInBox(Point(X, Y), Dimensions)then
+            Exit;
+          wait(100+Random(1000));
+
+          MX := SmartGetFieldInt(0, hook_static_MenuX2);
+          MY := SmartGetFieldInt(0, hook_static_MenuY2);
+          MW := SmartGetFieldInt(0, hook_static_MenuWidth2);
+          MH := SmartGetFieldInt(0, hook_static_MenuHeight2);
+
+          xOff := RandomRange(4, 10);
+          MMouse(MX + xOff, Y, 0, 2);
+          wait(100+Random(100));
+          xOff := RandomRange(0, 4 + Random(Length(Option) * 4 - 4));
+          yOff := 21 + (16 * K) + RandomRange(2, 10);
+          MMouse(MX + xOff, MY + yOff, 0, 0);
+          GetMousePos(X, Y);
+          Dimensions := IntToBox(MX, MY, MX + MW, MY + MH);
+
+          if(SmartGetFieldBoolean(0, hook_static_MenuOpen) and PointInBox(Point(X, Y), Dimensions))then
+          begin
+            Result := True;
+            Exit;
+          end else
+          begin
+            MX := SmartGetFieldInt(0, hook_static_MenuX);
+            MY := SmartGetFieldInt(0, hook_static_MenuY);
+            MMouse(MX - 15, MY - 15, 3, 3);
+          end;
+        end;
+end;
+
+(*
 R_ChooseOptionMulti
 ~~~~~~~~~~~~~~~~~~~
 
@@ -377,6 +519,67 @@ Chooses the option if found in a tabbed or non-tabbed menu!
 function R_ChooseOption(Option: String): Boolean;
 begin
   Result := R_ChooseOptionMulti([Option]);
+end;
+
+(*
+R_ChooseOptionMulti
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ChooseOptionMulti(Options: TStringArray): Boolean;
+
+Chooses the first option that is found in a tabbed or non-tabbed menu!
+
+.. note::
+
+  by Drags111 & Shuttleu
+
+*)
+function R_ChooseOptionDual(FirstOption, SecondOption: String; First: Boolean): Boolean;
+var
+  X, Y, T: Integer;
+begin
+  Result := False;
+  MarkTime(T);
+  while not SmartGetFieldBoolean(0, hook_static_MenuOpen) do
+  begin
+    if(TimeFromMark(T) > 500)then
+      Exit;
+    wait(50+Random(50));
+  end;
+
+  case SmartGetFieldBoolean(0, hook_static_IsMenuTabbed) of
+    true: Result := R_MMouseMenuTabbedDual([FirstOption, SecondOption], First);
+    false: Result := R_MMouseMenuDual([FirstOption, SecondOption], First);
+  end;
+
+  if(SmartGetFieldBoolean(0, hook_static_MenuOpen) and Result)then
+  begin
+    Result := False;
+    GetMousePos(X, Y);
+    Mouse(X, Y, 0, 0, True);
+    MarkTime(T);
+    while SmartGetFieldBoolean(0, hook_static_MenuOpen) do
+    begin
+      if(TimeFromMark(T) > 3000)then
+        Exit;
+      wait(50+Random(50));
+    end;
+    Result := True;
+  end else
+  begin
+    MarkTime(T);
+    while(SmartGetFieldBoolean(0, hook_static_MenuOpen))do
+    begin
+      if(TimeFromMark(T) > 3000)then
+        Exit;
+      X := SmartGetFieldInt(0, hook_static_MenuX);
+      Y := SmartGetFieldInt(0, hook_static_MenuY);
+      MMouse(X, Y-25, 50, 10);
+      Wait(50+Random(50));
+    end;
+  end;
 end;
 
 (*
