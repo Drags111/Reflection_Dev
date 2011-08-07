@@ -299,14 +299,14 @@ begin
 end;
 
 (*
-R_MMouseMenu
+R_MMouseMenuDual
 ~~~~~~~~~~~~
 
 .. code-block:: pascal
 
-    function R_MMouseMenu(Options: TStringArrayOptions: TStringArray; First: Boolean
+    function R_MMouseMenuDual(Options: TStringArray; First: Boolean): Boolean;
 Moves the mouse over the first instance of the options provided. Used in
-R_ChooseOptionMulti.
+R_ChooseOptionDual.
 
 .. note::
 
@@ -356,15 +356,15 @@ begin
 end;
 
 (*
-R_MMouseMenuTabbed
+R_MMouseMenuTabbedDual
 ~~~~~~~~~~~~~~~~~~
 
 .. code-block:: pascal
 
-    function R_MMouseMenuTabbed(Options: TStringArray; First: Boolean): Boolean;
+    function R_MMouseMenuTabbedDual(Options: TStringArray; First: Boolean): Boolean;
 
 Moves the mouse over the first instance of the options provided. Used in
-R_ChooseOptionMulti.
+R_ChooseOptionDual.
 
 .. note::
 
@@ -522,12 +522,12 @@ begin
 end;
 
 (*
-R_ChooseOptionMulti
+R_ChooseOptionDual
 ~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: pascal
 
-    function R_ChooseOptionMulti(Options: TStringArray): Boolean;
+    function R_ChooseOptionDual(FirstOption, SecondOption: String; First: Boolean): Boolean;
 
 Chooses the first option that is found in a tabbed or non-tabbed menu!
 
