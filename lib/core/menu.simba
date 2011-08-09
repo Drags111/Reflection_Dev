@@ -336,10 +336,10 @@ begin
     if(Pos(Trim(Lowercase(Options[0])), MenuItems[I]) > 0)then
       if(Pos(Trim(Lowercase(Options[1])), MenuItems[I+1]) > 0)then
       begin
-        if First then
-          Option := MenuItems[I]
-        else
-          Option := MenuItems[I+1];
+        if not First then
+          Inc(I);
+        Option := MenuItems[I];
+
         xOff := RandomRange(4, 4 + Random(Length(Option) * 4 - 4));
         yOff := 21 + (16 * I) + RandomRange(2, 10);
         MMouse(MX + xOff, MY + yOff, 0, 0);
@@ -400,10 +400,11 @@ begin
           MW := SmartGetFieldInt(0, hook_static_MenuWidth);
           MH := SmartGetFieldInt(0, hook_static_MenuHeight);
 
-          if First then
-            Option := MenuItems[I][K]
-          else
-            Option := MenuItems[I][K+1];
+          if not First then
+            Inc(K);
+
+          Option := MenuItems[I][K];
+
           xOff := RandomRange(4, 4 + Random(Length(Option) * 4 - 4));
           yOff := 21 + (16 * I) + RandomRange(2, 10);
           MMouse(MX + xOff, MY + yOff, 0, 0);
