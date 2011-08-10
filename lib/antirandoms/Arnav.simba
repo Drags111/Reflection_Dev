@@ -150,7 +150,7 @@ var
 begin
   MyTile := R_GetMyPos;
   NPCChat := R_GetNPCChatMessage;
-  Result := (Pos('Ready, lassie', NPCChat) > 0) and
+  Result := (Pos('Ready, la', NPCChat) > 0) and
             (MyTile = Point(RArnavVars_Chest.Tile.X-1, RArnavVars_Chest.Tile.Y));
 end;
 
