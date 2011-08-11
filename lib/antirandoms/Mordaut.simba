@@ -10,8 +10,6 @@ type
   TRMordaut_MatchArray = array of TRMordaut_Match;
 
 var
-  RMordautVars_NPC: TNPC;
-
   RMordautVars_Ranged,      RMordautVars_Cooking,
   RMordautVars_Fishing,     RMordautVars_Combat,
   RMordautVars_Combat2,     RMordautVars_Farming,
@@ -237,8 +235,10 @@ Checks if we are in the mordaut random.
 
 *)
 function RMordaut_InRandom: boolean;
+var
+  NPC: TNPC;
 begin
-  Result := R_FindNPC('Mr. Mordaut', True, RMordautVars_NPC);
+  Result := R_FindNPC('Mr. Mordaut', True, NPC);
 end;
 
 (*
@@ -261,37 +261,41 @@ function RMordaut_TalkTo: Boolean;
 var
   P: TPoint;
   T: Integer;
+  NPC: TNPC;
 begin
   Result := False;
-  if(R_DistanceFromTile(RMordautVars_NPC.Tile) > 5)then
+  if R_FindNPC('Mr. Mordaut', True, NPC) then
   begin
-    Result := R_WalkToTile(Point(RMordautVars_NPC.Tile.X, RMordautVars_NPC.Tile.Y+2), 0, 0);
-
-    if not Result then
+    if(R_DistanceFromTile(NPC.Tile) > 5)then
     begin
-      R_Debug('Failed to walk to Mordaut.', 'Mordaut');
-      Exit;
+      Result := R_WalkToTile(Point(NPC.Tile.X, NPC.Tile.Y+2), 0, 0);
+
+      if not Result then
+      begin
+        R_Debug('Failed to walk to Mordaut.', 'Mordaut');
+        Exit;
+      end;
+
+      wait(100+Random(400));
     end;
 
-    wait(100+Random(400));
-  end;
+    Result := False;
+    P := R_TileToMS(NPC.Tile, NPC.Height / 2);
+    Mouse(P.X, P.Y, 10, 10, True);
 
-  Result := False;
-  P := R_TileToMS(RMordautVars_NPC.Tile, RMordautVars_NPC.Height / 2);
-  Mouse(P.X, P.Y, 10, 10, True);
-
-  MarkTime(T);
-  while(TimeFromMark(T) < 5000)do
-  begin
-    Wait(250+Random(250));
-    if(R_GetNPCChatName = 'Mr. Mordaut')then
+    MarkTime(T);
+    while(TimeFromMark(T) < 5000)do
     begin
-      Result := True;
-      Exit;
+      Wait(250+Random(250));
+      if(R_GetNPCChatName = 'Mr. Mordaut')then
+      begin
+        Result := True;
+        Exit;
+      end;
     end;
-  end;
 
-  R_Debug('Walked to but unable to talk to Mordaut', 'Mordaut');
+    R_Debug('Walked to but unable to talk to Mordaut', 'Mordaut');
+  end;
 end;
 
 (*
@@ -515,7 +519,9 @@ var
   CompassDir: String;
   T: Integer;
 begin
-  Result := False;
+  Result := not RMordaut_InRandom;
+  if Result then Exit;
+
   Door := R_GetObject(DoorID, OBJ_WALLOBJECT, 50);
 
   if(Door = NULL_RSOBJECT)then
@@ -661,10 +667,10 @@ begin
       Continue;
     end;
 
-    if(RMordaut_Exit(DoorID, Dir))then
-      Result := True;
+    Result := RMordaut_Exit(DoorID, Dir);
+    if Result then Break;
   end;
 
   if(TimeFromMark(T) < 300000)then
-    Result := True;
+    Result := not RMordaut_InRandom;
 end;

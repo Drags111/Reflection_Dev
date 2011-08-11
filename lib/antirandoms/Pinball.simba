@@ -102,7 +102,7 @@ begin
 
     if (RPinball_GetScore < 10) then
     begin
-      R_Debug('Tagging Post: ' + ToStr(RPinball_GetScore), 'Pinball');
+      //R_Debug('Tagging Post: ' + ToStr(RPinball_GetScore), 'Pinball');
       if RPinball_TagPost then
         R_Debug('Tagged Post: ' + ToStr(RPinball_GetScore), 'Pinball');
     end else

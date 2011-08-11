@@ -1,11 +1,19 @@
+const
+  RMollyConst_Controls = 14978;
+  RMollyConst_Claw = 14976;
+  RMollyConst_Door = 14982;
+
 var
   RMollyVars_NPC: TNPC;
 
 function RMolly_InRandom: Boolean;
+var
+  Controls: TRSObject;
 begin
   Result := R_FindNPC('Molly', True, RMollyVars_NPC);
-  if Result then
-    Result := R_ValidNPC('Suspect', True);
+  if not Result then
+    Result := R_ValidNPC('Suspect', True)
+      and R_FindObject(14978, OBJ_INTERACTABLE, 25, Controls);
 end;
 
 function RMolly_Solve: Boolean;
