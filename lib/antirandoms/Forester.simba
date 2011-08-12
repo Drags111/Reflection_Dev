@@ -241,7 +241,7 @@ begin
     Exit;
   end;
 
-  if RForest_TalkTo then
+  if RRandom_TalkToNPC(RForestVars_NPC, True, 'Forester') then
     while R_ClickContinueExists do
       R_ClickToContinue;
   Result := not R_ItemExists(RForestConst_MeatName, Meat);
@@ -313,7 +313,7 @@ begin
     begin
       if (Length(PheasantIDs) < 2) then
       begin
-        if RForest_TalkTo then
+        if RRandom_TalkToNPC(RForestVars_NPC, True, 'Forester') then
           PheasantIDs := RForest_GetType;
       end else
       begin

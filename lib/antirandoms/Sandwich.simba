@@ -26,8 +26,6 @@ end;
 function RSandwich_HandleChat: Boolean;
 var
   Chat: String;
-  P: TPoint;
-  X, Y, T: Integer;
   SWLady: TNPC;
 begin
   Result := False;
@@ -36,56 +34,27 @@ begin
   if (Chat = '') then
   begin
     if R_FindNPC(RSandwichConst_NPCID, True, SWLady) then
-    begin
-      if(R_DistanceFromTile(SWLady.Tile) > 4)then
+      if RRandom_TalkToNPC(SWLady, False, 'Sandwich') then
       begin
-        if not R_WalkToTile(SWLady.Tile, 1, 0)then
+        Result := ArrInStr(RSandwichVars_Finished, R_GetNPCChatMessage);
+
+        while ClickContinue(True, True) do
         begin
-          R_Debug('Unable to walk to Sandwich Lady', 'Sandwich');
-          Exit;
+          if not Result then
+            Result := ArrInStr(RSandwichVars_Finished, R_GetNPCChatMessage);
+          Wait(500);
         end;
-        Wait(300+Random(50));
-      end;
-      P := R_TileToMS(SWLady.Tile, SWLady.Height/2);
-      MMouse(P.x, P.y, 3, 3);
-      wait(25+Random(25));
-      if not R_OptionExists('talk')then
-        Exit;
-      GetMousePos(X, Y);
-      Mouse(X, Y, 0, 0, False);
-      if not R_ChooseOption('talk')then
-        Exit;
 
-      MarkTime(T);
-      while (TimeFromMark(T) < 6000) do
+        if Result then
+          R_Debug('Finished, trying to exit', 'Sandwich');
+      end else
       begin
-        if(R_ClickContinueExists)then
-          Break;
-        wait(500+Random(250));
-      end;
-      if (TimeFromMark(T) > 3000) then
-      begin
-        R_Debug('Unable to talk to Sandwich Lady', 'Sandwich');
+        R_Debug('Could not find Sandwich Lady', 'Sandwich');
         Exit;
       end;
-    end else
-    begin
-      R_Debug('Could not find Sandwich Lady', 'Sandwich');
-      Exit;
-    end;
   end;
 
-  Result := ArrInStr(RSandwichVars_Finished, R_GetNPCChatMessage);
 
-  while ClickContinue(True, True) do
-  begin
-    if not Result then
-      Result := ArrInStr(RSandwichVars_Finished, R_GetNPCChatMessage);
-    Wait(500);
-  end;
-
-  if Result then
-    R_Debug('Finished, trying to exit', 'Sandwich');
 end;
 
 function RSandwich_InterfaceUp: Boolean;

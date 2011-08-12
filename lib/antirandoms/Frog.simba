@@ -24,37 +24,6 @@ begin
   end;
 end;
 
-function RFrog_TalkTo(NPC: TNPC): Boolean;
-var
-  P: TPoint;
-  X, Y, T: Integer;
-begin
-  Result := False;
-
-  if(R_DistanceFromTile(NPC.Tile) > 4)then
-  begin
-    if not R_WalkToTile(NPC.Tile, 1, 0)then
-    begin
-      R_Debug('Unable to walk to NPC', 'Frog');
-      Exit;
-    end;
-    Wait(300+Random(50));
-  end;
-  P := R_TileToMS(NPC.Tile, NPC.Height * (3/4));
-  MMouse(P.x, P.y, 3, 3);
-  wait(25+Random(25));
-  if not R_OptionExists('talk')then
-    Exit;
-  GetMousePos(X, Y);
-  Mouse(X, Y, 0, 0, False);
-  if not R_ChooseOption('talk')then
-    Exit;
-
-  MarkTime(T);
-  while (TimeFromMark(T) < 8000) and (not Result) do
-    Result := ClickContinue(False, False);
-end;
-
 function RFrog_FindCrowned: TNPC;
 var
   Frogs: TNPCArray;
@@ -91,7 +60,7 @@ begin
   if (Frog = NULL_NPC) then
     Exit;
 
-  Result := RFrog_TalkTo(Frog);
+  Result := RRandom_TalkToNPC(Frog, True, 'Frog');
 end;
 
 function RFrog_Solve: Boolean;

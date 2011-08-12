@@ -1,14 +1,16 @@
 const
-  INTERFACE_ARNAV = 185;
-  INTERFACE_ARNAV_CHOOSEOPTION = 228;
+  RArnavConst_Interface = 185;
+  RArnavConst_Interface_ChooseOption = 228;
+  RArnavConst_Captain = 2308;
 
 var
-  RArnavVars_NPC: TNPC;
   RArnavVars_Chest: TRSObject;
 
 function RArnav_InRandom: Boolean;
+var
+  NPC: TNPC;
 begin
-  Result := R_FindNPC(2308, True, RArnavVars_NPC);
+  Result := R_FindNPC(RArnavConst_Captain, True, NPC);
   if not Result then
     Exit;
   RArnavVars_Chest := R_GetObjectEx([42337, 42338], OBJ_INTERACTABLE, 10);
@@ -17,35 +19,22 @@ end;
 
 function RArnav_TalkTo: Boolean;
 var
-  P: TPoint;
-  X, Y: Integer;
+  NPC: TNPC;
 begin
   Result := False;
-  P := R_TileToMS(RArnavVars_NPC.Tile, RArnavVars_NPC.Height/2);
-  MMouse(P.x, P.y, 2, 10);
-  wait(25+Random(25));
-  if not(R_OptionExists('talk'))then
-    Exit;
-  GetMousePos(X, Y);
-  Mouse(X, Y, 0, 0, false);
-  Result := R_ChooseOption('talk');
-  if not Result then
-  begin
-    MMouse(X-50, Y-50, 10, 10);
-    Exit;
-  end;
-  Result := R_WaitNPCChatchange(True, 5000);
+  if R_FindNPC(RArnavConst_Captain, True, NPC) then
+    Result := RRandom_TalkToNPC(NPC, True, 'Cap''n Arnav');
 end;
 
 procedure RArnav_CloseScreen;
 var
   CloseButton: TInterfaceChild;
 begin
-  if not R_ValidInterface(INTERFACE_ARNAV)then
+  if not R_ValidInterface(RArnavConst_Interface)then
     Exit;
-  CloseButton := R_GetInterfaceChild(INTERFACE_ARNAV, 30);
+  CloseButton := R_GetInterfaceChild(RArnavConst_Interface, 30);
   R_ClickInterface(CloseButton, 1);
-  R_WaitInterfaceClose(INTERFACE_ARNAV, 5000);
+  R_WaitInterfaceClose(RArnavConst_Interface, 5000);
 end;
 
 function RArnav_GetTries: Integer;
@@ -71,9 +60,9 @@ var
   Item: String;
 begin
   Result := -1;
-  if not R_ValidInterface(INTERFACE_ARNAV)then
+  if not R_ValidInterface(RArnavConst_Interface)then
     Exit;
-  Item := Lowercase(Trim(R_GetInterfaceText(INTERFACE_ARNAV, 31)));
+  Item := Lowercase(Trim(R_GetInterfaceText(RArnavConst_Interface, 31)));
   case Item of
     'bar':   Result := 7751;
     'coins': Result := 7752;
@@ -108,11 +97,11 @@ begin
 
   for I := 0 to 2 do
   begin
-    Slot := R_GetInterfaceChild(INTERFACE_ARNAV, Middles[i]);
+    Slot := R_GetInterfaceChild(RArnavConst_Interface, Middles[i]);
 
     case Slot.Y of
-      -63, 50: Arrow := R_GetInterfaceChild(INTERFACE_ARNAV, DownArrows[I]);
-      else Arrow := R_GetInterfaceChild(INTERFACE_ARNAV, UpArrows[I]);
+      -63, 50: Arrow := R_GetInterfaceChild(RArnavConst_Interface, DownArrows[I]);
+      else Arrow := R_GetInterfaceChild(RArnavConst_Interface, UpArrows[I]);
     end;
 
     MarkTime(T);
@@ -132,15 +121,15 @@ begin
         if(TimeFromMark(T2) > 5000)then
           Break;
         wait(300+Random(300));
-        Slot := R_GetInterfaceChild(INTERFACE_ARNAV, Middles[i]);
+        Slot := R_GetInterfaceChild(RArnavConst_Interface, Middles[i]);
       end;
-      Slot := R_GetInterfaceChild(INTERFACE_ARNAV, Middles[i]);
+      Slot := R_GetInterfaceChild(RArnavConst_Interface, Middles[i]);
     end;
   end;
   Result := True;
-  Unlock := R_GetInterfaceChild(INTERFACE_ARNAV, 28);
+  Unlock := R_GetInterfaceChild(RArnavConst_Interface, 28);
   R_ClickInterface(Unlock, 1);
-  R_WaitInterfaceClose(INTERFACE_ARNAV, 5000);
+  R_WaitInterfaceClose(RArnavConst_Interface, 5000);
 end;
 
 function RArnav_AtChest: Boolean;
@@ -282,13 +271,13 @@ begin
         Continue;
 
       Wait(250+Random(250));
-      if not R_WaitInterfaceOpen(INTERFACE_ARNAV_CHOOSEOPTION, 5000)then
+      if not R_WaitInterfaceOpen(RArnavConst_Interface_ChooseOption, 5000)then
         Continue;
 
       P := Point(171 + RandomRange(0, 183), 424 + RandomRange(0, 15));
       Mouse(P.x, P.y, 0, 0, True);
 
-      if not R_WaitInterfaceClose(INTERFACE_ARNAV_CHOOSEOPTION, 5000)then
+      if not R_WaitInterfaceClose(RArnavConst_Interface_ChooseOption, 5000)then
         Continue;
 
       wait(500+Random(200));
@@ -309,7 +298,7 @@ begin
 
       wait(250+Random(250));
 
-      if not R_WaitInterfaceOpen(INTERFACE_ARNAV, 5000)then
+      if not R_WaitInterfaceOpen(RArnavConst_Interface, 5000)then
         Continue;
 
       Result := RArnav_Unlock;

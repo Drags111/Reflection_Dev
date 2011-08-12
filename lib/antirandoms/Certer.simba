@@ -33,47 +33,13 @@ begin
 end;
 
 function RCerter_TalkTo: Boolean;
-var
-  P: TPoint;
-  X, Y, T: Integer;
 begin
-  Result := (Pos('iles', R_GetNPCChatName) > 0);
   if not R_FindNPCMulti(['Giles', 'Miles', 'Niles'], True, RCerterVars_NPC)then
   begin
     R_Debug('Unable to find Certer.', 'Certer');
     Exit;
   end;
-  if(R_DistanceFromTile(RCerterVars_NPC.Tile) > 4)then
-  begin
-    if not R_WalkToTile(RCerterVars_NPC.Tile, 1, 0)then
-    begin
-      R_Debug('Unable to walk to Certer.', 'Certer');
-      Exit;
-    end;
-    Wait(300+Random(50));
-  end;
-  P := R_TileToMS(RCerterVars_NPC.Tile, RCerterVars_NPC.Height/2);
-  MMouse(P.x, P.y, 3, 3);
-  wait(25+Random(25));
-  if not R_OptionExists('talk')then
-    Exit;
-  GetMousePos(X, Y);
-  Mouse(X, Y, 0, 0, False);
-  if not R_ChooseOption('talk')then
-    Exit;
-  if(R_DistanceFromTile(RCerterVars_NPC.Tile) > 1)then
-  begin
-    R_WaitToMove(3000);
-    R_Flag;
-  end;
-  MarkTime(T);
-  while(TimeFromMark(T) < 3000)do
-  begin
-    if(R_ClickContinueExists)then
-      Break;
-    wait(50+Random(50));
-  end;
-  Result := (TimeFromMark(T) < 3000);
+  Result := RRandom_TalkToNPC(RCerterVars_NPC, False, 'Certer');
 end;
 
 function RCerter_QuestionInterface: Boolean;

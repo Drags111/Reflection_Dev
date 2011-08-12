@@ -1,22 +1,285 @@
 const
-  RMollyConst_Controls = 14978;
-  RMollyConst_Claw = 14976;
-  RMollyConst_Door = 14982;
-
-var
-  RMollyVars_NPC: TNPC;
+  RMollyConst_RoomMolly =   0;
+  RMollyConst_RoomControl = 1;
+  RMollyConst_Controls =  14978;
+  RMollyConst_Claw =      14976;
+  RMollyConst_Door =      14982;
+  RMollyConst_ChatInt =   228;
+  RMollyConst_ChatDoor =  2;//Yes, I know
+  RMollyConst_ChatNo =    3;//No thanks
+  RMollyConst_ExitMsg =   'Take this as a reward';
+  RMollyConst_ControlsInt =   240;
+  RMollyConst_ControlsGrab =  28;
+  RMollyConst_ControlsUp =    29;
+  RMollyConst_ControlsDown =  30;
+  RMollyConst_ControlsLeft =  31;
+  RMollyConst_ControlsRight = 32;
+  RMollyConst_ControlsExit =  33;
 
 function RMolly_InRandom: Boolean;
 var
   Controls: TRSObject;
+  Molly: TNPC;
 begin
-  Result := R_FindNPC('Molly', True, RMollyVars_NPC);
+  Result := R_FindNPC('Molly', True, Molly);
   if not Result then
     Result := R_ValidNPC('Suspect', True)
-      and R_FindObject(14978, OBJ_INTERACTABLE, 25, Controls);
+      and R_FindObject(RMollyConst_Controls, OBJ_INTERACTABLE, 25, Controls);
+end;
+
+function RMolly_GetRoom: Integer;
+var
+  Control: TRSObject;
+begin
+  Result := -1;
+  if R_FindObject(RMollyConst_Controls, OBJ_INTERACTABLE, 25, Control) then
+  begin
+    if R_CanReach(Control.Tile, True) then
+      Result := RMollyConst_RoomControl
+        else Result := RMollyConst_RoomMolly;
+  end else
+    R_Debug('Control panel not found', 'Molly');
+end;
+
+function RMolly_HandleChat: Boolean;
+var
+  TempChat: String;
+begin
+  while R_ValidInterface(RMollyConst_ChatInt) or ClickContinue(False, False) do
+  begin
+    TempChat := R_GetNPCChatMessage;
+    Result := (Pos(RMollyConst_ExitMsg, TempChat) > 0);
+    if not Result and R_ValidInterface(RMollyConst_ChatInt) then
+    begin
+      TempChat := R_GetInterfaceText(RMollyConst_ChatInt, RMollyConst_ChatDoor);
+      //R_Debug(TempChat, 'Molly');
+      if (Pos('please', TempChat) > 0) then
+        R_ClickInterface(R_GetInterfaceChild(RMollyConst_ChatInt,
+                                              RMollyConst_ChatNo), mouse_Left)
+        else if (Pos('I know', TempChat) > 0) then
+          R_ClickInterface(R_GetInterfaceChild(RMollyConst_ChatInt,
+                                              RMollyConst_ChatDoor), mouse_Left);
+    end;
+
+    ClickContinue(True, True);
+    if Result then Break;
+    Wait(500);
+  end;
+end;
+
+function RMolly_HandleDoor: Boolean;
+var
+  Door: TRSObject;
+  StartRoom, EndRoom, T: Integer;
+  P: TPoint;
+begin
+  StartRoom := RMolly_GetRoom;
+  if (StartRoom < 0) then
+    Exit;
+  MakeCompass('e');
+  //R_Debug(tostr(startroom), 'StartRoom');
+
+  if R_FindObject(RMollyConst_Door, OBJ_WALLOBJECT, 25, Door) then
+  begin
+    Door.Tile := Point(Door.Tile.x + 1, Door.Tile.y);
+    if not R_TileOnMS(Door.Tile, 0) then
+      if not R_WindWalkMS(Door.Tile) then
+      begin
+        R_Debug('Unable to walk to door', 'Molly');
+        Exit;
+      end;
+
+    P := R_TileToMS(Door.Tile, 0);
+    MMouse(P.x, P.y, 3, 3);
+    wait(25+Random(25));
+    if not R_OptionExists('open')then
+      Exit;
+    GetMousePos(P.x, P.y);
+    Mouse(P.x, P.y, 0, 0, False);
+    if not R_ChooseOption('open')then
+      Exit;
+
+    MarkTime(T);
+    while (TimeFromMark(T) < 10000) do
+    begin
+      EndRoom := RMolly_GetRoom;
+      //R_Debug(tostr(endroom), 'EndRoom');
+      Result := (EndRoom > -1) and (StartRoom <> EndRoom);
+      if Result then
+        Exit;
+      RMolly_HandleChat;
+      Wait(250);
+    end;
+
+  end;
+end;
+
+function RMolly_UseControls: Boolean;
+var
+  Control: TRSObject;
+  P: TPoint;
+begin
+  Result := R_ValidInterface(RMollyConst_ControlsInt);
+  if Result then Exit;
+
+  if R_FindObject(RMollyConst_Controls, OBJ_INTERACTABLE, 25, Control) then
+  begin
+    if not R_TileOnMS(Control.Tile, 0) then
+      if not R_WindWalkMS(Control.Tile) then
+      begin
+        R_Debug('Unable to walk to control panel', 'Molly');
+        Exit;
+      end;
+
+    P := R_TileToMS(Control.Tile, 0);
+    MMouse(P.x, P.y, 3, 3);
+    wait(25+Random(25));
+    if not R_OptionExists('use')then
+      Exit;
+    GetMousePos(P.x, P.y);
+    Mouse(P.x, P.y, 0, 0, False);
+    if not R_ChooseOption('use')then
+      Exit;
+
+    Result := R_WaitInterfaceOpen(RMollyConst_ControlsInt, 10000);
+
+  end;
+end;
+
+function RMolly_ClawMoved(LastTile: TPoint): Boolean;
+var
+  Claw: TRSObject;
+begin
+  if R_FindObject(RMollyConst_Claw, OBJ_INTERACTABLE, 25, Claw) then
+    Result := (LastTile <> Claw.Tile);
+end;
+
+function RMolly_HandleControls(EvilTwinID: Integer): Boolean;
+var
+  EvilTwin: TNPC;
+  Claw: TRSObject;
+  Last: TPoint;
+  Attempts, MI, T: Integer;
+  NextInt: TInterfaceChild;
+begin
+  if R_FindObject(RMollyConst_Claw, OBJ_INTERACTABLE, 25, Claw) and
+    R_FindNPC(EvilTwinID, True, EvilTwin) then
+  begin
+    MI := RMollyConst_ControlsInt;
+    while (Attempts < 10) do
+    begin
+      EvilTwin := R_GetNPC(EvilTwinID, True);
+      Claw := R_GetObject(RMollyConst_Claw, OBJ_INTERACTABLE, 25);
+      if (EvilTwin = NULL_NPC) or (Claw = NULL_RSOBJECT) then
+        Continue;
+
+      if (EvilTwin.Tile = Claw.Tile) then
+      begin
+        Inc(Attempts);
+        R_ClickInterface(R_GetInterfaceChild(RMollyConst_ControlsInt,
+                                             RMollyConst_ControlsGrab), mouse_Left);
+        MarkTime(T);
+        while (TimeFromMark(T) < 25000) do
+        begin
+          Result := ClickContinue(False, False);
+          if Result then Exit;
+        end;
+      end;
+
+      if (EvilTwin.Tile.y > Claw.Tile.y) then
+        NextInt := R_GetInterfaceChild(MI, RMollyConst_ControlsDown)
+      else if (EvilTwin.Tile.y < Claw.Tile.y) then
+        NextInt := R_GetInterfaceChild(MI, RMollyConst_ControlsUp)
+      else if (EvilTwin.Tile.x > Claw.Tile.x) then
+        NextInt := R_GetInterfaceChild(MI, RMollyConst_ControlsLeft)
+      else if (EvilTwin.Tile.x < Claw.Tile.x) then
+        NextInt := R_GetInterfaceChild(MI, RMollyConst_ControlsRight);
+
+      Last := Claw.Tile;
+      R_ClickInterface(NextInt, mouse_Left);
+      MarkTime(T);
+      while (TimeFromMark(T) < 3500) do
+      begin
+        if RMolly_ClawMoved(Last) then
+          Break;
+        Wait(100);
+      end;
+
+    end;
+  end;
 end;
 
 function RMolly_Solve: Boolean;
+var
+  Molly: TNPC;
+  T, TTele, EvilTwinID, CurrRoom: Integer;
+  Caught: Boolean;
 begin
   Result := False;
+  EvilTwinID := -1;
+  MarkTime(T);
+
+  while RMolly_InRandom and (TimeFromMark(T) < 240000) do
+  begin
+    CurrRoom := RMolly_GetRoom;
+    if CurrRoom = RMollyConst_RoomMolly then
+    begin
+      if R_FindNPC('Molly', True, Molly) then
+      begin
+        if (Molly <> NULL_NPC) and (EvilTwinID = -1) then
+        begin
+          EvilTwinID := Molly.ID - 40;
+          R_Debug('Evil twin ID: ' + ToStr(EvilTwinID), 'Molly');
+        end;
+
+        if RRandom_TalkToNPC(Molly, False, 'Molly') then
+          if RMolly_HandleChat then
+          begin
+            R_Debug('End chat found', 'Molly');
+            MarkTime(TTele);
+            while (TimeFromMark(TTele) < 10000) do
+            begin
+              Wait(500);
+              Result := not RMolly_InRandom;
+              if Result then Exit;
+              ClickContinue(True, True);
+            end;
+          end else
+          if not RMolly_HandleDoor then
+            R_Debug('Unable to handle door', 'Molly');
+      end;
+    end else
+    if CurrRoom = RMollyConst_RoomControl then
+    begin
+      if (EvilTwinID = -1) then
+      begin
+        R_Debug('Unable to solve, didn''t get Evil twin''s ID', 'Molly');
+        Result := False;
+        if R_ValidInterface(RMollyConst_ControlsInt) then
+        begin
+          R_ClickInterface(R_GetInterfaceChild(RMollyConst_ControlsInt,
+                                          RMollyConst_ControlsExit), mouse_Left);
+          R_WaitInterfaceClose(RMollyConst_ControlsInt, 5000);
+          Wait(1000);
+        end;
+        Exit;
+      end;
+      if Caught then
+      begin
+        if not RMolly_HandleDoor then
+          R_Debug('Unable to open door', 'Molly');
+
+      end else
+      begin
+        if RMolly_UseControls then
+          Caught := RMolly_HandleControls(EvilTwinID);
+      end;
+    end else
+    begin
+      R_Debug('Location unknown', 'Molly');
+      Wait(3000);//for lag/teleport
+    end;
+  end;
+
+  Result := not RMolly_InRandom;
 end;

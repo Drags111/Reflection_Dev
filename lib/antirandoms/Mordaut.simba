@@ -259,43 +259,11 @@ initiates the talk if we aren't talking already.
 *)
 function RMordaut_TalkTo: Boolean;
 var
-  P: TPoint;
-  T: Integer;
   NPC: TNPC;
 begin
   Result := False;
   if R_FindNPC('Mr. Mordaut', True, NPC) then
-  begin
-    if(R_DistanceFromTile(NPC.Tile) > 5)then
-    begin
-      Result := R_WalkToTile(Point(NPC.Tile.X, NPC.Tile.Y+2), 0, 0);
-
-      if not Result then
-      begin
-        R_Debug('Failed to walk to Mordaut.', 'Mordaut');
-        Exit;
-      end;
-
-      wait(100+Random(400));
-    end;
-
-    Result := False;
-    P := R_TileToMS(NPC.Tile, NPC.Height / 2);
-    Mouse(P.X, P.Y, 10, 10, True);
-
-    MarkTime(T);
-    while(TimeFromMark(T) < 5000)do
-    begin
-      Wait(250+Random(250));
-      if(R_GetNPCChatName = 'Mr. Mordaut')then
-      begin
-        Result := True;
-        Exit;
-      end;
-    end;
-
-    R_Debug('Walked to but unable to talk to Mordaut', 'Mordaut');
-  end;
+    Result := RRandom_TalkToNPC(NPC, True, 'Mordaut');
 end;
 
 (*

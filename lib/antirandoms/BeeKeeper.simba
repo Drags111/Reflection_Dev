@@ -166,7 +166,7 @@ begin
         end;
       end;
 
-      if not RBeeKeeper_TalkTo then
+      if not RRandom_TalkToNPC(RBeeVars_NPC, False, 'Beekeeper') then
         Continue;
 
       R_ClickToContinue;
