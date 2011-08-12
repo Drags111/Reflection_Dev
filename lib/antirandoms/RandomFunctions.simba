@@ -1,0 +1,51 @@
+(*
+RRandom_TalkToNPC
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function RRandom_TalkToNPC(NPC: TNPC; UseMinimap: Boolean): Boolean;
+
+Handles interacting with an NPC. Returns if ended up in chat. Used in Antirandoms.
+
+.. note::
+
+  by mormonman
+
+*)
+function RRandom_TalkToNPC(NPC: TNPC; UseMM: Boolean; RName: String): Boolean;
+var
+  T: Integer;
+  WalkProc: function(T: TTile): Boolean;
+  P: TPoint;
+begin
+  Result := ClickContinue(False, False);
+  if Result then
+    Exit;
+
+  if not R_TileOnMS(NPC.Tile, NPC.Height * (3/4)) then
+  begin
+    if UseMM then WalkProc := @R_WindWalk
+      else WalkProc := @R_WindWalkMS;
+
+    if not WalkProc(NPC.Tile)then
+    begin
+      R_Debug('Unable to walk to NPC', RName);
+      Exit;
+    end;
+    Wait(300+Random(50));
+  end;
+  P := R_TileToMS(NPC.Tile, NPC.Height * (3/4));
+  MMouse(P.x, P.y, 3, 3);
+  wait(25+Random(25));
+  if not R_OptionExists('talk')then
+    Exit;
+  GetMousePos(P.x, P.y);
+  Mouse(P.x, P.y, 0, 0, False);
+  if not R_ChooseOption('talk')then
+    Exit;
+
+  MarkTime(T);
+  while (TimeFromMark(T) < 8000) and (not Result) do
+    Result := ClickContinue(False, False);
+end;
