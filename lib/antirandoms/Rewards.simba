@@ -1,0 +1,218 @@
+const
+  RRewardsConst_Box = 14664;
+  RRewardsConst_Lamp = 2528;
+  RRewardsConst_ExpBook = 11640;
+  RRewardsConst_MysBox = 6199;
+  RRewardsConst_RewardInt = 202;
+  RRewardsConst_RewardList = 15;
+
+  RRewardsConst_ExpInt = 134;
+  RRewardsConst_ExpConfirm = 2;
+  RRewardsConst_Attack = 4;
+  RRewardsConst_Agility = 5;
+  RRewardsConst_Herblore = 6;
+  RRewardsConst_Fishing = 7;
+  RRewardsConst_Thieving = 8;
+  RRewardsConst_Runecrafting = 9;
+  RRewardsConst_Slayer = 10;
+  RRewardsConst_Farming = 11;
+  RRewardsConst_Mining = 12;
+  RRewardsConst_Smithing = 13;
+  RRewardsConst_Hunter = 14;
+  RRewardsConst_Cooking = 15;
+  RRewardsConst_Firemaking = 16;
+  RRewardsConst_Woodcutting = 17;
+  RRewardsConst_Fletching = 18;
+  RRewardsConst_Construction = 19;
+  RRewardsConst_Summoning = 20;
+  RRewardsConst_Strength = 21;
+  RRewardsConst_Ranged = 22;
+  RRewardsConst_Magic = 23;
+  RRewardsConst_Defence = 24;
+  RRewardsConst_Hitpoints = 25;
+  RRewardsConst_Crafting = 26;
+  RRewardsConst_Prayer = 27;
+  RRewardsConst_Dungeoneering = 28;
+
+
+//W.I.P.
+function RRewards_HandleExp: Boolean;
+var
+  Items: TInvItemArray;
+  P: TPoint;
+  i, T, XPChoice: Integer;
+  ClickInt: TInterfaceChild;
+begin
+  if not R_ItemExistsEx([RRewardsConst_ExpBook, RRewardsConst_Lamp], Items) then
+    Exit;
+  for i := 0 to High(Items) do
+  begin
+    //click
+    MarkTime(T);
+    while (TimeFromMark(T) < 24000) do
+    begin
+      R_MouseItemEx(Items[i].Slot, mouse_Left);
+      R_Debug('XP Item clicked', 'Rewards');
+      if R_WaitInterfaceOpen(RRewardsConst_ExpInt, 8000) then
+      begin
+        R_Debug('XP interface open', 'Rewards');
+        Break;
+      end;
+    end;
+    if (TimeFromMark(T) > 15000) then
+      Exit;
+    Wait(RandomRange(1000, 1600));
+
+    //find reward
+    case LampSkill of
+    'attack': XPChoice := RRewardsConst_Attack;
+    'strength': XPChoice := RRewardsConst_Strength;
+    'ranged': XPChoice := RRewardsConst_Ranged;
+    'magic': XPChoice := RRewardsConst_Magic;
+    'defence': XPChoice := RRewardsConst_Defence;
+    'crafting', 'craft': XPChoice := RRewardsConst_Crafting;
+    'hitpoints', 'hp': XPChoice := RRewardsConst_Hitpoints;
+    'prayer', 'pray': XPChoice := RRewardsConst_Prayer;
+    'agility': XPChoice := RRewardsConst_Agility;
+    'herblore': XPChoice := RRewardsConst_Herblore;
+    'thieving', 'thief': XPChoice := RRewardsConst_Thieving;
+    'fishing', 'fish': XPChoice := RRewardsConst_Fishing;
+    'runecraft', 'runecrafting': XPChoice := RRewardsConst_Runecrafting;
+    'slayer', 'slay': XPChoice := RRewardsConst_Slayer;
+    'farming', 'farm': XPChoice := RRewardsConst_Farming;
+    'mining', 'mine': XPChoice := RRewardsConst_Mining;
+    'smithing', 'smith': XPChoice := RRewardsConst_Smithing;
+    'hunting', 'hunt', 'hunter': XPChoice := RRewardsConst_Hunter;
+    'cooking', 'cook': XPChoice := RRewardsConst_Cooking;
+    'firemaking', 'fire': XPChoice := RRewardsConst_Firemaking;
+    'woodcutting', 'wc': XPChoice := RRewardsConst_Woodcutting;
+    'fletching', 'fletch': XPChoice :=RRewardsConst_Fletching;
+    'construction': XPChoice := RRewardsConst_Construction;
+    'summoning': XPChoice := RRewardsConst_Summoning;
+    'dungeoneering': XPChoice := RRewardsConst_Dungeoneering;
+    end;
+    R_Debug('Choosing: ' + LampSkill, 'Rewards');
+    ClickInt := R_GetInterfaceChild(RRewardsConst_ExpInt, XPChoice);
+    R_ClickInterface(ClickInt, mouse_Left);
+    Wait(RandomRange(650, 900));
+
+    //click confirm
+    ClickInt := R_GetInterfaceChild(RRewardsConst_ExpInt, RRewardsConst_ExpConfirm);
+    R_ClickInterface(ClickInt, mouse_Left);
+    if R_WaitInterfaceClose(RRewardsConst_ExpInt, 5000) then
+      R_Debug('XP interface closed', 'Rewards');
+    ClickContinue(True, True);
+
+    Result := not R_ItemExistsEx([RRewardsConst_ExpBook, RRewardsConst_Lamp], Items);
+  end;
+end;
+
+//NOT FINISHED!
+function RRewards_HandleBox: Boolean;
+var
+  RBox: TInvItem;
+  T, Curr, i: Integer;
+  List: array of TInterfaceComponent;
+  ValComp: TIntegerArray;
+  TempComp: TInterfaceComponent;
+begin
+  if not R_ItemExists(RRewardsConst_Box, RBox) then
+    Exit;
+
+  //open box
+  MarkTime(T);
+  while (TimeFromMark(T) < 24000) do
+  begin
+    if R_ClickItem(RBox.Slot, 'Open') then
+    begin
+      R_Debug('Box clicked', 'Rewards');
+      if R_WaitInterfaceOpen(RRewardsConst_RewardInt, 8000) then
+      begin
+        R_Debug('Rewards interface open', 'Rewards');
+        Break;
+      end;
+    end;
+  end;
+  if (TimeFromMark(T) > 15000) then
+    Exit;
+
+  //get possible rewards
+  SetLength(List, 1);
+  Curr := 0;
+  ValComp := R_GetValidComponents(RRewardsConst_RewardInt, RRewardsConst_RewardList);
+  if (Length(ValComp) < 1) then
+    Exit;
+  for i := 0 to High(ValComp) do
+  begin
+    TempComp := R_GetInterfaceComponent(RRewardsConst_RewardInt,
+                                        RRewardsConst_RewardList, ValComp[i]);
+    if (TempComp.Name = '') or (TempComp.Name = ' ') then
+      Continue;
+    List[Curr] := TempComp;
+    Inc(Curr);
+  end;
+  for i := 0 to High(List) do
+    writeln(List[i].Name);
+
+  //determine which one
+  if (Length(Trim(srl_Implode(Players[CurrentPlayer].BoxRewards, ''))) = 0) then
+    Players[CurrentPlayer].BoxRewards := ['XP'];
+  //scroll if needed
+  //click it
+  //click confirm
+
+end;
+
+(*
+RRewards_SolveBox
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function RRewards_Solve: Boolean;
+
+Solves reward box.
+
+.. note::
+
+  by mormonman
+
+*)
+function RRewards_Solve: Boolean;
+var
+  Items: TInvItemArray;
+  I: Integer;
+  P: TPoint;
+begin
+  if not R_ItemExistsEx([RRewardsConst_Box, RRewardsConst_ExpBook,
+                         RRewardsConst_Lamp, RRewardsConst_MysBox], Items) then
+    Exit;
+
+  For I:=0 to High(Items)do
+   Case Items[I].ID of
+     RRewardsConst_Box:
+     begin
+       R_Debug('Reward box found', 'Rewards');
+       Result := UseRewardBox;
+       Wait(2500+Random(1000));
+       If Result then
+       begin
+         RRewards_Solve;
+         Exit;
+       end;
+     end;
+
+     RRewardsConst_Lamp, RRewardsConst_ExpBook:
+     begin
+       R_Debug('Handling experience reward', 'Rewards');
+       Result := FindLamp(LampSkill);
+     end;
+
+     RRewardsConst_MysBox:
+     begin
+       R_Debug('Clicking mystery box', 'Rewards');
+       Result := UseMysteryBox;
+     end;
+
+   end;
+end;

@@ -1,12 +1,514 @@
-var
-  REvilBobVars_Servant: TNPC;
+const
+  REvilBobConst_Servant = 2481;
+  REvilBobConst_Pot = 8985;
+  REvilBobConst_EvilBob = 2479;
+  REvilBobConst_Net = 6209;
+  REvilBobConst_Raw = 6200;
+  REvilBobConst_Cooked = 6202;
+  REvilBobConst_FishSpot = 8986;
+  REvilBobConst_Portal = 8987;
+  REvilBobConst_Deposit = 32930;
+  REvilBobConst_Interface = 242;
+  REvilBobConst_Text = 'contains the';
+  REvilBobConst_ExitText = 'catnap';
 
 function REvilBob_InRandom: Boolean;
+var
+  NPC: TNPC;
 begin
-  Result := R_FindNPC(2481, True, REvilBobVars_Servant);
+  Result := R_FindNPC(REvilBobConst_Servant, True, NPC) or
+              R_FindNPC(REvilBobConst_EvilBob, True, NPC);
+end;
+
+function REvilBob_GetNet: Boolean;
+var
+  Net: TGroundItem;
+  P: TPoint;
+  X, Y: Integer;
+begin
+  Result := R_CountItem(REvilBobConst_Net) > 0;
+  if not Result then
+    if R_FindGroundItem(REvilBobConst_Net, 30, Net) then
+    begin
+      if not R_TileOnMS(Net.Tile, 50) then
+      begin
+        if not R_WindWalk(Net.Tile)then
+        begin
+          R_Debug('Unable to walk to net', 'Evil Bob');
+          Exit;
+        end;
+        Wait(300+Random(50));
+      end;
+      R_Flag;
+      P := R_TileToMS(Net.Tile, 0);
+      if not SpiralMouse(X, Y, P.x - 100, P.y - 100, P.x + 100, P.Y + 100, 'fishing net', 5, 10) then
+        Exit;
+      Wait(RandomRange(80, 120));
+      if R_OptionExists('Take Small') then
+      begin
+        GetMousePos(P.x, P.y);
+        Mouse(P.x, P.y, 0, 0, False);
+        if(R_ChooseOption('Take Small')) then
+        begin
+          R_Debug('Picking up net', 'Evil Bob');
+          R_WaitToMove(3000);
+          R_Flag;
+          Wait(500+Random(500));
+        end;
+      end;
+    end else
+    begin
+      R_Debug('Could not find net', 'Evil Bob');
+      Exit;
+    end;
+  Result := R_CountItem(REvilBobConst_Net) > 0;
+end;
+
+function REvilBob_GetSpot: TPoint;
+var
+  Fishes: TRSObjectArray;
+  i: Integer;
+begin
+  Result := Point(-1, -1);
+  if R_FindObjects(REvilBobConst_FishSpot, OBJ_INTERACTABLE, 30, Fishes) then
+  begin
+    for i := 0 to High(Fishes) do
+      if R_TileOnMS(Fishes[i].Tile, 0) then
+      begin
+        Result := Fishes[i].Tile;
+        R_Debug('Fishing spot tile: ' + ToStr(Result), 'Evil Bob');
+        Exit;
+      end;
+  end else
+  begin
+    R_Debug('No fishing spots found', 'Evil Bob');
+    Exit;
+  end;
+end;
+
+function REvilBob_HandleServant: TPoint;
+var
+  NPC: TNPC;
+  TempChat: String;
+  Chat: Boolean;
+  T: Integer;
+begin
+  Result := Point(-1, -1);
+  if R_FindNPC(REvilBobConst_Servant, True, NPC) then
+  begin
+    if RRandom_TalkToNPC(NPC, True, 'Evil Bob') then
+    begin
+      while ClickContinue(False, False) or
+            R_ValidInterface(REvilBobConst_Interface) do
+      begin
+        TempChat := R_GetNPCChatMessage;
+        if (Pos('fallen asleep', TempChat) > 0) then
+        begin
+          R_Debug('Already fed Evil Bob', 'Evil Bob');
+          Result.x := 2;
+          Exit;
+        end;
+        Chat := (Pos(REvilBobConst_Text, TempChat) > 0);
+        if Chat then
+        begin
+          MarkTime(T);
+          while not ClickContinue(False, False) and (TimeFromMark(T) < 10000) do
+          begin
+            Wait(500);
+          end;
+          if (TimeFromMark(T) > 10000) then
+          begin
+            R_Debug('Waiting for Continue timed out', 'Evil Bob');
+            Result := Point(-1, -1);
+            Exit;
+          end;
+
+
+          //Wait(3500 + Random(1500));
+          R_Debug('Trying to find spot', 'Evil Bob');
+          Result := REvilBob_GetSpot;
+        end;
+        ClickContinue(True, True);
+        if Chat then Break;
+        Wait(500);
+      end;
+    end;
+  end else
+  begin
+    R_Debug('Servant not found', 'Evil Bob');
+    if R_FindNPC(REvilBobConst_EvilBob, True, NPC) then
+      if not R_WindWalk(NPC.Tile) then
+      begin
+        R_Debug('Unable to walk to middle', 'Evil Bob');
+      end;
+    Exit;
+  end;
+end;
+
+function REvilBob_Fish(Tile: TPoint): Boolean;
+var
+  P: TPoint;
+  T: Integer;
+begin
+  Result := (R_CountItem(REvilBobConst_Cooked) > 0);
+  if (Tile.x = -1) or Result then
+    Exit;
+
+  if not R_TileOnMS(Tile, 0) then
+    if not R_WindWalk(Tile) then
+    begin
+      R_Debug('Failed to walk to spot', 'Evil Bob');
+      Exit;
+    end;
+  R_Flag;
+
+  P := R_TileToMS(Tile, 0);
+  MMouse(P.x, P.y, 10, 10);
+  wait(25+RandoM(25));
+  if not R_OptionExists('net') then
+    Exit;
+
+  GetMousePos(P.x, P.y);
+  Mouse(P.x, P.y, 0, 0, false);
+  wait(25+RandoM(25));
+  if not R_ChooseOption('net') then
+    Exit;
+
+  R_WaitToMove(3000);
+  R_Flag;
+
+  MarkTime(T);
+  while (R_CountItem(REvilBobConst_Cooked) = 0) and (TimeFromMark(T) < 8000) do
+    Wait(500);
+
+  Result := R_CountItem(REvilBobConst_Cooked) > 0;
+end;
+
+function REvilBob_Cook: Boolean;
+var
+  Pot: TRSObject;
+  P, Tile1, Tile2: TPoint;
+  T: Integer;
+begin
+  if R_CountItem(REvilBobConst_Cooked) = 0 then
+    Exit;
+
+  if not R_FindObject(REvilBobConst_Pot, OBJ_INTERACTABLE, 25, Pot) then
+  begin
+    R_Debug('Pot not found', 'Evil Bob');
+    Exit;
+  end;
+
+  if not R_TileBoxOnMS(Pot.TileArea) then
+    if not R_WindWalk(Pot.Tile) then
+    begin
+      R_Debug('Failed to walk to pot', 'Evil Bob');
+      Exit;
+    end;
+  R_Flag;
+
+  Tile1 := R_TileToMS(Point(Pot.TileArea.X1, Pot.TileArea.Y1), 0);
+  Tile2 := R_TileToMS(Point(Pot.TileArea.X2, Pot.TileArea.Y2), 0);
+  P := MiddleTPA([Tile1, Tile2]);
+  if not PointInBox(P, MSBox) then
+    Exit;
+
+  if not R_ClickItemBy(REvilBobConst_Cooked, 'Use') then
+    Exit;
+
+  MMouse(P.x, P.y, 10, 10);
+  wait(25+RandoM(25));
+  if not R_OptionExists('cooking pot') then
+    Exit;
+
+  GetMousePos(P.x, P.y);
+  Mouse(P.x, P.y, 0, 0, false);
+  wait(25+RandoM(25));
+  if not R_ChooseOption('cooking pot') then
+    Exit;
+
+  R_Flag;
+
+  MarkTime(T);
+  while (R_CountItem(REvilBobConst_Cooked) > 0) and (TimeFromMark(T) < 8000) do
+    Wait(500);
+
+  Result := (R_CountItem(REvilBobConst_Cooked) = 0) and
+              (R_CountItem(REvilBobConst_Raw) > 0);
+end;
+
+function REvilBob_Give: Boolean;
+var
+  TempChat: String;
+  Chat: Boolean;
+  NPC: TNPC;
+  P: TPoint;
+  X, Y: Integer;
+begin
+  if not R_FindNPC(REvilBobConst_EvilBob, True, NPC) then
+  begin
+    R_Debug('Evil bob not found', 'Evil Bob');
+    Exit;
+  end;
+
+  if not R_TileOnMS(NPC.Tile, 0) then
+    if not R_WindWalk(NPC.Tile) then
+    begin
+      R_Debug('Unable to walk to Evil Bob', 'Evil Bob');
+      Exit;
+    end;
+
+  P := R_TileToMS(NPC.Tile, 0);
+  if not R_ClickItemBy(REvilBobConst_Raw, 'Use') then
+    Exit;
+
+  if not SpiralMouse(X, Y, P.x - 100, P.y - 100, P.x + 100, P.Y + 100, 'vil Bob', 5, 10) then
+    Exit;
+  wait(25+RandoM(25));
+  if not R_OptionExists('Use Raw') then
+    Exit;
+
+  GetMousePos(P.x, P.y);
+  Mouse(P.x, P.y, 0, 0, false);
+  wait(25+RandoM(25));
+  if not R_ChooseOption('Use Raw') then
+    Exit;
+
+  R_Flag;
+
+  while ClickContinue(False, False) do
+  begin
+    TempChat := R_GetNPCChatMessage;
+    Chat := (Pos(REvilBobConst_ExitText, TempChat) > 0);
+    ClickContinue(True, True);
+    if Chat then Break;
+    Wait(500);
+  end;
+
+  Result := Chat and (R_CountItem(REvilBobConst_Raw) = 0);
+end;
+
+function REvilBob_Leave: Boolean;
+var
+  Portal: TRSObject;
+  P: TPoint;
+  X, Y, T: Integer;
+begin
+  Portal := R_GetObject(REvilBobConst_Portal, OBJ_INTERACTABLE, 30);
+  if(Portal = NULL_RSOBJECT)then
+  begin
+    R_Debug('Unable to find portal. Go buy Portal 2..', 'Evil Bob');
+    Exit;
+  end;
+
+  if(R_DistanceFromTile(Portal.Tile) > 4)then
+  begin
+    if not R_WalkToTile(Portal.Tile, 1, 0)then
+    begin
+      R_Debug('Unable to walk to Portal.', 'Evil Bob');
+      Exit;
+    end;
+    Wait(300+Random(50));
+  end;
+
+  P := R_TileToMS(Portal.Tile, 0);
+  MMouse(P.x, P.y, 10, 10);
+  wait(25+RandoM(25));
+  if not R_OptionExists('enter') then
+    Exit;
+
+  GetMousePos(X, Y);
+  Mouse(X, Y, 0, 0, false);
+  wait(25+RandoM(25));
+  if not R_ChooseOption('enter') then
+    Exit;
+
+  R_WaitToMove(3000);
+  R_Flag;
+
+  MarkTime(T);
+  while REvilBob_InRandom and (TimeFromMark(T) < 12000) do
+    Wait(500);
+
+  Result := not REvilBob_InRandom;
+end;
+
+procedure REvilBob_Reset;
+var
+  Items: TInvItemArray;
+  Click: TInterfaceChild;
+  I: integer;
+begin
+  if R_ItemExistsEx([REvilBobConst_Cooked, REvilBobConst_Raw], Items) then
+    for I := 0 to High(Items) do
+    begin
+      if R_ClickItem(Items[I].Slot, 'Destroy') then
+        if R_WaitInterfaceOpen(94, 2500) then
+        begin
+          Click := R_GetInterfaceChild(94, 3);
+          R_ClickInterface(Click, mouse_Left);
+          R_WaitInterfaceClose(94, 2500);
+        end;
+    end;
+end;
+
+function REvilBob_Deposit: Boolean;
+var
+  DBox: TRSObject;
+  P: TPoint;
+  Item: TInterfaceComponent;
+  Close: TInterfaceChild;
+  Name: String;
+  I, Count, Goal, X, Y: Integer;
+begin
+  if R_CountItemEx([REvilBobConst_Cooked, REvilBobConst_Raw]) > 0 then
+    Exit;
+
+  if not R_FindObject(REvilBobConst_Deposit, OBJ_INTERACTABLE, 30, DBox) then
+  begin
+    R_Debug('Deposit box not found', 'Evil Bob');
+    Exit;
+  end;
+
+  Goal := 2 - (28 - R_InvCount);
+
+  if not R_TileOnMS(DBox.Tile, 0) then
+    if not R_WindWalk(DBox.Tile) then
+    begin
+      R_Debug('Unable to walk to deposit', 'Evil Bob');
+      Exit;
+    end;
+  R_Flag;
+
+  P := R_TileToMS(DBox.Tile, 0);
+  MMouse(P.x, P.y, 10, 10);
+  wait(25+RandoM(25));
+  if not R_OptionExists('deposit') then
+    Exit;
+
+  GetMousePos(P.x, P.y);
+  Mouse(P.x, P.y, 0, 0, false);
+  wait(25+RandoM(25));
+  if not R_ChooseOption('deposit') then
+    Exit;
+
+  R_WaitToMove(3000);
+  R_Flag;
+
+  if not R_WaitInterfaceOpen(11, 5000)then
+    Exit;
+  Count := 0;
+  for I := 27 downto 0 do
+  begin
+    if(Count >= Goal)then
+      Break;
+    Item := R_GetInterfaceComponent(11, 17, I);
+    Name := Item.Name;
+    if(Pos('pickaxe', Lowercase(Name)) > 0)or
+      (Pos('hatchet', Lowercase(Name)) > 0)or
+      (Name = '')then
+      Continue;
+    R_ClickInterface(Item, 3);
+    Wait(25+Random(25));
+    GetMousePos(X, Y);
+    case Random(10) of
+      0..8: Mouse(X, Y, 0, 0, True);
+      9: begin
+        Mouse(X, Y, 0, 0, False);
+        wait(25+Random(25));
+        if not R_ChooseOption('Deposit-1')then
+          Continue;
+      end;
+    end;
+    Wait(500+Random(1500));
+    Inc(Count);
+  end;
+  Result := (Count >= Goal);
+  Close := R_GetInterfaceChild(11, 15);
+  R_ClickInterface(Close, 1);
+  R_WaitInterfaceClose(11, 5000);
+
 end;
 
 function REvilBob_Solve: Boolean;
+var
+  T: Integer;
+  Spot: TPoint;
+  Done: Boolean;
 begin
-  Result := False
+  Result := False;
+  MarkTime(T);
+  MakeCompass('e');
+
+  while REvilBob_InRandom and (TimeFromMark(T) < 240000) do
+  begin
+    if Done or (Spot.x = 2) then
+      if not REvilBob_Leave then
+      begin
+        R_Debug('Unable to use portal', 'Evil Bob');
+        Continue;
+      end;
+
+    R_GameTab(RTAB_INVENTORY);
+
+    if Spot.x < 1 then
+      REvilBob_Reset;
+
+    if (R_CountItem(REvilBobConst_Cooked) > 0) then
+      if not REvilBob_Cook then
+      begin
+        R_Debug('Unable to uncook', 'Evil Bob');
+        Continue;
+      end;
+
+    if (R_CountItem(REvilBobConst_Raw) > 0) then
+      if not REvilBob_Give then
+      begin
+        if R_CountItem(REvilBobConst_Raw) = 0 then
+          Spot.x := -1;
+        R_Debug('Wrong fish, retrying', 'Evil Bob');
+        Continue;
+      end else
+      begin
+        Done := True;
+        Continue;
+      end;
+
+    if (R_InvCount > 26) and
+         (R_CountItemEx([REvilBobConst_Cooked, REvilBobConst_Raw]) = 0) and
+           not ((R_InvCount = 27) and (R_CountItem(REvilBobConst_Net) = 1)) then
+        begin
+          if not REvilBob_Deposit then
+          begin
+            R_Debug('Unable to deposit', 'Evil Bob');
+            Continue;
+          end;
+          Continue;
+        end;
+
+    if (R_CountItem(REvilBobConst_Net) < 1) then
+      if not REvilBob_GetNet then
+      begin
+        R_Debug('Failed to get a net', 'Evil Bob');
+        Continue;
+      end;
+
+    if (Spot.x < 1) then
+    begin
+      Spot := REvilBob_HandleServant;
+      if Spot.x > 0 then
+      begin
+        R_Debug('Spot found', 'Evil Bob');
+        Continue;
+      end;
+    end else
+    if not REvilBob_Fish(Spot) then
+    begin
+      R_Debug('Unable to get fish', 'Evil Bob');
+      Continue;
+    end;
+
+  end;
+
+  Result := not REvilBob_InRandom;
 end;

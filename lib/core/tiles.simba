@@ -329,6 +329,47 @@ begin
 end;
 
 (*
+R_TileBoxOnMSEx
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_TileBoxOnMSEx(Box: TBox; Height : Integer) : Boolean;
+
+Results true if the whole box of tiles with the given Height is on the MS.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_TileBoxOnMSEx(Box: TBox; Height : Integer) : Boolean;
+begin
+  Result := R_TileOnMS(Point(Box.X1, Box.Y1), Height) and
+            R_TileOnMS(Point(Box.X2, Box.Y2), Height);
+end;
+
+(*
+R_TileBoxOnMS
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_TileBoxOnMS(Box: TBox) : Boolean;
+
+Results true if the whole box of tiles is on the MS.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_TileBoxOnMS(Box: TBox) : Boolean;
+begin
+  Result := R_TileBoxOnMSEx(Box, 0);
+end;
+
+(*
 R_TileInBox
 ~~~~~~~~~~~
 

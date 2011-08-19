@@ -15,6 +15,7 @@
 {$include_once ./Pinball.simba}
 {$include_once ./Prison.simba}
 {$include_once ./Quiz.simba}
+{$include_once ./Rewards.simba}
 {$include_once ./Sandwich.simba}
 {$include_once ./ScapeRune.simba}
 
@@ -27,7 +28,7 @@ const
 
 type
   R_Random = record
-    RandName, Music: String;
+    RandName, Music, Dir: String;
     InRandom, SolveRandom: function: Boolean;
   end;
 
@@ -39,7 +40,7 @@ procedure R_SetupRandoms;
 begin
   with R_RandomArr[Rand_Abyss] do
   begin
-    RandName := 'Abyss';            //Not done
+    RandName := 'Abyss';
     Music := 'into the abyss';
     InRandom := @RAbyss_InRandom;
     SolveRandom := @RAbyss_Solve;
@@ -61,7 +62,7 @@ begin
     SolveRandom := @RArnav_Solve;
   end;
 
-  with R_RandomArr[Rand_Certer] do  //Not done
+  with R_RandomArr[Rand_Certer] do
   begin
     RandName := 'Certer';
     Music := '';
@@ -78,7 +79,7 @@ begin
   end;
 
   with R_RandomArr[Rand_Forester] do
-  begin                              //Not done
+  begin
     RandName := 'Freaky Forester';
     Music := 'pheasant peasant';
     InRandom := @RForest_InRandom;
@@ -86,7 +87,7 @@ begin
   end;
 
   with R_RandomArr[Rand_Frog] do
-  begin                              //Not done
+  begin
     RandName := 'Frog Cave';
     Music := 'frogland';
     InRandom := @RFrog_InRandom;
@@ -118,9 +119,10 @@ begin
   end;
 
   with R_RandomArr[Rand_Molly] do
-  begin                              //Not done
+  begin
     RandName := 'Molly';
     Music := 'head to head';
+    Dir := 'e';
     InRandom := @RMolly_InRandom;
     SolveRandom := @RMolly_Solve;
   end;
@@ -134,7 +136,7 @@ begin
   end;
 
   with R_RandomArr[Rand_Pillory] do
-  begin                              //Not done
+  begin
     RandName := 'Pillory';
     Music := '';
     InRandom := @RPillory_InRandom;
@@ -142,7 +144,7 @@ begin
   end;
 
   with R_RandomArr[Rand_Pinball] do
-  begin                              //Not done
+  begin
     RandName := 'Pinball';
     Music := '';
     InRandom := @RPinball_InRandom;
@@ -158,7 +160,7 @@ begin
   end;
 
   with R_RandomArr[Rand_Quiz] do
-  begin                              //Not done
+  begin
     RandName := 'Quiz';
     Music := 'the quiz master';
     InRandom := @RQuiz_InRandom;
@@ -166,7 +168,7 @@ begin
   end;
 
   with R_RandomArr[Rand_Sandwich] do
-  begin                              //Not done
+  begin
     RandName := 'Sandwich Lady';
     Music := 'snack attack';
     InRandom := @RSandwich_InRandom;
@@ -174,9 +176,10 @@ begin
   end;
 
   with R_RandomArr[Rand_ScapeRune] do
-  begin                              //Not done
+  begin
     RandName := 'Evil Bob''s Island';
     Music := 'evil bob''s island';
+    Dir := 'e';
     InRandom := @REvilBob_InRandom;
     SolveRandom := @REvilBob_Solve;
   end;
@@ -251,7 +254,9 @@ begin
 
       R_Debug('Trying to solve: ' + R_RandomArr[I].RandName, '');
       SetAngle(True);
-      R_MakeCompass('N');
+      if (R_RandomArr[I].Dir = '') then
+        R_MakeCompass('n') else
+          R_MakeCompass(R_RandomArr[I].Dir);
       T := R_GetMyPos;
       RandomBox := IntToBox(T.X-70, T.Y-70, T.X+70, T.Y+70);
 
@@ -306,7 +311,7 @@ Description: Calls the random checks.
 function R_FindRandoms: Boolean;
 begin
   Result := R_SolveNonTalkingRandoms;
-  //R_FindRewardBoxes;
+  RRewards_Solve;
 
   if (Result) then
   begin

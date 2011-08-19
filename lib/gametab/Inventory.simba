@@ -489,21 +489,21 @@ begin
 end;
 
 (*
-R_MouseItem
+R_MouseItemEx
 ~~~~~~~~~~~
 
 .. code-block:: pascal
 
-    procedure R_MouseItem(Slot: Integer);
+    procedure R_MouseItemEx(Slot, ClickType: Integer);
 
-Mouses over the specified inventory slot.
+Mouses over the specified inventory slot with specified ClickType.
 
 .. note::
 
   by Drags111
 
 *)
-procedure R_MouseItem(Slot: Integer);
+procedure R_MouseItemEx(Slot, ClickType: Integer);
 var
   InterfaceID: Integer;
   Item: TInterfaceComponent;
@@ -522,7 +522,27 @@ begin
   if(Item.ID <= 0)then
     Exit;
 
-  R_ClickInterface(Item, 3);
+  R_ClickInterface(Item, ClickType);
+end;
+
+(*
+R_MouseItem
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_MouseItem(Slot: Integer);
+
+Mouses over the specified inventory slot.
+
+.. note::
+
+  by Drags111
+
+*)
+procedure R_MouseItem(Slot: Integer);
+begin
+  R_MouseItemEx(Slot, 3);
 end;
 
 (*
