@@ -316,7 +316,7 @@ R_ChooseOptionDual.
 function R_MMouseMenuDual(Options: TStringArray; First: Boolean): Boolean;
 var
   MenuItems: TStringArray;
-  I, L, X, Y, MX, MY, MW, MH, xOff, yOff: Integer;
+  I, X, Y, MX, MY, MW, MH, xOff, yOff: Integer;
   Option: String;
   Dimensions: TBox;
 begin
@@ -374,7 +374,7 @@ R_ChooseOptionDual.
 function R_MMouseMenuTabbedDual(Options: TStringArray; First: Boolean): Boolean;
 var
   MenuItems: array of TStringArray;
-  I, K, L, X, Y, MX, MY, MW, MH, xOff, yOff: Integer;
+  I, K, X, Y, MX, MY, MW, MH, xOff, yOff: Integer;
   Option: String;
   Dimensions: TBox;
 begin

@@ -662,7 +662,7 @@ begin
       Timer := (GetSystemTime + 30000);
       while R_DistanceFromTile(Path[Index]) > FlagDist do
       begin
-        Wait(10 + Random(10));
+        Wait(500 + Random(200));
         if SRL_Procs[SRL_AntiBan] <> nil then
           SRL_Procs[SRL_AntiBan]();
 

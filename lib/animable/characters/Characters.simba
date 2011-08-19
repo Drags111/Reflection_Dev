@@ -1,4 +1,4 @@
-function R_GetCharAnimation(character : Integer) : Integer;
+function R_GetCharAnimation(Character: Integer): Integer;
 var
   animation, animationdef : Integer;
 begin

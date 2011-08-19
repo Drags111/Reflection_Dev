@@ -2,7 +2,7 @@
   Reflection 2
 *)
 
-{$define smart}
+{$DEFINE SMART}
 {$DEFINE REFLECTION}
 
 {$loadlib RefCalculationsLib.dll}
@@ -96,6 +96,129 @@ begin
     WriteFileString(MyFile, Src);
     CloseFile(MyFile);
     WriteLn('[Reflection] Updated you to ' + ToStr(ClientRev) + '.' + ToStr(RevHook) + '; please restart your script!');
+    TerminateScript;
+  end;
+end;
+
+(*
+R_RSReady
+~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_RSReady: Boolean;
+
+Waits until the client is ready using the LoginIndex.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_RSReady: Boolean;
+var
+  LoginIndex, T: Integer;
+begin
+  Result := False;
+  T := GetTimeRunning;
+  LoginIndex := SmartGetFieldInt(0, hook_static_LoginIndex);
+  if(LoginIndex = -1)then
+    Exit;
+  while(InRange(LoginIndex, 0, 2))do
+  begin
+    if((GetTimeRunning - T) >= 300000)then
+      Exit;
+    LoginIndex := SmartGetFieldInt(0, hook_static_LoginIndex);
+    Wait(1000);
+  end;
+  Result := True;
+end;
+
+(*
+SetupReflection
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure SetupReflection;
+
+Sets up Reflection and SRL.
+
+.. note::
+
+  by Reflection Dev Team
+
+*)
+procedure SetupReflection;
+var
+  T: Integer;
+begin
+  SetupBoxes; //Sets up box variables in globals.scar
+  T := GetTimeRunning;
+  MouseSpeed := 15;
+  {$IFDEF UseLaptopMouse}LMouse_MissChance := 75;{$ENDIF}
+  CheckHPFirst := True;
+  Reincarnate := False;
+  TalkAfterRandoms := False;
+  RoadColor := 0;
+  WaterColor := 0;
+  BankColor := 0;
+  LampSkill := 'mining';
+  SetUpSRLReport;
+  LoadCosineArrays;
+  SymbolAccuracy:= 0.8;
+  LoadSRLBitMaps;
+  LoadSRLFonts;
+  LoadTeleRandoms;
+  SolveSRLRandoms := True;
+  SetupSRLAutoResponder;
+  UseFindMod := True;
+  LogoutOnMod := True;
+  UseFindTrade := True;
+  UseAutoResponder := True;
+  Screenshots := False;
+  GraphicsSet := False;
+  AllowPVP    := False;
+  ScreenShots := True;
+  WarnSensitivity := -2;
+  SetupAutoColors;
+{$IFDEF LoadExtraFonts}
+  srl_UpdateFonts(srl_FontsUp2date);
+{$ENDIF}
+{$IFDEF YourMom}
+  InitializeSRLLogFile;
+{$ENDIF}
+  AddOnTerminate('FreeSRL');
+  SetSupressExceptions(True);
+  Writeln ('SRL Compiled in '+  IntToStr(GetTimeRunning - t) + ' msec');
+
+{$IFDEF SRL_SMART}
+  if (Smart_Server = 0) then
+  begin
+    Smart_Server := RandomWorld(Smart_Members, False);
+    Smart_Signed := True;
+    Smart_SuperDetail := False;
+  end;
+  Writeln('SMART Initialized.' + #10 + 'Loaded: Server ' + IntToStr(Smart_Server) + ', Members: ' + BoolToStr(Smart_Members)
+                 + ', Signed: ' + BoolToStr(Smart_Signed) + ', Super Detail: ' + BoolToStr(Smart_SuperDetail) + '.');
+  SmartSetupEx(Smart_Server, Smart_Members, Smart_Signed, Smart_SuperDetail);
+  SetTargetArray(SmartImageArray, 765,503);
+{$ELSE}
+  Smart_Server := 0;
+  Smart_Members := false;
+  Smart_Signed := True;
+  Smart_SuperDetail := false;
+{$ENDIF}
+
+  T := GetTimeRunning;
+  R_UpdateHooks;
+  R_SetupRandoms;
+  Writeln ('Reflection Compiled in '+  IntToStr(GetTimeRunning - T) + ' msec');
+
+  if not R_RSReady then
+  begin
+    R_Debug('Runescape isn''t loading. Hooks may be outdated or there may be', 'Reflection');
+    R_Debug('other issues. Please try again later!', 'Reflection');
     TerminateScript;
   end;
 end;

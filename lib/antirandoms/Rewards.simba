@@ -39,7 +39,7 @@ const
 function RRewards_HandleExp: Boolean;
 var
   Items: TInvItemArray;
-  P: TPoint;
+  //P: TPoint;
   i, T, XPChoice: Integer;
   ClickInt: TInterfaceChild;
 begin
@@ -116,6 +116,7 @@ var
   ValComp: TIntegerArray;
   TempComp: TInterfaceComponent;
 begin
+  Result := False; //Added to surpress hints 8/19/11
   if not R_ItemExists(RRewardsConst_Box, RBox) then
     Exit;
 
@@ -182,7 +183,7 @@ function RRewards_Solve: Boolean;
 var
   Items: TInvItemArray;
   I: Integer;
-  P: TPoint;
+  //P: TPoint;
 begin
   if not R_ItemExistsEx([RRewardsConst_Box, RRewardsConst_ExpBook,
                          RRewardsConst_Lamp, RRewardsConst_MysBox], Items) then
