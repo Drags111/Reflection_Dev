@@ -1081,7 +1081,7 @@ begin
   if Result then
     Exit;
 
-  SetLength(BankTiles, 18);
+  SetLength(BankTiles, 19);
   //varrock east
   BankTiles[0] := [Point(3251,3419), Point(3252,3419), Point(3253,3419),
             Point(3254,3419), Point(3255,3419), Point(3256,3419)];
@@ -1131,6 +1131,9 @@ begin
             Point(2668, 2652)];
   //castle wars
   BankTiles[17] := [Point(2445, 3083)];
+  //Canifis
+  BankTiles[18] := [Point(3513, 3478), Point(3513, 3479), Point(3513, 3480),
+            Point(3513, 3481), Point(3513, 3482), Point(3513, 3483)];
 
   Tiles := MergeATPA(BankTiles);
   SortTPAFrom(Tiles, R_GetMyPos);
