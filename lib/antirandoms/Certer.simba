@@ -4,7 +4,6 @@ const
   RCerterConst_NPCChat_Interface = 0;
 
 var
-  RCerterVars_NPC: TNPC;
   RCerterVars_Model_IDs: TIntegerArray;
   RCerterVars_Item_Names,
   RCerterVars_Finished_Strings: TStringArray;
@@ -23,8 +22,9 @@ end;
 function RCerter_InRandom: Boolean;
 var
   Obj: TRSObject;
+  NPC: TNPC;
 begin
-  Result := R_FindNPCMulti(['Giles', 'Miles', 'Niles'], True, RCerterVars_NPC);
+  Result := R_FindNPCMulti(['Giles', 'Miles', 'Niles'], True, NPC);
   if Result then
   begin
     Obj := R_GetObject(RCerterConst_Portal_ID, OBJ_INTERACTABLE, 15);
@@ -33,13 +33,15 @@ begin
 end;
 
 function RCerter_TalkTo: Boolean;
+var
+  NPC: TNPC;
 begin
-  if not R_FindNPCMulti(['Giles', 'Miles', 'Niles'], True, RCerterVars_NPC)then
+  if not R_FindNPCMulti(['Giles', 'Miles', 'Niles'], True, NPC)then
   begin
     R_Debug('Unable to find Certer.', 'Certer');
     Exit;
   end;
-  Result := RRandom_TalkToNPC(RCerterVars_NPC, False, 'Certer');
+  Result := RRandom_TalkToNPC(NPC, False, 'Certer');
 end;
 
 function RCerter_QuestionInterface: Boolean;
