@@ -222,12 +222,30 @@ Returns the tile of the Flag destination.
 
 *)
 function R_GetDest: TTile;
-var
-  xDest, yDest: integer;
 begin
-  xDest := SmartGetFieldInt(0, hook_static_DestX);
-  yDest := SmartGetFieldInt(0, hook_static_DestY);
-  Result := Point(xDest, yDest);
+  Result.X := SmartGetFieldInt(0, hook_static_BaseX) + SmartGetFieldInt(0, hook_static_DestX);
+  Result.Y := SmartGetFieldInt(0, hook_static_BaseY) + SmartGetFieldInt(0, hook_static_DestY);
+end;
+
+(*
+R_GetLocDest
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetLocDest: TTile;
+
+Returns the local tile of the Flag destination.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetLocDest: TTile;
+begin
+  Result.X := SmartGetFieldInt(0, hook_static_DestX);
+  Result.Y := SmartGetFieldInt(0, hook_static_DestY);
 end;
 
 (*
@@ -320,7 +338,7 @@ begin
   Me := SmartGetFieldObject(0, hook_static_MyPlayer);
   MyPos.x := SmartGetFieldArrayInt(Me, hook_character_WalkQueueX, 0);
   MyPos.y := SmartGetFieldArrayInt(Me, hook_character_WalkQueueY, 0);
-  FlagPos := R_GetDest;
+  FlagPos := R_GetLocDest;
   Result := Distance(MyPos.x, MyPos.y, FlagPos.x, FlagPos.y);
   SmartFreeObject(me);
 end;
@@ -506,7 +524,7 @@ begin
   end;
   while (R_FlagExists) do
   begin
-    D := R_GetDest;
+    D := R_GetLocDest;
     d1 := R_DistanceFromFlag;
     if (d1 >= Dist) then
     begin

@@ -1,0 +1,83 @@
+(*
+Combat
+======
+
+Contains useful functions for combat-related scripts.
+
+*)
+
+(*
+R_SetRetaliate
+~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_SetRetaliate(Retaliate: Boolean);
+
+Sets the retaliate mode to the boolean specified.
+
+.. note::
+
+  by ggzz, Drags111
+
+*)
+procedure R_SetRetaliate(Retaliate: Boolean);
+var
+  Child: TInterfaceChild;
+begin
+  if not R_GameTab(RTAB_COMBAT)then
+    Exit;
+  Child:= R_GetInterfaceChild(884, 16);
+  if Retaliate xor (Child.TextureID = 656) then
+    R_ClickInterface(Child, 1);
+end;
+
+(*
+R_HPPercent
+~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_HPPercent: Integer;
+
+Returns the percentage of your player's current health.
+
+.. note::
+
+  by ggzz?
+
+*)
+function R_HPPercent: Integer;
+begin
+  if (Players[CurrentPlayer].Level[SKILL_HITPOINTS] < 1) then
+    Players[CurrentPlayer].Level[SKILL_HITPOINTS] := Max(1, R_GetSkillLevel(3));
+
+  if (Players[CurrentPlayer].Level[SKILL_HITPOINTS] > 1) then
+    Result := Round(R_GetMMLevels('hp') * 10 / Players[CurrentPlayer].Level[SKILL_HITPOINTS])
+  else
+    Result := -1;
+end;
+
+(*
+R_IsPoisoned
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_IsPoisoned: Boolean;
+
+Returns true if your character is poisoned.
+
+.. note::
+
+  by ggzz?
+
+*)
+function R_IsPoisoned: Boolean;
+var
+  Child: TInterfaceChild;
+begin
+  Child := R_GetInterfaceChild(748, 4);
+  if(Child.TextureID = 1801) then
+    Result:= true;
+end;

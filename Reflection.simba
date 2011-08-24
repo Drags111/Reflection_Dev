@@ -28,15 +28,17 @@
 {$i ./lib/misc/Timing.simba}
 {$i ./lib/misc/Misc.simba}
 
-{$i ./lib/mapwalk/MapWalk.simba}
-
 {$i ./lib/gametab/GameTab.simba}
 {$i ./lib/gametab/Inventory.simba}
 {$i ./lib/gametab/Equipment.simba}
 
+{$i ./lib/mapwalk/MapWalk.simba}
+
 {$i ./lib/bank/Bank.simba}
 
 {$i ./lib/antirandoms/Antirandoms.simba}
+
+{$i ./lib/skills/Combat.simba}
 
 (*
 R_UpdateHooks

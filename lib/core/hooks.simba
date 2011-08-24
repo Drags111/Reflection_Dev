@@ -1,6 +1,6 @@
 const
 	ClientVersion = 662;
-	HookRev = 2;
+	HookRev = 3;
 
 {Static Hooks}
 	hook_static_LoginIndex = 'mk.e';
@@ -9,6 +9,7 @@ const
 	hook_static_CamPosZ = 'ep.h';
 	hook_static_CameraPitch = 'gha.m';
 	hook_static_CameraYaw = 'pe.p';
+	hook_static_GetChatLines = 'po.b';
 	hook_static_MyPlayer = 'iaa.e';
 	hook_static_BaseX = 'jc.q';
 	hook_static_BaseY = 'gr.y';
@@ -47,8 +48,8 @@ const
 	hook_static_GetSkillExperiences = 'rn.f';
 	hook_static_GetSkillLevels = 'ho.c';
 	hook_static_MapAngle = 'ol.q';
-	hook_static_DestX = 'cda.G';
-	hook_static_DestY = 'waa.L';
+	hook_static_DestX = 'waa.L';
+	hook_static_DestY = 'cda.G';
 	hook_static_PlayerCount = 'jaa.f';
 	hook_static_PlayerIndexArray = 'pg.l';
 	hook_static_GetPlayers = 'ab.w';
@@ -64,6 +65,12 @@ const
 	hook_sdmodel_GetPointsX = 'gb';
 	hook_sdmodel_GetPointsY = 't';
 	hook_sdmodel_GetPointsZ = 'R';
+
+{Class ChatLine}
+	class_ChatLine = 'ofa';
+	hook_chatline_GetName = 'n';
+	hook_chatline_GetMessage = 'b';
+	hook_chatline_GetType = 'e';
 
 {Class Animable}
 	class_Animable = 'hfa';
@@ -153,11 +160,17 @@ const
 	class_MRUNodes = 'mca';
 	hook_mrunodes_GetNodeCache = 'o';
 
+{Class ObjectDefLoader}
+	class_ObjectDefLoader = 'hq';
+	hook_objectdefloader_GetModels = 'u';
+	hook_objectdefloader_GetComposites = 'z';
+
 {Class ObjectDef}
 	class_ObjectDef = 'aaa';
 	hook_objectdef_GetLoader = 'y';
 	hook_objectdef_getActions = 'Ob';
 	hook_objectdef_getName = 'tb';
+	hook_objectdef_GetChildrenIDs = 'x';
 
 {Class NPC}
 	class_NPC = 'gf';
@@ -171,6 +184,13 @@ const
 	hook_npcdef_GetLoader = 'Ab';
 	hook_npcdef_GetLevel = 'M';
 	hook_npcdef_GetID = 'K';
+	hook_npcdef_GetChildrenIDs = 'sb';
+	hook_npcdef_GetSettingIndex = 'v';
+
+{Class NPCDefLoader}
+	class_NPCDefLoader = 'nj';
+	hook_npcdefloader_GetModels = 'n';
+	hook_npcdefloader_GetComposites = 'q';
 
 {Class NPCNode}
 	class_NPCNode = 'id';

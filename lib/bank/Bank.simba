@@ -1081,7 +1081,7 @@ begin
   if Result then
     Exit;
 
-  SetLength(BankTiles, 19);
+  SetLength(BankTiles, 22);
   //varrock east
   BankTiles[0] := [Point(3251,3419), Point(3252,3419), Point(3253,3419),
             Point(3254,3419), Point(3255,3419), Point(3256,3419)];
@@ -1134,6 +1134,10 @@ begin
   //Canifis
   BankTiles[18] := [Point(3513, 3478), Point(3513, 3479), Point(3513, 3480),
             Point(3513, 3481), Point(3513, 3482), Point(3513, 3483)];
+  //Lunar Isles
+  BankTiles[19] := [Point(2099, 3920)];    //<----- This tile is the one right infront of bird's eye jack or whatever his name is.. because the others require that necklaces.
+  //Alkharid BankChest
+  BankTiles[21] := [Point(3308, 3120)];
 
   Tiles := MergeATPA(BankTiles);
   SortTPAFrom(Tiles, R_GetMyPos);
@@ -1179,7 +1183,7 @@ begin
 
   if not R_WaitUpTextMulti(['Bank booth', 'Counter'], 500) then
   begin
-    if not R_WaitUpText('Bank chest', 500)then
+    if not R_WaitUpText('chest', 500)then
     begin
       R_Debug('Unable to find the bank UpText', 'R_OpenBankBooth');
       Exit;

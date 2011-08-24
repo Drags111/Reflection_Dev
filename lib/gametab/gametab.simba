@@ -93,6 +93,13 @@ begin
     R_Debug('Invalid tab number', 'R_GameTab');
     Exit;
   end;
+
+  if(R_CurrentGameTab = Tab)then
+  begin
+    Result := True;
+    Exit;
+  end;
+
   if not R_ValidInterface(INTERFACE_GAMETAB)then
     Exit;
 
@@ -143,6 +150,7 @@ begin
     'hitpoints', 'hp', 'lp', 'lifepoints': Result := StrToInt(R_GetInterfaceText(INTERFACE_HITPOINTS, 8));
     'prayer', 'pp'   : Result := StrToInt(R_GetInterfaceText(INTERFACE_PRAYER, 4));
     'run', 'energy'  : Result := StrToInt(R_GetInterfaceText(INTERFACE_RUN, 5));
+    'sum', 'summoning': Result := StrToInt(R_GetInterfaceText(INTERFACE_SUMMONING, 5));
     else R_Debug('Invaild string.', 'R_GetMMLevels');
   end;
 end;
