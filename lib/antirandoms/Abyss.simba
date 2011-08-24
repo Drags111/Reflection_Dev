@@ -12,14 +12,15 @@ begin
   Result := Appendage <> NULL_RSOBJECT;
 end;
 
-function RAbyss_DoTileOffset(T: TTile; AppendageID: Integer): TTile;
+function RAbyss_DoTileOffset(TileBox: TBox): TTile;
+var
+  TileA, TileB: TPoint;
 begin
-  case AppendageID of
-    RAbyssConst_Append_N: Result := Point(T.X, T.Y + 1);
-    RAbyssConst_Append_E: Result := Point(T.X + 1, T.Y);
-    RAbyssConst_Append_S: Result := Point(T.X, T.Y - 1);
-    RAbyssConst_Append_W: Result := Point(T.X - 1, T.Y);
-  end;
+  TileA := Point(TileBox.X1, TileBox.Y1);
+  TileB := Point(TileBox.X2, TileBox.Y2);
+  if R_DistanceFromTile(TileA) < R_DistanceFromTile(TileB) then
+    Result := TileB
+      else Result := TileA;
 end;
 
 function RAbyss_GetOddAppendage: Integer;
@@ -33,6 +34,7 @@ begin
     ObjArr[i] := R_GetObject(i + RAbyssConst_Append_E, OBJ_INTERACTABLE, 25);
     if ObjArr[i] = NULL_RSOBJECT then
       Exit;
+    R_Debug('ObjArr['+ToStr(i)+'].ModelID: ' +ToStr(ObjArr[i].ModelID), 'Abyss');
   end;
 
   if (ObjArr[0].ModelID = ObjArr[1].ModelID)
@@ -55,7 +57,7 @@ end;
 function RAbyss_HandleAppendage(AppendageID: Integer): Boolean;
 var
   Appendage: TRSObject;
-  P: TPoint;
+  P, NewTile: TPoint;
   X, Y, T: Integer;
 begin
   Appendage := R_GetObject(AppendageID, OBJ_INTERACTABLE, 25);
@@ -65,11 +67,11 @@ begin
     Exit;
   end;
 
-  Appendage.Tile := RAbyss_DoTileOffset(Appendage.Tile, AppendageID);
+  NewTile := RAbyss_DoTileOffset(Appendage.TileArea);
 
-  if(R_DistanceFromTile(Appendage.Tile) > 4)then
+  if(R_DistanceFromTile(NewTile) > 4)then
   begin
-    if not R_WalkToTile(Appendage.Tile, 1, 0)then
+    if not R_WalkToTile(NewTile, 1, 0)then
     begin
       R_Debug('Unable to walk to Appendage.', 'Abyss');
       Exit;
@@ -77,7 +79,7 @@ begin
     Wait(300+Random(50));
   end;
 
-  P := R_TileToMS(Appendage.Tile, 200);
+  P := R_TileToMS(NewTile, 550);
   MMouse(P.x, P.y, 10, 10);
   wait(25+RandoM(25));
   if not R_OptionExists('operate') then

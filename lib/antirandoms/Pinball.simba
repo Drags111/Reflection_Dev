@@ -66,7 +66,7 @@ begin
   begin
     R_Debug('Exit found', 'Pinball');
     if not R_TileOnMS(ExitObj.Tile, 350) then
-      R_WindWalkMS(Point(ExitObj.Tile.x, ExitObj.Tile.y - 4));
+      R_WindWalkMS(Point(ExitObj.Tile.x, ExitObj.Tile.y + 2));
     R_Flag;
     P := R_TileToMS(ExitObj.Tile, 350);
     if PointInBox(P, IntToBox(MSX1, MSY1, MSX2, MSY2)) then

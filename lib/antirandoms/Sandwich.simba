@@ -30,29 +30,26 @@ var
 begin
   Result := False;
 
-  Chat := R_GetNPCChatMessage;
-  if (Chat = '') then
-  begin
-    if R_FindNPC(RSandwichConst_NPCID, True, SWLady) then
-      if RRandom_TalkToNPC(SWLady, False, 'Sandwich') then
-      begin
-        Result := ArrInStr(RSandwichVars_Finished, R_GetNPCChatMessage);
+  if R_FindNPC(RSandwichConst_NPCID, True, SWLady) then
+    if RRandom_TalkToNPC(SWLady, False, 'Sandwich') then
+    begin
+      Chat := R_GetNPCChatMessage;
+      Result := ArrInStr(RSandwichVars_Finished, R_GetNPCChatMessage);
 
-        while ClickContinue(True, True) do
-        begin
-          if not Result then
-            Result := ArrInStr(RSandwichVars_Finished, R_GetNPCChatMessage);
-          Wait(500);
-        end;
-
-        if Result then
-          R_Debug('Finished, trying to exit', 'Sandwich');
-      end else
+      while ClickContinue(True, True) do
       begin
-        R_Debug('Could not find Sandwich Lady', 'Sandwich');
-        Exit;
+        if not Result then
+          Result := ArrInStr(RSandwichVars_Finished, R_GetNPCChatMessage);
+        Wait(500);
       end;
-  end;
+
+      if Result then
+        R_Debug('Finished, trying to exit', 'Sandwich');
+    end else
+    begin
+      R_Debug('Could not find Sandwich Lady', 'Sandwich');
+      Exit;
+    end;
 
 
 end;
@@ -213,6 +210,7 @@ begin
       begin
         R_Debug('Unable to exit', 'Sandwich');
       end;
+
   end;
 
   Result := not RSandwich_InRandom;

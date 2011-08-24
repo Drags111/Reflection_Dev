@@ -182,7 +182,8 @@ Solves reward box.
 function RRewards_Solve: Boolean;
 var
   Items: TInvItemArray;
-  I: Integer;
+  TempItem: TInvItem;
+  I, T: Integer;
   //P: TPoint;
 begin
   if not R_ItemExistsEx([RRewardsConst_Box, RRewardsConst_ExpBook,
@@ -212,7 +213,12 @@ begin
      RRewardsConst_MysBox:
      begin
        R_Debug('Clicking mystery box', 'Rewards');
-       Result := UseMysteryBox;
+       MarkTime(T);
+       while (TimeFromMark(T) < 6000) and R_ItemExists(Items[I].ID, TempItem) do
+       begin
+         R_MouseItemEx(Items[I].Slot, mouse_Left);
+         Wait(1500);
+       end;
      end;
 
    end;

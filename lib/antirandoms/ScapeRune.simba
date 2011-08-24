@@ -40,6 +40,7 @@ begin
         Wait(300+Random(50));
       end;
       R_Flag;
+      Wait(500);
       P := R_TileToMS(Net.Tile, 0);
       if not SpiralMouse(X, Y, P.x - 100, P.y - 100, P.x + 100, P.Y + 100, 'fishing net', 5, 10) then
         Exit;
@@ -96,7 +97,7 @@ begin
   Result := Point(-1, -1);
   if R_FindNPC(REvilBobConst_Servant, True, NPC) then
   begin
-    if RRandom_TalkToNPC(NPC, True, 'Evil Bob') then
+    if RRandom_TalkToNPC(NPC, True, 'Evil Bob') or R_ValidInterface(REvilBobConst_Interface) then
     begin
       while ClickContinue(False, False) or
             R_ValidInterface(REvilBobConst_Interface) do
