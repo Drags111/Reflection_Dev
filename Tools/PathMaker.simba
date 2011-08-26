@@ -66,7 +66,7 @@ begin
   case sender of
     RecordButton: begin
           MyTile := R_GetMyPos;
-          ToAdd := 'R_Tile('+ToStr(MyTile.x)+', '+ToStr(MyTile.y)+')';
+          ToAdd := 'Point('+ToStr(MyTile.x)+', '+ToStr(MyTile.y)+')';
           TileList.Items.Append(ToAdd);
           Inc(TileCount);
         end;
@@ -200,7 +200,7 @@ begin
   Smart_Server := WORLD;
   Smart_Signed := SIGNED;
 
-  SetupSRL;
+  SetupReflection;
   Writeln(R_GetMyPos);
   ThreadSafeCall('OpenForm',v);
 end.

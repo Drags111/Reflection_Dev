@@ -14,7 +14,6 @@
 {$i ./lib/core/Interfaces.simba}
 {$i ./lib/core/Menu.simba}
 
-{$i ./lib/animable/characters/Characters.simba}
 {$i ./lib/animable/characters/MyPlayer.simba}
 {$i ./lib/animable/characters/Players.simba}
 {$i ./lib/animable/characters/NPCs.simba}

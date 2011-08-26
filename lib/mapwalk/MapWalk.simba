@@ -666,8 +666,8 @@ function R_WalkPathEx(Path: TTileArray; Randomness, FlagDist: Integer; Inverted:
 var
   Index, Timer, Tries: Integer;
 begin
-  if Inverted then R_InvertTileArray(Path);
-  while R_DistanceFromTile(Path[High(Path)]) > FlagDist do
+  if Inverted then InvertTPA(Path);
+  while R_DistanceFromTile(Path[High(Path)]) > (FlagDist + Randomness + 1) do
   begin
     for Index := High(Path) downto 0 do
       if R_TileOnMM(Path[Index]) then
@@ -680,10 +680,9 @@ begin
       Timer := (GetSystemTime + 30000);
       while R_DistanceFromTile(Path[Index]) > FlagDist do
       begin
-        Wait(500 + Random(200));
+        Wait(500 + Random(100));
         if SRL_Procs[SRL_AntiBan] <> nil then
           SRL_Procs[SRL_AntiBan]();
-
         if (GetSystemTime > Timer) or (R_GetMotion = 0) or ((Index <> High(Path)) and (R_TileOnMM(Path[Index+1]))) then
           Break;
       end;
@@ -694,12 +693,12 @@ begin
     end else
     begin
       Inc(Tries);
-      wait(100+Random(300));
+      wait(800+Random(600));
     end;
     if Tries >= 10 then Break;
   end;
   R_FFlag(FlagDist);
-  Result := R_DistanceFromTile(Path[High(Path)]) <= FlagDist;
+  Result := R_DistanceFromTile(Path[High(Path)]) <= (FlagDist + Randomness + 1);
 end;
 
 (*

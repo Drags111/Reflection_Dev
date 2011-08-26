@@ -134,7 +134,7 @@ begin
       TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY2));
 
       Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
-      Animation := R_GetCharAnimation(TheNPC);
+      Animation := SmartGetFieldArrayInt(TheNPC, hook_character_AnimationQueue, 1);
       Motion := SmartGetFieldInt(TheNPC, hook_character_Motion);
       HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
       InCombat :=  LoopCycle < SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus);
@@ -237,7 +237,7 @@ begin
       TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY2));
 
       Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
-      Animation := R_GetCharAnimation(TheNPC);
+      Animation := SmartGetFieldArrayInt(TheNPC, hook_character_AnimationQueue, 1);
       Motion := SmartGetFieldInt(TheNPC, hook_character_Motion);
       HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
       InCombat :=  LoopCycle < SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus);
@@ -395,7 +395,7 @@ begin
       TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY2));
 
       Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
-      Animation := R_GetCharAnimation(TheNPC);
+      Animation := SmartGetFieldArrayInt(TheNPC, hook_character_AnimationQueue, 1);
       Motion := SmartGetFieldInt(TheNPC, hook_character_Motion);
       HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
       InCombat :=  LoopCycle < SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus);

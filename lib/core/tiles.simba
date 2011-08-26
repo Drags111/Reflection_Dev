@@ -422,34 +422,6 @@ begin
 end;
 
 (*
-R_InvertTileArray
-~~~~~~~~~~~~~~~~~
-
-.. code-block:: pascal
-
-    procedure R_InvertTileArray(var Path: TTileArray);
-
-Reverses the path(array of tiles).
-
-.. note::
-
-  by Drags111
-
-*)
-procedure R_InvertTileArray(var Path: TTileArray);
-var
-  Temp: TTileArray;
-  i: integer;
-begin
-  for i := High(Path) downto 0 do
-  begin
-    SetLength(Temp, Length(Temp)+1);
-    Temp[High(Temp)] := Path[i];
-  end;
-  Path := Temp;
-end;
-
-(*
 R_GetMidTile
 ~~~~~~~~~~~~
 

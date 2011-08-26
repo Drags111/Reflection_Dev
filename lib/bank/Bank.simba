@@ -287,7 +287,7 @@ begin
   begin
     if(TimeFromMark(T1) > 10000)then
       Break;
-    TheTab := R_GetInterfaceChild(INTERFACE_BANK, 62 - ((Tab-1) * 2));
+    TheTab := R_GetInterfaceChild(INTERFACE_BANK, 63 - ((Tab-1) * 2));
     R_ClickInterface(TheTab, 1);
     MarkTime(T2);
     while not (R_CurrentBankTab = Tab) do
@@ -718,7 +718,7 @@ begin
   if(Result)then
     Exit;
 
-  for i := 1 to 2 do
+  for I := 1 to 2 do
   begin
     if(P1.y < MBY1)then
       Dir := 'up'
@@ -749,6 +749,7 @@ begin
     end;
 
     ReleaseMouse(x, y, 1);
+    Wait(500+Random(100));
     Result := PointInBox(P1, B) and PointInBox(P2, B);
     if Result then
       Continue;
@@ -784,6 +785,7 @@ begin
   Result := False;
   if not R_BankScreen then
     Exit;
+  R_ClickBankTab(1);
   if not R_ItemsExistInBankEx(TheVarArr, Items)then
   begin
     R_Debug('Items not found in bank.', 'R_WithdrawItemsEx');
@@ -869,6 +871,7 @@ begin
   Result := False;
   if not R_BankScreen then
     Exit;
+  R_ClickBankTab(1);
   if not R_ItemExistsInBank(TheVar, BankItem)then
   begin
     R_Debug('Items not found in bank.', 'R_WithdrawItemsEx');
@@ -944,6 +947,7 @@ begin
   Result := False;
   if not R_BankScreen then
     Exit;
+  R_ClickBankTab(1);
   if not R_ItemExistsInBank(TheVar, Item) then
   begin
     R_Debug('Item not found in bank.', 'R_WithdrawAllButOne');
@@ -1003,6 +1007,7 @@ begin
   Result := False;
   if not R_BankScreen then
     Exit;
+  R_ClickBankTab(1);
   if not R_ItemExistsInBank(TheVar, Item) then
   begin
     R_Debug('Item not found in bank.', 'R_WithdrawX');

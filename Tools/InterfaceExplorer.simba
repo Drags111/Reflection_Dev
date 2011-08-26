@@ -17,7 +17,7 @@ program InterfaceExplorer;
 const
 
 {---SMART Setup Constants---}
-  WORLD = 32;
+  WORLD = 35;
   MEMBERS = false;
   SIGNED = true;
   SUPERDETAIL = false;
