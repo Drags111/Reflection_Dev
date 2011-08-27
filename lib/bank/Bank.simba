@@ -743,11 +743,13 @@ begin
   P1 := Point(Item.Bounds.X1, Item.Bounds.Y1);
   P2 := Point(Item.Bounds.X2, Item.Bounds.Y2);
 
-  Result := PointInBox(P1, B) and PointInBox(P2, B) and not Item.IsHidden;
+  Result := PointInBox(P1, B) and PointInBox(P2, B);
   if(Result)then
     Exit;
 
-  R_ClickBankTab(1);
+  if(Item.IsHidden)then
+    R_ClickBankTab(1);
+
   for I := 1 to 2 do
   begin
     if(P1.y < MBY1)then
