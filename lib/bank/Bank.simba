@@ -678,6 +678,35 @@ begin
 end;
 
 (*
+R_SlotOnScreen
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_SlotOnScreen(Index: Integer): Boolean;
+
+Returns true if the slot is in the Bankscreen
+
+.. note::
+
+  by mormonman
+
+*)
+function R_SlotOnScreen(Index: Integer): Boolean;
+var
+  Item: TInterfaceComponent;
+  B: TBox;
+  P1, P2: TPoint;
+begin
+  Item := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Index);
+  B := IntToBox(MBX1, MBY1, MBX2, MBY2);
+  P1 := Point(Item.Bounds.X1, Item.Bounds.Y1);
+  P2 := Point(Item.Bounds.X2, Item.Bounds.Y2);
+
+  Result := PointInBox(P1, B) and PointInBox(P2, B);
+end;
+
+(*
 R_ScrollToIndex
 ~~~~~~~~~~~~~~~
 
@@ -714,10 +743,11 @@ begin
   P1 := Point(Item.Bounds.X1, Item.Bounds.Y1);
   P2 := Point(Item.Bounds.X2, Item.Bounds.Y2);
 
-  Result := PointInBox(P1, B) and PointInBox(P2, B);
+  Result := PointInBox(P1, B) and PointInBox(P2, B) and not Item.IsHidden;
   if(Result)then
     Exit;
 
+  R_ClickBankTab(1);
   for I := 1 to 2 do
   begin
     if(P1.y < MBY1)then
@@ -785,7 +815,7 @@ begin
   Result := False;
   if not R_BankScreen then
     Exit;
-  R_ClickBankTab(1);
+
   if not R_ItemsExistInBankEx(TheVarArr, Items)then
   begin
     R_Debug('Items not found in bank.', 'R_WithdrawItemsEx');
@@ -871,7 +901,7 @@ begin
   Result := False;
   if not R_BankScreen then
     Exit;
-  R_ClickBankTab(1);
+
   if not R_ItemExistsInBank(TheVar, BankItem)then
   begin
     R_Debug('Items not found in bank.', 'R_WithdrawItemsEx');
@@ -947,7 +977,7 @@ begin
   Result := False;
   if not R_BankScreen then
     Exit;
-  R_ClickBankTab(1);
+
   if not R_ItemExistsInBank(TheVar, Item) then
   begin
     R_Debug('Item not found in bank.', 'R_WithdrawAllButOne');
@@ -1007,7 +1037,7 @@ begin
   Result := False;
   if not R_BankScreen then
     Exit;
-  R_ClickBankTab(1);
+
   if not R_ItemExistsInBank(TheVar, Item) then
   begin
     R_Debug('Item not found in bank.', 'R_WithdrawX');
