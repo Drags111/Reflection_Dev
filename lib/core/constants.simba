@@ -55,6 +55,25 @@ const
   EQUIPMENT_RING       = 35;
   EQUIPMENT_AMMO       = 38;
 
+  {Quest Constants}
+  INTERFACE_QUESTS = 190;
+  INTERFACE_QUESTINFO = 275;
+  INTERFACE_QUESTSTART = 178;
+  QUEST_INFO_NAME = 2;
+  QUEST_INFO_CLOSE = 8;
+  QUEST_START_YES = 78;
+  QUEST_POINTS = 2;
+  QUEST_LIST = 18;
+  QUEST_SCROLL = 17;
+  QUEST_FILTER = 10;
+  QUEST_DONE = 12;
+  QUEST_CHECKED = 699;
+  QUEST_STARTED = 65535;
+  QUEST_UNSTARTED = 16711680;
+  QUEST_COMPLETE = 65280;
+  QUEST_FILTERED = 2236962;
+  QUEST_UNKNOWN = -1;
+
   {Player Model Constants}
   MODEL_EQUIPMENT_CONSTANT = 1073741824;
 
@@ -117,6 +136,14 @@ const
   INTERFACE_LOGIN_SCREEN = 596;
   INTERFACE_LOBBY_SCREEN = 907;
 
+  {Interface Constants}
+  INDEX_PARENT   = 0;
+  INDEX_CHILD    = 1;
+  INDEX_COMP     = 2;
+
+  SCROLLBAR_UP     = 4;
+  SCROLLBAR_DOWN   = 5;
+
 (*=====================================
 
    Types for the Reflection include
@@ -158,6 +185,7 @@ type
     VScrollSize, VScrollPosition, VThumbSize: Integer;
     HScrollSize, HScrollPosition, HThumbSize: Integer;
     BoundsArrayIndex: Integer;
+    Indices: TIntegerArray;
   end;
 
 { type TInterfaceComponent;

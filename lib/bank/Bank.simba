@@ -703,7 +703,8 @@ begin
   P1 := Point(Item.Bounds.X1, Item.Bounds.Y1);
   P2 := Point(Item.Bounds.X2, Item.Bounds.Y2);
 
-  Result := PointInBox(P1, B) and PointInBox(P2, B);
+  Result := PointInBox(P1, B) and PointInBox(P2, B)
+              and not ((Item.RelativeX = 0) and (Item.RelativeY = 0));
 end;
 
 (*
@@ -724,66 +725,33 @@ visible. To be used for withdrawing.
 *)
 function R_ScrollToIndex(Index: Integer): Boolean;
 var
-  Item, Up, Dn: TInterfaceComponent;
-  P1, P2: TPoint;
+  Item: TInterfaceComponent;
+  ScrollBar: TInterfaceChild;
   B: TBox;
-  Dir: String;
-  x, y, t, i: integer;
 begin
   Result := False;
   if not R_BankScreen then
     Exit;
 
-  Item := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Index);
-  Dn := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SCROLLBAR,
-                            INTERFACE_BANK_SCROLLBAR_DOWN);
-  Up := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SCROLLBAR,
-                            INTERFACE_BANK_SCROLLBAR_UP);
-  B := IntToBox(MBX1, MBY1, MBX2, MBY2);
-  P1 := Point(Item.Bounds.X1, Item.Bounds.Y1);
-  P2 := Point(Item.Bounds.X2, Item.Bounds.Y2);
+  Result := R_SlotOnScreen(Index);
 
-  Result := PointInBox(P1, B) and PointInBox(P2, B) and not Item.IsHidden;
   if(Result)then
-    Exit;
-
-  R_ClickBankTab(1);
-  for I := 1 to 2 do
   begin
-    if(P1.y < MBY1)then
-      Dir := 'up'
-    else if(P2.y > MBY2)then
-      Dir := 'down';
-    if(dir = '')then
-    begin
-      R_Debug('Error getting destination direction.', 'R_ScrollToIndex');
-      Exit;
-    end;
-
-    case dir of
-      'up':   R_ClickInterface(Up, 3);
-      'down': R_ClickInterface(Dn, 3);
-    end;
-    GetMousePos(x, y);
-    HoldMouse(x, y, 1);
-    MarkTime(t);
-
-    while not(PointInBox(P1, B) and PointInBox(P2, B)) do
-    begin
-      if(TimeFromMark(t) > 10000)then
-        break;
-      wait(100+Random(50));
-      Item := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Index);
-      P1 := Point(Item.Bounds.X1, Item.Bounds.Y1);
-      P2 := Point(Item.Bounds.X2, Item.Bounds.Y2);
-    end;
-
-    ReleaseMouse(x, y, 1);
-    Wait(500+Random(100));
-    Result := PointInBox(P1, B) and PointInBox(P2, B);
-    if Result then
-      Continue;
+    R_Debug('Item already on screen', 'R_ScrollToIndex');
+    Exit;
   end;
+
+  Item := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Index);
+  if(Item.IsHidden)then
+  begin
+    R_Debug('Switching to first tab', 'R_ScrollToIndex');
+    R_ClickBankTab(1);
+  end;
+
+  ScrollBar := R_GetInterfaceChild(INTERFACE_BANK, INTERFACE_BANK_SCROLLBAR);
+  B := IntToBox(MBX1, MBY1, MBX2, MBY2);
+
+  Result := R_ScrollTo(Item, ScrollBar, B);
 end;
 
 (*

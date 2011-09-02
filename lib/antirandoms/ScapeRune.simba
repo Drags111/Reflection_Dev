@@ -9,7 +9,7 @@ const
   REvilBobConst_Portal = 8987;
   REvilBobConst_Deposit = 32930;
   REvilBobConst_Interface = 242;
-  REvilBobConst_Text = 'contains the';
+  REvilBobConst_Text = 'contains the f';
   REvilBobConst_ExitText = 'catnap';
 
 function REvilBob_InRandom: Boolean;
@@ -42,7 +42,7 @@ begin
       R_Flag;
       Wait(500);
       P := R_TileToMS(Net.Tile, 0);
-      if not SpiralMouse(X, Y, P.x - 100, P.y - 100, P.x + 100, P.Y + 100, 'fishing net', 5, 10) then
+      if not SpiralMouse(X, Y, P.x - 20, P.y - 20, P.x + 20, P.Y + 20, 'fishing net', 2, 2) then
         Exit;
       Wait(RandomRange(80, 120));
       if R_OptionExists('Take Small') then
@@ -263,7 +263,7 @@ begin
   if not R_ClickItemBy(REvilBobConst_Raw, 'Use') then
     Exit;
 
-  if not SpiralMouse(X, Y, P.x - 100, P.y - 100, P.x + 100, P.Y + 100, 'vil Bob', 5, 10) then
+  if not SpiralMouse(X, Y, P.x - 20, P.y - 20, P.x + 20, P.Y + 20, 'vil Bob', 2, 2) then
     Exit;
   wait(25+RandoM(25));
   if not R_OptionExists('Use Raw') then

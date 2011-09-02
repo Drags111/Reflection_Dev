@@ -1,3 +1,4 @@
+//{$i srl\srl\misc\paintsmart.scar}
 (*
 Interfaces
 ==========
@@ -399,8 +400,10 @@ begin
   try
     Child := R_GetInterfaceChildRef(ParentI, ChildI);
     P := R_GetAbsoluteInterfacePos(Child);
+    SetLength(Result.Indices, 2);
     with Result do
     begin
+      Indices := [ParentI, ChildI];
       Actions := R_GetInterfaceActions(Child);
       ID := SmartGetFieldInt(Child, hook_interface_GetID);
       ComponentID := SmartGetFieldInt(Child, hook_interface_GetComponentID);
@@ -473,8 +476,10 @@ begin
   try
     Component := R_GetInterfaceComponentRef(ParentI, ChildI, ComponentI);
     P := R_GetAbsoluteInterfacePos(Component);
+    SetLength(Result.Indices, 3);
     with Result do
     begin
+      Indices := [ParentI, ChildI, ComponentI];
       Actions := R_GetInterfaceActions(Component);
       ID := SmartGetFieldInt(Component, hook_interface_GetID);
       ComponentID := SmartGetFieldInt(Component, hook_interface_GetComponentID);
@@ -522,6 +527,65 @@ begin
 end;
 
 (*
+R_UpdateInterface
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_UpdateInterface(Child: TInterfaceChild): TInterfaceChild;
+
+Updates the information stored in the Child interface
+
+.. note::
+
+  by mormonman
+
+*)
+function R_UpdateInterface(Child: TInterfaceChild): TInterfaceChild;
+begin
+  if (Length(Child.Indices) = 2) then
+  begin
+    //R_Debug('Child', 'R_UpdateInterface');
+    Result := R_GetInterfaceChild(Child.Indices[INDEX_PARENT], Child.Indices[INDEX_CHILD])
+  end else
+  if (Length(Child.Indices) = 3) then
+  begin
+    //R_Debug('Comp', 'R_UpdateInterface');
+    Result := R_GetInterfaceComponent(Child.Indices[INDEX_PARENT],
+                        Child.Indices[INDEX_CHILD], Child.Indices[INDEX_COMP]);
+  end;
+end;
+
+(*
+R_GetInterfaceText
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInterfaceText(ParentI, ChildI: Integer): String;
+
+Returns the Interface -> Child -> Component's text.
+Set CompI to -1 to only use ChildI.
+
+.. note::
+
+  by Method/mormonman
+
+*)
+function R_GetInterfaceTextEx(ParentI, ChildI, CompI: Integer): String;
+var
+  Text, Child: Integer;
+begin
+  if (CompI < 0) then
+    Child := R_GetInterfaceChildRef(ParentI, ChildI)
+      else Child := R_GetInterfaceComponentRef(ParentI, ChildI, CompI);
+  Text := SmartGetFieldObject(Child, hook_interface_GetText);
+  Result := R_GetJavaString(Text, 512);
+  SmartFreeObject(Text);
+  SmartFreeObject(Child);
+end;
+
+(*
 R_GetInterfaceText
 ~~~~~~~~~~~~~~~~~~
 
@@ -533,18 +597,12 @@ Returns the Interface -> Child's text.
 
 .. note::
 
-  by Method
+  by Method/mormonman
 
 *)
 function R_GetInterfaceText(ParentI, ChildI: Integer): String;
-var
-  Text, Child: Integer;
 begin
-  Child := R_GetInterfaceChildRef(ParentI, ChildI);
-  Text := SmartGetFieldObject(Child, hook_interface_GetText);
-  Result := R_GetJavaString(Text, 512);
-  SmartFreeObject(Text);
-  SmartFreeObject(Child);
+  Result := R_GetInterfaceTextEx(ParentI, ChildI, -1);
 end;
 
 (*
@@ -572,6 +630,100 @@ begin
   MouseBox(Child.X, Child.Y, Child.Bounds.X2, Child.Bounds.Y2, ClickType);
 end;
 
+(*
+R_ScrollTo
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_ScrollTo(Target, UpA, DnA: TInterfaceChild) : Boolean;
+
+Scrolls to the Target using the Up and Down arrows specified by ScrollBar.
+Works for both TRSChild and TRSComponent
+  @Box - Box that the Target needs to be in for the function to return true.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_ScrollTo(Target, ScrollBar: TInterfaceChild; Box: TBox) : Boolean;
+var
+  T, I, x, y: Integer;
+  P1, P2: TPoint;
+  tempT, TempS, UpA, DnA: TInterfaceChild;
+  Dir: String;
+begin
+  if (Target.ID < 1) or not R_ValidInterface(Target.Indices[INDEX_PARENT]) then
+    Exit;
+
+  tempT := R_UpdateInterface(Target);
+  tempS := R_UpdateInterface(ScrollBar);
+
+  UpA := R_GetInterfaceComponent(tempS.Indices[INDEX_PARENT], tempS.Indices[INDEX_CHILD],
+                                 SCROLLBAR_UP);
+  DnA := R_GetInterfaceComponent(tempS.Indices[INDEX_PARENT], tempS.Indices[INDEX_CHILD],
+                                 SCROLLBAR_DOWN);
+
+  P1 := Point(tempT.Bounds.X1, tempT.Bounds.Y1);
+  P2 := Point(tempT.Bounds.X2, tempT.Bounds.Y2);
+  Result := PointInBox(P1, Box) and PointInBox(P2, Box) and not tempT.IsHidden;
+  if Result then
+    Exit;
+
+  for I := 1 to 2 do
+  begin
+    if(P1.y < Box.Y1)then
+      Dir := 'up'
+    else if(P2.y > Box.Y2)then
+      Dir := 'down';
+    if(dir = '')then
+    begin
+      R_Debug('Error getting destination direction.', 'R_ScrollTo');
+      Exit;
+    end;// else R_Debug('Dir: ' +Dir, 'R_ScrollTo');
+
+    case dir of
+      'up':   R_ClickInterface(UpA, 3);
+      'down': R_ClickInterface(DnA, 3);
+    end;
+    GetMousePos(x, y);
+    HoldMouse(x, y, 1);
+    MarkTime(t);
+
+    while not(PointInBox(P1, Box) and PointInBox(P2, Box)) do
+    begin
+      if(TimeFromMark(T) > 10000)then
+        break;
+      wait(100+Random(50));
+      tempT := R_UpdateInterface(Target);
+      P1 := Point(tempT.Bounds.X1, tempT.Bounds.Y1);
+      P2 := Point(tempT.Bounds.X2, tempT.Bounds.Y2);
+    end;
+
+    ReleaseMouse(x, y, 1);
+    Wait(500+Random(100));
+    Result := PointInBox(P1, Box) and PointInBox(P2, Box);
+    if Result then
+      Continue;
+  end;
+end;
+
+(*
+R_GetMusic
+~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetMusic: String;
+
+Returns string of current playing music
+
+.. note::
+
+  by Drags111
+
+*)
 function R_GetMusic: String;
 begin
   Result := R_GetInterfaceText(187, 4);

@@ -38,6 +38,7 @@
 {$i ./lib/antirandoms/Antirandoms.simba}
 
 {$i ./lib/skills/Combat.simba}
+{$i ./lib/gametab/Quests.simba}
 
 (*
 R_UpdateHooks
