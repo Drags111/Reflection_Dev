@@ -557,12 +557,12 @@ begin
 end;
 
 (*
-R_GetInterfaceText
+R_GetInterfaceTextEx
 ~~~~~~~~~~~~~~~~~~
 
 .. code-block:: pascal
 
-    function R_GetInterfaceText(ParentI, ChildI: Integer): String;
+    function R_GetInterfaceTextEx(ParentI, ChildI, CompI: Integer): String;
 
 Returns the Interface -> Child -> Component's text.
 Set CompI to -1 to only use ChildI.
