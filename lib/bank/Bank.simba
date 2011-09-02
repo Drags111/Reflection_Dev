@@ -735,14 +735,25 @@ begin
 
   Result := R_SlotOnScreen(Index);
 
+<<<<<<< HEAD
+=======
+  Result := PointInBox(P1, B) and PointInBox(P2, B);
+>>>>>>> 117cf6c1926cd6095d720f5fb2948c56dc6700b1
   if(Result)then
   begin
     R_Debug('Item already on screen', 'R_ScrollToIndex');
     Exit;
   end;
 
+<<<<<<< HEAD
   Item := R_GetInterfaceComponent(INTERFACE_BANK, INTERFACE_BANK_SLOTS, Index);
   if(Item.IsHidden)then
+=======
+  if(Item.IsHidden)then
+    R_ClickBankTab(1);
+
+  for I := 1 to 2 do
+>>>>>>> 117cf6c1926cd6095d720f5fb2948c56dc6700b1
   begin
     R_Debug('Switching to first tab', 'R_ScrollToIndex');
     R_ClickBankTab(1);
