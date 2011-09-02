@@ -75,7 +75,7 @@ begin
 end;
 
 (*
-R_GetNPCActionArray
+R_GetAllNPCs
 ~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: pascal
@@ -141,6 +141,88 @@ begin
       WalkQueueX := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueX, 0);
       WalkQueueY := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueY, 0);
       Interacting := SmartGetFieldInt(TheNPC, hook_character_GetInteracting);
+      Orientation := Round(FixD(180 + (SmartGetFieldInt(TheNPC, hook_character_Orientation)* 45) / 2048));
+    end;
+    Inc(C);
+  finally
+    SmartFreeObject(TheNPCNode);
+    SmartFreeObject(TheNPC);
+    SmartFreeObject(NPCDef);
+    SmartFreeObject(TheBytes);
+  end;
+  SetLength(Result, C);
+end;
+
+(*
+R_GetBusyNPCs
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetBusyNPCs(Null: Boolean): TNPCArray;
+
+Stores all the loaded NPCs that are interacting into TNPCArray. If Null = True
+then it will include Null NPCs. Made for interacting functions.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetBusyNPCs(Null: Boolean): TNPCArray;
+var
+  I, C, H, NumNPCs, BaseX, BaseY, LoopCycle: Integer;
+  TheNPC, TheNPCNode, NPCDef, TheBytes, Test: integer;
+  TheName: String;
+begin
+  NumNPCs := SmartGetFieldInt(0,hook_static_NPCCount);
+  if (NumNPCs < 1) then
+    Exit;
+
+  BaseX := SmartGetFieldInt(0, hook_static_BaseX);
+  BaseY := SmartGetFieldInt(0, hook_static_BaseY);
+  LoopCycle := SmartGetFieldInt(0, hook_static_LoopCycle);
+
+  SetArrayLength(Result, NumNPCs);
+  H := NumNPCs-1;
+  for I := 0 to H do
+  try
+    TheNPCNode := SmartGetFieldArrayObject(0, hook_static_NPCNodes, I);
+    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
+    NPCDef := SmartGetFieldObject(TheNPC, hook_npc_NPCDef);
+    TheBytes := SmartGetFieldObject(NPCDef, hook_npcdef_GetName);
+    TheName := Lowercase(Trim(R_GetJavaString(TheBytes, 512)));
+
+    if((not Null) and (TheName = 'null'))then
+      continue;
+
+    Test := SmartGetFieldInt(TheNPC, hook_character_GetInteracting);
+    if (Test <= 0) then
+      Continue;
+
+    with Result[C] do
+    begin
+      Index := SmartGetFieldArrayInt(0, hook_static_NPCIndexArray, I);
+      Level := SmartGetFieldInt(TheNPC, hook_npc_GetLevel);
+      Name := TheName;
+      ID := SmartGetFieldInt(NPCDef, hook_npcdef_GetID);
+
+      Actions := R_GetNPCActionArray(NPCDef);
+
+      Tile.X := BaseX + (SmartGetFieldInt(TheNPC, hook_animable_PixelX) / 512);
+      Tile.Y := BaseY + (SmartGetFieldInt(TheNPC, hook_animable_PixelY) / 512);
+      TileArea.X1 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX1));
+      TileArea.Y1 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY1));
+      TileArea.X2 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX2));
+      TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY2));
+
+      Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
+      Animation := SmartGetFieldArrayInt(TheNPC, hook_character_AnimationQueue, 1);
+      Motion := SmartGetFieldInt(TheNPC, hook_character_Motion);
+      HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
+      InCombat :=  LoopCycle < SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus);
+      WalkQueueX := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueX, 0);
+      WalkQueueY := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueY, 0);
       Orientation := Round(FixD(180 + (SmartGetFieldInt(TheNPC, hook_character_Orientation)* 45) / 2048));
     end;
     Inc(C);
@@ -603,7 +685,7 @@ var
 begin
   Result := NULL_NPC;
   MyPlayer := R_GetMe;
-  NPCs := R_GetAllNPCs(Null);
+  NPCs := R_GetBusyNPCs(Null);
 
   H := High(NPCs);
   for I := 0 to H do
@@ -618,6 +700,52 @@ begin
       Exit;
     end;
   end;
+end;
+
+(*
+R_GetInteractingNPCs
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetInteractingNPCs(Null: Boolean): TNPCArray;
+
+Returns the npcs that are interacting with you. If no NPC is interacting with
+you, it returns an empty array.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetInteractingNPCs(Null: Boolean): TNPCArray;
+var
+  MyPlayer: TPlayer;
+  NPCs: TNPCArray;
+  I, H, PlayerIndex, C: Integer;
+  PName: String;
+begin
+  MyPlayer := R_GetMe;
+  NPCs := R_GetBusyNPCs(Null);
+  H := High(NPCs);
+  if (H < 0) then
+    Exit;
+
+  SetLength(Result, H + 1);
+  C := 0;
+  for I := 0 to H do
+  begin
+    PlayerIndex := NPCs[I].Interacting - 32768;
+    if(PlayerIndex < 0)then
+      Continue;
+    PName := R_GetPlayerName(PlayerIndex);
+    if(PName = MyPlayer.Name)then
+    begin
+      Result[C] := NPCs[I];
+      Inc(C);
+    end;
+  end;
+  SetLength(Result, C);
 end;
 
 (*
@@ -643,15 +771,26 @@ begin
   Result := NPC <> NULL_NPC;
 end;
 
+(*
+R_AreWeInteracting
+~~~~~~~~~~~~~~~~~~
 
+.. code-block:: pascal
 
+    function R_AreWeInteracting(var NPC: TNPC; Null: Boolean): Boolean;
 
+Returns true if there is an NPC interacting with you, and if so, it returns all
+npcs interacting with you in the NPCArr.
 
+.. note::
 
+  by mormonman
 
-
-
-
-
-
+*)
+function R_AreWeInteractingEx(var NPCArr: TNPCArray; Null: Boolean): Boolean;
+begin
+  Result := False;
+  NPCArr := R_GetInteractingNPCs(Null);
+  Result := (Length(NPCArr) > 0);
+end;
 

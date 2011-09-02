@@ -260,6 +260,49 @@ begin
 end;
 
 (*
+R_GetPlayerName
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetPlayerName(Index: Integer): String;
+
+Returns the name of the player by index. Short function for interacting
+functions.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetPlayerName(Index: Integer): String;
+var
+  NumPlayers, H, I,
+  IndexPos, Player, NameBytes: Integer;
+begin
+  NumPlayers := SmartGetFieldInt(0,hook_static_PlayerCount);
+  if (NumPlayers < 1) then
+    Exit;
+
+  H := NumPlayers-1;
+  for I := 0 to H do
+  try
+    IndexPos := SmartGetFieldArrayInt(0, hook_static_PlayerIndexArray, I);
+    if (Index = IndexPos) then
+    begin
+      Player := SmartGetFieldArrayObject(0, hook_static_GetPlayers, IndexPos);
+
+      NameBytes := SmartGetFieldObject(Player, hook_player_GetName);
+      Result := R_GetJavaString(NameBytes, 512);
+      Exit;
+    end;
+  finally
+    SmartFreeObject(Player);
+    SmartFreeObject(NameBytes);
+  end;
+end;
+
+(*
 R_GetPlayersByLevelEx
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -309,7 +352,6 @@ begin
 
       NameBytes := SmartGetFieldObject(Player, hook_player_GetName);
       Name := R_GetJavaString(NameBytes, 512);
-      SmartFreeObject(NameBytes);
 
       Level := TempLevel;
       Team := SmartGetFieldInt(Player, hook_player_GetTeam);
@@ -328,6 +370,7 @@ begin
     Inc(C);
   finally
     SmartFreeObject(Player);
+    SmartFreeObject(NameBytes);
   end;
 
   SetArrayLength(PlayerArray, C);
