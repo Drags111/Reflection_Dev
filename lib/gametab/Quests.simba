@@ -1,0 +1,282 @@
+(*
+Quests
+====
+
+Quest routines that could be useful.
+
+*)
+
+(*
+R_RefreshQuestCache
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_RefreshQuestCache: Boolean;
+
+Opens quest tab so that the list is refreshed.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_RefreshQuestCache: Boolean;
+var
+  T: Integer;
+begin
+  if (R_CurrentGameTab = RTAB_QUESTS) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  MarkTime(T);
+  while not R_GameTab(RTAB_QUESTS) and (TimeFromMark(T) < 5000) do
+    Wait(500);
+
+  Result := (R_CurrentGameTab = RTAB_QUESTS);
+end;
+
+(*
+R_GetQuestStatus
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetQuestStatus(Quest: String): Integer;
+
+Returns the QUEST_ constant.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetQuestStatus(Quest: String): Integer;
+var
+  i: Integer;
+  tempInt: TInterfaceComponent;
+begin
+  if not R_RefreshQuestCache then
+    Exit;
+
+  for i := 0 to 192 do
+    if (Pos(Quest, R_GetInterfaceTextEx(INTERFACE_QUESTS, QUEST_LIST, i)) > 0) then
+    begin
+      tempInt := R_GetInterfaceComponent(INTERFACE_QUESTS, QUEST_LIST, i);
+      Result := tempInt.TextColor;
+    end;
+end;
+
+(*
+R_GetQuestPoints
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetQuestPoints: Integer;
+
+Returns the players quest points.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_GetQuestPoints: Integer;
+begin
+  if not R_RefreshQuestCache then
+    Exit;
+  Result := StrToIntDef(Trim(Between(':', '/', R_GetInterfaceText(INTERFACE_QUESTS, QUEST_POINTS))), -1);
+end;
+
+(*
+R_SetQuestFilters
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_SetQuestFilters(Filter, Done: Boolean): Boolean;
+
+Sets the two filters in the quest interface.
+  @Filter - Hides quests you can't do
+  @Done - Hides quests you have completed
+
+.. note::
+
+  by mormonman
+
+*)
+function R_SetQuestFilters(Filter, Done: Boolean): Boolean;
+var
+  FCur, DCur: TInterfaceChild;
+  A, B: Boolean;
+  T, TempID: Integer;
+begin
+  if not R_RefreshQuestCache then
+    Exit;
+  FCur := R_GetInterfaceChild(INTERFACE_QUESTS, QUEST_FILTER);
+  DCur := R_GetInterfaceChild(INTERFACE_QUESTS, QUEST_DONE);
+  A := True; B := True;
+
+  if (FCur.TextureID = QUEST_CHECKED) xor Filter then
+  begin
+    A := False;
+    TempID := FCur.TextureID;
+    MarkTime(T);
+    while (TimeFromMark(T) < 3500) do
+    begin
+      FCur := R_GetInterfaceChild(INTERFACE_QUESTS, QUEST_FILTER);
+      if (FCur.TextureID <> TempID) then
+        Break;
+      R_ClickInterface(FCur, mouse_Left);
+      Wait(RandomRange(500, 850));
+    end;
+    A := (TimeFromMark(T) < 3500);
+  end;
+
+  if (DCur.TextureID = QUEST_CHECKED) xor Done then
+  begin
+    B := False;
+    TempID := DCur.TextureID;
+    MarkTime(T);
+    while (TimeFromMark(T) < 3500) do
+    begin
+      DCur := R_GetInterfaceChild(INTERFACE_QUESTS, QUEST_DONE);
+      if (DCur.TextureID <> TempID) then
+        Break;
+      R_ClickInterface(DCur, mouse_Left);
+      Wait(RandomRange(500, 850));
+    end;
+    B := (TimeFromMark(T) < 3500);
+  end;
+
+  Result := A and B;
+end;
+
+(*
+R_ClickQuest
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    procedure R_ClickQuest(Child: TInterfaceChild; ClickType: Integer);
+
+Clicks the quest, work-around for the scrollbar.
+
+.. note::
+
+  by mormonman
+
+*)
+procedure R_ClickQuest(Child: TInterfaceChild; ClickType: Integer);
+begin
+  MouseBox(Child.X, Child.Y, Child.Bounds.X2 - 50, Child.Bounds.Y2, ClickType);
+end;
+
+(*
+R_OpenQuest
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_OpenQuest(Quest: String): Boolean;
+
+Opens the quest interface for the given Quest.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_OpenQuest(Quest: String): Boolean;
+var
+  i, T: Integer;
+  QuestI, tempC: TInterfaceComponent;
+  SBar: TInterfaceChild;
+  B: TBox;
+begin
+  if not R_RefreshQuestCache then
+    Exit;
+
+  Quest := Lowercase(Quest);
+
+  Result := R_ValidInterface(INTERFACE_QUESTINFO) and
+    (Pos(Quest, LowerCase(R_GetInterfaceText(INTERFACE_QUESTINFO, QUEST_INFO_NAME))) > 0);
+  if Result then
+    Exit;
+
+  if R_SetQuestFilters(False, False) then
+  begin
+    for i := 0 to 192 do
+      if (Pos(Quest, Lowercase(R_GetInterfaceTextEx(INTERFACE_QUESTS, QUEST_LIST, i))) > 0) then
+      begin
+        QuestI := R_GetInterfaceComponent(INTERFACE_QUESTS, QUEST_LIST, i);
+        Break;
+      end;
+
+    if not (Pos(Quest, Lowercase(QuestI.Text)) > 0) then
+    begin
+      R_Debug('Quest not found', 'R_OpenQuest');
+      Exit;
+    end;
+
+    SBar := R_GetInterfaceChild(INTERFACE_QUESTS, QUEST_SCROLL);
+    B := IntToBox(551, 281, 737, 454);
+
+    if R_ScrollTo(QuestI, SBar, B) then
+    begin
+      MarkTime(T);
+      while (TimeFromMark(T) < 5000) do
+      begin
+        if R_ValidInterface(INTERFACE_QUESTINFO) and
+            (Pos(Quest, Lowercase(R_GetInterfaceText(INTERFACE_QUESTINFO, QUEST_INFO_NAME))) > 0) then
+          Break;
+        tempC := R_UpdateInterface(QuestI);
+        R_ClickQuest(tempC, mouse_Left);
+        Wait(RandomRange(700, 900));
+      end;
+
+      Result := R_ValidInterface(INTERFACE_QUESTINFO) and
+        (Pos(Quest, LowerCase(R_GetInterfaceText(INTERFACE_QUESTINFO, QUEST_INFO_NAME))) > 0);
+      if (TimeFromMark(T) > 5000) and not Result then
+        R_Debug('Opening quest timed out', 'R_OpenQuest');
+    end else
+    begin
+      R_Debug('Unable to scroll to quest', 'R_OpenQuest');
+    end;
+  end else
+  begin
+    R_Debug('Unable to set quest filters', 'R_OpenQuest');
+  end;
+end;
+
+(*
+R_CloseQuestInfo
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_CloseQuestInfo: Boolean;
+
+Closes the quest info interface.
+
+.. note::
+
+  by mormonman
+
+*)
+function R_CloseQuestInfo: Boolean;
+var
+  CloseI: TInterfaceChild;
+begin
+  Result := not R_ValidInterface(INTERFACE_QUESTINFO);
+  if Result then
+    Exit;
+
+  CloseI := R_GetInterfaceChild(INTERFACE_QUESTINFO, QUEST_INFO_CLOSE);
+  R_ClickInterface(CloseI, mouse_Left);
+  Result := R_WaitInterfaceClose(INTERFACE_QUESTINFO, 3500);
+end;
+
