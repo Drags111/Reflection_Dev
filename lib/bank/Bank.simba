@@ -409,6 +409,8 @@ var
 begin
   if not R_BankScreen then
     Exit;
+  if R_InvEmpty then
+    Exit;
   if(Fast)then
     R_QuickDeposit('bag')
   else
