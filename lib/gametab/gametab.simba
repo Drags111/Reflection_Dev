@@ -53,6 +53,7 @@ begin
   begin
     Child := R_GetInterfaceChildRef(INTERFACE_GAMETAB, GameTabs[I]);
     TextureID := SmartGetFieldInt(Child, hook_interface_GetTextureID);
+    SmartFreeObject(Child);
     if(TextureID = 1836)then
     begin
       Result := GameTabs[I];
