@@ -181,7 +181,6 @@ begin
   Screenshots := False;
   GraphicsSet := False;
   AllowPVP    := False;
-  ScreenShots := True;
   WarnSensitivity := -2;
   SetupAutoColors;
 {$IFDEF LoadExtraFonts}
