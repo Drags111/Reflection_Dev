@@ -11,7 +11,7 @@ var
   RMazeVars_LastDoor: TRMaze_Door;
   RMazeVars_EndTile: TTile;
 
-function RMaze_GetPath(Path: Integer): TRMaze_Path;
+function RMaze_Path(Path: Integer): TRMaze_Path;
 var
   Tiles: TTileArray;
   Dirs: TStringArray;
@@ -103,7 +103,7 @@ begin
   RMazeVars_LastDoor.Dir := 'e';
   RMazeVars_EndTile := Point(2912, 4576);
   for I := 0 to 3 do
-    RMazeVars_Paths[I] := RMaze_GetPath(I);
+    RMazeVars_Paths[I] := RMaze_Path(I);
 end;
 
 function RMaze_InRandom: Boolean;

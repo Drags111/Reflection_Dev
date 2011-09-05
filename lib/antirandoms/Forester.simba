@@ -41,7 +41,7 @@ begin
   Result := RRandom_TalkToNPC(NPC, True, 'Forester');
 end;
 
-function RForest_GetType: TVariantArray;
+function RForest_Type: TVariantArray;
 var
   NPCChat, Tails: String;
 begin
@@ -282,7 +282,7 @@ begin
       if (Length(PheasantIDs) < 2) then
       begin
         if RForest_TalkTo then
-          PheasantIDs := RForest_GetType;
+          PheasantIDs := RForest_Type;
       end else
       begin
         if PheasantIDs[1] = 1 then

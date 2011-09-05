@@ -39,7 +39,7 @@ begin
   Result := R_ChooseOption('talk');
 end;
 
-function RBeeKeeper_GetDragTo(Model: Integer): Integer;
+function RBeeKeepeR_GetDragTo(Model: Integer): Integer;
 begin
   case Model of
     16036: Result := 16;
@@ -49,7 +49,7 @@ begin
   end;
 end;
 
-function RBeeKeeper_GetSlotID(Slot: Integer): Integer;
+function RBeeKeepeR_GetSlotID(Slot: Integer): Integer;
 begin
   case Slot of
     1: Result := 25;
@@ -59,7 +59,7 @@ begin
   end;
 end;
 
-function RBeeKeeper_GetIDAtSlot(Slot: Integer): Integer;
+function RBeeKeepeR_GetIDAtSlot(Slot: Integer): Integer;
 var
   Child: TInterfaceChild;
 begin
@@ -67,7 +67,7 @@ begin
   if(Slot < 1) or (Slot > 4)then
     Exit;
 
-  Child := R_GetInterfaceChild(RBeeConst_Interface, RBeeKeeper_GetSlotID(Slot));
+  Child := R_GetInterfaceChild(RBeeConst_Interface, RBeeKeepeR_GetSlotID(Slot));
   if(Child.ID <= 0) or (Child.ModelID <= 0)then
     Exit;
 
@@ -105,12 +105,12 @@ begin
     Exit;
   for I := 1 to 4 do
   begin
-    ID := RBeeKeeper_GetIDAtSlot(I);
+    ID := RBeeKeepeR_GetIDAtSlot(I);
     if(ID = -1)then
       Continue;
 
     StartSlot := R_GetInterfaceChild(RBeeConst_Interface, RBeeVars_StartIDs[I-1]);
-    EndSlot := R_GetInterfaceChild(RBeeConst_Interface, RBeeKeeper_GetDragTo(ID));
+    EndSlot := R_GetInterfaceChild(RBeeConst_Interface, RBeeKeepeR_GetDragTo(ID));
 
     R_ClickInterface(StartSlot, 3);
     GetMousePos(X, Y);

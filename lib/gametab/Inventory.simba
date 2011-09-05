@@ -70,19 +70,19 @@ begin
 
   try
     Item := R_GetInterfaceComponentRef(InterfaceID, 0, Slot-1);
-    ID := SmartGetFieldInt(Item, hook_interface_GetComponentID);
+    ID := SmartGetFieldInt(Item, hook_interface_ComponentID);
 
     if(ID > 0)then
     begin
       Result.ID := ID;
-      Result.StackSize := SmartGetFieldInt(Item, hook_interface_GetComponentStackSize);
+      Result.StackSize := SmartGetFieldInt(Item, hook_interface_ComponentStackSize);
       Result.Slot := Slot;
 
-      NameBytes := SmartGetFieldObject(Item, hook_interface_GetComponentName);
+      NameBytes := SmartGetFieldObject(Item, hook_interface_ComponentName);
       Result.Name := R_TrimHTML(R_GetJavaString(NameBytes, 512));
 
       try
-        Actions := SmartGetFieldObject(Item, hook_interface_GetActions);
+        Actions := SmartGetFieldObject(Item, hook_interface_Actions);
         ArrayLength := (SmartGetFieldArraySize(Actions, '', 1));
         SetLength(Result.Actions, ArrayLength);
         Count := 0;
@@ -90,7 +90,7 @@ begin
         for i := 0 to ArrayLength-1 do
         begin
           try
-            Action := SmartGetFieldArrayObject(Item, hook_interface_GetActions, I);
+            Action := SmartGetFieldArrayObject(Item, hook_interface_Actions, I);
             Temp := R_GetJavaString(Action, 512);
             if(Trim(Temp) <> NULL_STRING)then
             begin
@@ -260,8 +260,8 @@ begin
     Inventory := R_GetInterfaceChildRef(R_GetInventoryInterfaceIndex, 0);
     for I := 0 to 27 do
     begin
-      Item := SmartGetFieldArrayObject(Inventory, hook_interface_GetChildren, I);
-      ID := SmartGetFieldInt(Item, hook_interface_GetComponentID);
+      Item := SmartGetFieldArrayObject(Inventory, hook_interface_Children, I);
+      ID := SmartGetFieldInt(Item, hook_interface_ComponentID);
       if (ID > 0) then
         Inc(Result);
 

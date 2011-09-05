@@ -16,7 +16,7 @@ begin
   RPinballVar_Interface := Point(263, 1); //(parent, child)
 end;
 
-function RPinball_GetScore: Integer;
+function RPinball_Score: Integer;
 var
   Text: String;
 begin
@@ -30,7 +30,7 @@ var
   P: TPoint;
   StartScore, CurScore, x, y: Integer;
 begin
-  StartScore := RPinball_GetScore;
+  StartScore := RPinball_Score;
   if R_FindObjectEx(RPinballVar_PostIDs, OBJ_INTERACTABLE, 35, Pillar) then
   begin
     P := R_TileToMS(Pillar.Tile, 400);
@@ -51,7 +51,7 @@ begin
     end;
 
   end;
-  CurScore := RPinball_GetScore;
+  CurScore := RPinball_Score;
   Result := (StartScore < CurScore);
 end;
 
@@ -100,11 +100,11 @@ begin
   begin
     ClickContinue(True, True);
 
-    if (RPinball_GetScore < 10) then
+    if (RPinball_Score < 10) then
     begin
-      //R_Debug('Tagging Post: ' + ToStr(RPinball_GetScore), 'Pinball');
+      //R_Debug('Tagging Post: ' + ToStr(RPinball_Score), 'Pinball');
       if RPinball_TagPost then
-        R_Debug('Tagged Post: ' + ToStr(RPinball_GetScore), 'Pinball');
+        R_Debug('Tagged Post: ' + ToStr(RPinball_Score), 'Pinball');
     end else
     begin
       R_Debug('Trying to leave', 'Pinball');

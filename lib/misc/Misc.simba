@@ -26,7 +26,7 @@ Each crosshair stays up for about 500 milliseconds
 *)
 function R_GetCrossHairColor: Integer;
 begin
-  Result := SmartGetFieldInt(0, hook_static_GetCrossHairColor);
+  Result := SmartGetFieldInt(0, hook_static_CrossHairColor);
 end;
 
 (*

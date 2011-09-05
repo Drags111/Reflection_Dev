@@ -204,7 +204,7 @@ begin
   end;
 end;
 
-function RDemon_GetMatTile: TTile;
+function RDemon_MatTile: TTile;
 var
   Icon: TInterfaceChild;
   I: Integer;
@@ -249,7 +249,7 @@ begin
       RDemon_TalkTo
     else
     begin
-      Tile := RDemon_GetMatTile;
+      Tile := RDemon_MatTile;
       if(Tile.X = -1) or (Tile.Y = -1)then
         Continue;
       if not R_TileOnMS(Tile, 0)then

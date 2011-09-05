@@ -71,28 +71,28 @@ begin
   for I := 0 to H do
   try
     IndexPos := SmartGetFieldArrayInt(0, hook_static_PlayerIndexArray, I);
-    Player := SmartGetFieldArrayObject(0, hook_static_GetPlayers, IndexPos);
+    Player := SmartGetFieldArrayObject(0, hook_static_Players, IndexPos);
 
     with Result[I] do
     begin
       Index := IndexPos;
 
-      NameBytes := SmartGetFieldObject(Player, hook_player_GetName);
+      NameBytes := SmartGetFieldObject(Player, hook_player_Name);
       Name := R_GetJavaString(NameBytes, 512);
       SmartFreeObject(NameBytes);
 
-      Level := SmartGetFieldInt(Player, hook_player_GetLevel);
-      Team := SmartGetFieldInt(Player, hook_player_GetTeam);
+      Level := SmartGetFieldInt(Player, hook_player_Level);
+      Team := SmartGetFieldInt(Player, hook_player_Team);
       Tile.X := BaseX + (SmartGetFieldInt(Player, hook_animable_PixelX) / 512);
       Tile.Y := BaseY + (SmartGetFieldInt(Player, hook_animable_PixelY) / 512);
-      Height := IAbs(SmartGetFieldInt(Player, hook_character_GetHeight));
+      Height := IAbs(SmartGetFieldInt(Player, hook_character_Height));
       Animation := SmartGetFieldArrayInt(Player, hook_character_AnimationQueue, 1);
       Motion := SmartGetFieldInt(Player, hook_character_Motion);
       HPRatio := SmartGetFieldInt(Player, hook_character_HPRatio) * 100 / $FF;
       InCombat := LoopCycle < SmartGetFieldInt(Player, hook_character_LoopCycleStatus);
       WalkQueueX := SmartGetFieldArrayInt(Player, hook_character_WalkQueueX, 0);
       WalkQueueY := SmartGetFieldArrayInt(Player, hook_character_WalkQueueY, 0);
-      Interacting := SmartGetFieldInt(Player, hook_character_GetInteracting);
+      Interacting := SmartGetFieldInt(Player, hook_character_Interacting);
       Orientation := Round(FixD(180 + (SmartGetFieldInt(Player, hook_character_Orientation)* 45) / 2048));
     end;
   finally
@@ -139,9 +139,9 @@ begin
   for I := 0 to H do
   try
     IndexPos := SmartGetFieldArrayInt(0, hook_static_PlayerIndexArray, I);
-    Player := SmartGetFieldArrayObject(0, hook_static_GetPlayers, IndexPos);
+    Player := SmartGetFieldArrayObject(0, hook_static_Players, IndexPos);
 
-    NameBytes := SmartGetFieldObject(Player, hook_player_GetName);
+    NameBytes := SmartGetFieldObject(Player, hook_player_Name);
     TheName := R_GetJavaString(NameBytes, 512);
 
     H2 := High(TheVarArr);
@@ -166,18 +166,18 @@ begin
     begin
       Index := IndexPos;
       Name := TheName;
-      Level := SmartGetFieldInt(Player, hook_player_GetLevel);
-      Team := SmartGetFieldInt(Player, hook_player_GetTeam);
+      Level := SmartGetFieldInt(Player, hook_player_Level);
+      Team := SmartGetFieldInt(Player, hook_player_Team);
       Tile.X := BaseX + (SmartGetFieldInt(Player, hook_animable_PixelX) / 512);
       Tile.Y := BaseY + (SmartGetFieldInt(Player, hook_animable_PixelY) / 512);
-      Height := IAbs(SmartGetFieldInt(Player, hook_character_GetHeight));
+      Height := IAbs(SmartGetFieldInt(Player, hook_character_Height));
       Animation := SmartGetFieldArrayInt(Player, hook_character_AnimationQueue, 1);
       Motion := SmartGetFieldInt(Player, hook_character_Motion);
       HPRatio := SmartGetFieldInt(Player, hook_character_HPRatio) * 100 / $FF;
       InCombat := LoopCycle < SmartGetFieldInt(Player, hook_character_LoopCycleStatus);
       WalkQueueX := SmartGetFieldArrayInt(Player, hook_character_WalkQueueX, 0);
       WalkQueueY := SmartGetFieldArrayInt(Player, hook_character_WalkQueueY, 0);
-      Interacting := SmartGetFieldInt(Player, hook_character_GetInteracting);
+      Interacting := SmartGetFieldInt(Player, hook_character_Interacting);
       Orientation := Round(FixD(180 + (SmartGetFieldInt(Player, hook_character_Orientation)* 45) / 2048));
     end;
     Inc(C);
@@ -290,9 +290,9 @@ begin
     IndexPos := SmartGetFieldArrayInt(0, hook_static_PlayerIndexArray, I);
     if (Index = IndexPos) then
     begin
-      Player := SmartGetFieldArrayObject(0, hook_static_GetPlayers, IndexPos);
+      Player := SmartGetFieldArrayObject(0, hook_static_Players, IndexPos);
 
-      NameBytes := SmartGetFieldObject(Player, hook_player_GetName);
+      NameBytes := SmartGetFieldObject(Player, hook_player_Name);
       Result := R_GetJavaString(NameBytes, 512);
       Exit;
     end;
@@ -339,9 +339,9 @@ begin
   for I := 0 to H do
   try
     IndexPos := SmartGetFieldArrayInt(0, hook_static_PlayerIndexArray, I);
-    Player := SmartGetFieldArrayObject(0, hook_static_GetPlayers, IndexPos);
+    Player := SmartGetFieldArrayObject(0, hook_static_Players, IndexPos);
 
-    TempLevel := SmartGetFieldInt(Player, hook_player_GetLevel);
+    TempLevel := SmartGetFieldInt(Player, hook_player_Level);
 
     if(not InIntArray(Levels, TempLevel))then
       Continue;
@@ -350,21 +350,21 @@ begin
     begin
       Index := IndexPos;
 
-      NameBytes := SmartGetFieldObject(Player, hook_player_GetName);
+      NameBytes := SmartGetFieldObject(Player, hook_player_Name);
       Name := R_GetJavaString(NameBytes, 512);
 
       Level := TempLevel;
-      Team := SmartGetFieldInt(Player, hook_player_GetTeam);
+      Team := SmartGetFieldInt(Player, hook_player_Team);
       Tile.X := BaseX + (SmartGetFieldInt(Player, hook_animable_PixelX) / 512);
       Tile.Y := BaseY + (SmartGetFieldInt(Player, hook_animable_PixelY) / 512);
-      Height := IAbs(SmartGetFieldInt(Player, hook_character_GetHeight));
+      Height := IAbs(SmartGetFieldInt(Player, hook_character_Height));
       Animation := SmartGetFieldArrayInt(Player, hook_character_AnimationQueue, 1);
       Motion := SmartGetFieldInt(Player, hook_character_Motion);
       HPRatio := SmartGetFieldInt(Player, hook_character_HPRatio) * 100 / $FF;
       InCombat := LoopCycle < SmartGetFieldInt(Player, hook_character_LoopCycleStatus);
       WalkQueueX := SmartGetFieldArrayInt(Player, hook_character_WalkQueueX, 0);
       WalkQueueY := SmartGetFieldArrayInt(Player, hook_character_WalkQueueY, 0);
-      Interacting := SmartGetFieldInt(Player, hook_character_GetInteracting);
+      Interacting := SmartGetFieldInt(Player, hook_character_Interacting);
       Orientation := Round(FixD(180 + (SmartGetFieldInt(Player, hook_character_Orientation)* 45) / 2048));
     end;
     Inc(C);

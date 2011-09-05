@@ -240,7 +240,7 @@ begin
   for I := 0 to 8 do
   begin
     Tab := R_GetInterfaceChildRef(INTERFACE_BANK, 62 - (I * 2));
-    ID := SmartGetFieldInt(Tab, hook_interface_GetTextureID);
+    ID := SmartGetFieldInt(Tab, hook_interface_TextureID);
     SmartFreeObject(Tab);
     if (ID = TEXTURE_BANKTABSELECTED) then
     begin
@@ -556,18 +556,18 @@ begin
     Bank := R_GetInterfaceChildRef(INTERFACE_BANK, INTERFACE_BANK_SLOTS);
     for BankSlot := 0 to INTERFACE_BANK_SLOTS_MAX do
     begin
-      Item := SmartGetFieldArrayObject(Bank, hook_interface_GetChildren, BankSlot);
-      TheID := SmartGetFieldInt(Item, hook_interface_GetComponentID);
+      Item := SmartGetFieldArrayObject(Bank, hook_interface_Children, BankSlot);
+      TheID := SmartGetFieldInt(Item, hook_interface_ComponentID);
       if(TheID > 0)then
       begin
         with Result[C] do
         begin
           ID := TheID;
-          StackSize := SmartGetFieldInt(Item, hook_interface_GetComponentStackSize);
+          StackSize := SmartGetFieldInt(Item, hook_interface_ComponentStackSize);
           Slot := BankSlot;
 
           try
-            NameObj := SmartGetFieldObject(Item, hook_interface_GetComponentName);
+            NameObj := SmartGetFieldObject(Item, hook_interface_ComponentName);
             Name := R_TrimHTML(R_GetJavaString(NameObj, 512));
           finally
             SmartFreeObject(NameObj);

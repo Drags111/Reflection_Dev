@@ -37,7 +37,7 @@ begin
   EndY := BY + 104;
 
   Cache := SmartGetFieldObject(0, hook_static_GroundItemCache);
-  Nodes := SmartGetFieldObject(cache, hook_nodecache_GetNodes);
+  Nodes := SmartGetFieldObject(cache, hook_nodecache_Nodes);
   SmartFreeObject(Cache);
   Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
   Size := SmartGetFieldArraySize(Nodes, '', 1);
@@ -57,10 +57,10 @@ begin
     try
       while (not (SmartIsEqual(Tail, Cur))) do
       begin
-        UID := SmartGetFieldLongL(Cur, hook_node_GetID);
+        UID := SmartGetFieldLongL(Cur, hook_node_ID);
         if (UID = Hash) then
         begin
-          List := SmartGetFieldObject(Cur, hook_nodelistcache_GetNodeList);
+          List := SmartGetFieldObject(Cur, hook_nodelistcache_NodeList);
           Break;
         end;
 
@@ -84,8 +84,8 @@ begin
       SetArrayLength(Result, GetArrayLength(Result) + 1);
       with Result[High(Result)] do
       begin
-        ID := SmartGetFieldInt(Cur, hook_item_GetID);
-        Stack := SmartGetFieldInt(Cur, hook_item_GetStack);
+        ID := SmartGetFieldInt(Cur, hook_item_ID);
+        Stack := SmartGetFieldInt(Cur, hook_item_Stack);
         Tile.X := Tiles[I].X;
         Tile.Y := Tiles[I].Y;
       end;
@@ -131,7 +131,7 @@ begin
   EndY := BY + 104;
 
   Cache := SmartGetFieldObject(0, hook_static_GroundItemCache);
-  Nodes := SmartGetFieldObject(cache, hook_nodecache_GetNodes);
+  Nodes := SmartGetFieldObject(cache, hook_nodecache_Nodes);
   SmartFreeObject(Cache);
   Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
   Size := SmartGetFieldArraySize(Nodes, '', 1);
@@ -151,10 +151,10 @@ begin
     try
       while (not (SmartIsEqual(Tail, Cur))) do
       begin
-        UID := SmartGetFieldLongL(Cur, hook_node_GetID);
+        UID := SmartGetFieldLongL(Cur, hook_node_ID);
         if (UID = Hash) then
         begin
-          List := SmartGetFieldObject(Cur, hook_nodelistcache_GetNodeList);
+          List := SmartGetFieldObject(Cur, hook_nodelistcache_NodeList);
           Break;
         end;
 
@@ -175,14 +175,14 @@ begin
     Cur := SmartGetFieldObject(tail, hook_node_Next);
     while (not (SmartIsEqual(tail, cur))) do
     begin
-      TheID := SmartGetFieldInt(Cur, hook_item_GetID);
+      TheID := SmartGetFieldInt(Cur, hook_item_ID);
       if InIntArray(IDs, TheID)then
       begin
         SetArrayLength(Result, GetArrayLength(Result) + 1);
         with Result[High(Result)] do
         begin
           ID := TheID;
-          Stack := SmartGetFieldInt(Cur, hook_item_GetStack);
+          Stack := SmartGetFieldInt(Cur, hook_item_Stack);
           Tile.X := Tiles[I].X;
           Tile.Y := Tiles[I].Y;
         end;
@@ -250,7 +250,7 @@ begin
   EndY := BY + 104;
 
   Cache := SmartGetFieldObject(0, hook_static_GroundItemCache);
-  Nodes := SmartGetFieldObject(cache, hook_nodecache_GetNodes);
+  Nodes := SmartGetFieldObject(cache, hook_nodecache_Nodes);
   SmartFreeObject(Cache);
   Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
   Size := SmartGetFieldArraySize(Nodes, '', 1);
@@ -270,10 +270,10 @@ begin
     try
       while (not (SmartIsEqual(Tail, Cur))) do
       begin
-        UID := SmartGetFieldLongL(Cur, hook_node_GetID);
+        UID := SmartGetFieldLongL(Cur, hook_node_ID);
         if (UID = Hash) then
         begin
-          List := SmartGetFieldObject(Cur, hook_nodelistcache_GetNodeList);
+          List := SmartGetFieldObject(Cur, hook_nodelistcache_NodeList);
           Break;
         end;
 
@@ -294,13 +294,13 @@ begin
     Cur := SmartGetFieldObject(tail, hook_node_Next);
     while (not (SmartIsEqual(tail, cur))) do
     begin
-      TheID := SmartGetFieldInt(Cur, hook_item_GetID);
+      TheID := SmartGetFieldInt(Cur, hook_item_ID);
       if InIntArray(IDs, TheID)then
       begin
         with Result do
         begin
           ID := TheID;
-          Stack := SmartGetFieldInt(Cur, hook_item_GetStack);
+          Stack := SmartGetFieldInt(Cur, hook_item_Stack);
           Tile.X := Tiles[I].X;
           Tile.Y := Tiles[I].Y;
 
@@ -457,7 +457,7 @@ begin
   SetLength(Result, 0);
 
   Cache := SmartGetFieldObject(0, hook_static_GroundItemCache);
-  Nodes := SmartGetFieldObject(cache, hook_nodecache_GetNodes);
+  Nodes := SmartGetFieldObject(cache, hook_nodecache_Nodes);
   SmartFreeObject(Cache);
   Plane := SmartGetFieldInt(0, hook_static_LoadedPlane);
   Size := SmartGetFieldArraySize(Nodes, '', 1);
@@ -471,10 +471,10 @@ begin
   try
     while (not (SmartIsEqual(Tail, Cur))) do
     begin
-      UID := SmartGetFieldLongL(Cur, hook_node_GetID);
+      UID := SmartGetFieldLongL(Cur, hook_node_ID);
       if (UID = Hash) then
       begin
-        List := SmartGetFieldObject(Cur, hook_nodelistcache_GetNodeList);
+        List := SmartGetFieldObject(Cur, hook_nodelistcache_NodeList);
         Break;
       end;
 
@@ -497,8 +497,8 @@ begin
     SetArrayLength(Result, GetArrayLength(Result) + 1);
     with Result[High(Result)] do
     begin
-      ID := SmartGetFieldInt(Cur, hook_item_GetID);
-      Stack := SmartGetFieldInt(Cur, hook_item_GetStack);
+      ID := SmartGetFieldInt(Cur, hook_item_ID);
+      Stack := SmartGetFieldInt(Cur, hook_item_Stack);
       Tile := TheTile;
     end;
     Next := SmartGetFieldObject(Cur, hook_node_Next);

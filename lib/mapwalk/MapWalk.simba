@@ -432,37 +432,6 @@ begin
 end;
 
 (*
-R_WaitToMove
-~~~~~~~~~~~~
-
-.. code-block:: pascal
-
-    function R_WaitToMove(Timeout: integer): Boolean;
-
-Waits for the local player to move with a timeout. Returns true if moved,
-false if timed out.
-
-.. note::
-
-  by lordsaturn
-
-*)
-function R_WaitToMove(Timeout: integer): Boolean;
-var
-  a, Speed: integer;
-begin
-  a := GetSystemTime;
-  Speed := R_GetMotion;
-  while Speed < 1 do
-  begin
-    Speed := R_GetMotion;
-    if GetSystemTime - a > Timeout then Exit;
-    Wait(100);
-  end;
-  Result := True;
-end;
-
-(*
 R_Flag
 ~~~~~~
 
