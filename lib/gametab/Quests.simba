@@ -60,9 +60,10 @@ var
 begin
   if not R_RefreshQuestCache then
     Exit;
+  Quest := Lowercase(Quest);
 
   for i := 0 to 192 do
-    if (Pos(Quest, R_GetInterfaceTextEx(INTERFACE_QUESTS, QUEST_LIST, i)) > 0) then
+    if (Pos(Quest, Lowercase(R_GetInterfaceTextEx(INTERFACE_QUESTS, QUEST_LIST, i))) > 0) then
     begin
       tempInt := R_GetInterfaceComponent(INTERFACE_QUESTS, QUEST_LIST, i);
       Result := tempInt.TextColor;
@@ -225,22 +226,24 @@ begin
     SBar := R_GetInterfaceChild(INTERFACE_QUESTS, QUEST_SCROLL);
     B := IntToBox(551, 281, 737, 454);
 
-    if R_ScrollTo(QuestI, SBar, B) then
+    if R_ScrollTo(QuestI, SBar, B) or
+      (PointInBox(Point(QuestI.X, QuestI.Y), B) and
+        PointInBox(Point(QuestI.Bounds.X2, QuestI.Bounds.Y2), B)) then
     begin
       MarkTime(T);
-      while (TimeFromMark(T) < 5000) do
+      while (TimeFromMark(T) < 10000) do
       begin
         if R_ValidInterface(INTERFACE_QUESTINFO) and
             (Pos(Quest, Lowercase(R_GetInterfaceText(INTERFACE_QUESTINFO, QUEST_INFO_NAME))) > 0) then
           Break;
         tempC := R_UpdateInterface(QuestI);
         R_ClickQuest(tempC, mouse_Left);
-        Wait(RandomRange(700, 900));
+        Wait(RandomRange(1500, 2000));
       end;
 
       Result := R_ValidInterface(INTERFACE_QUESTINFO) and
         (Pos(Quest, LowerCase(R_GetInterfaceText(INTERFACE_QUESTINFO, QUEST_INFO_NAME))) > 0);
-      if (TimeFromMark(T) > 5000) and not Result then
+      if (TimeFromMark(T) > 10000) and not Result then
         R_Debug('Opening quest timed out', 'R_OpenQuest');
     end else
     begin
