@@ -32,7 +32,7 @@ Returns the object reference of InterfaceCache[ParentI][ChildI].
 *)
 function R_GetInterfaceChildRef(ParentI, ChildI: Integer): Integer;
 begin
-  Result := SmartGetFieldArray2DObject(0, hook_static_GetInterfaces, ParentI, ChildI);
+  Result := SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentI, ChildI);
 end;
 
 (*
@@ -56,7 +56,7 @@ var
 begin
   try
     Child := R_GetInterfaceChildRef(ParentI, ChildI);
-    Result := SmartGetFieldArrayObject(Child, hook_interface_GetChildren, ComponentI);
+    Result := SmartGetFieldArrayObject(Child, hook_interface_Children, ComponentI);
   finally
     SmartFreeObject(Child);
   end;
@@ -102,7 +102,7 @@ var
   Interfaces, IL, I, C: integer;
 begin
   try
-    Interfaces := SmartGetFieldObject(0, hook_static_GetInterfaces);
+    Interfaces := SmartGetFieldObject(0, hook_static_Interfaces);
     IL := SmartGetFieldArraySize(Interfaces, '', 1);
     SetLength(Result, IL);
 
@@ -141,7 +141,7 @@ var
   Interfaces, C, Child: Integer;
 begin
   try
-    Interfaces := SmartGetFieldObject(0, hook_static_GetInterfaces);
+    Interfaces := SmartGetFieldObject(0, hook_static_Interfaces);
     C := 0;
     Child := R_GetInterfaceChildRef(ParentI, C);
     while not (SmartIsNull(Child)) do
@@ -183,14 +183,14 @@ begin
     if SmartIsNull(Child) then
       Exit;
     C := 0;
-    Component := SmartGetFieldArrayObject(Child, hook_interface_GetChildren, C);
+    Component := SmartGetFieldArrayObject(Child, hook_interface_Children, C);
     while not (SmartIsNull(Component)) do
     begin
       SetArrayLength (Result, C+1);
       Result[C] := C;
       Inc(C);
       SmartFreeObject(Component);
-      Component := SmartGetFieldArrayObject(Child, hook_interface_GetChildren, C);
+      Component := SmartGetFieldArrayObject(Child, hook_interface_Children, C);
     end;
     SetLength(Result, C);
   finally
@@ -220,20 +220,20 @@ var
   ParentID, MainID, InterfaceNC, Nodes, Tail, Node, ID, Next : Integer;
   NodesSize, Index : Integer;
 begin
-  ParentID := SmartGetFieldInt(Obj, hook_interface_GetParentID);
+  ParentID := SmartGetFieldInt(Obj, hook_interface_ParentID);
   if (ParentID <> -1) then
   begin
     Result := ParentID;
     Exit;
   end;
-  MainID := trunc(SmartGetFieldInt(Obj, hook_interface_GetID) div 65536);
+  MainID := trunc(SmartGetFieldInt(Obj, hook_interface_ID) div 65536);
   InterfaceNC := SmartGetFieldObject(0, hook_static_InterfaceNC);
   if (InterfaceNC = 0) then
   begin
     SmartFreeObject(InterfaceNC);
     Exit;
   end;
-  Nodes := SmartGetFieldObject(InterfaceNC, hook_nodecache_GetNodes);
+  Nodes := SmartGetFieldObject(InterfaceNC, hook_nodecache_Nodes);
   NodesSize := SmartGetFieldArraySize(Nodes, '', 1);
   try
     for Index := 0 to (NodesSize - 1) do
@@ -242,10 +242,10 @@ begin
       Node := SmartGetFieldObject(Tail, hook_node_Next);
       while (not (SmartIsEqual(Tail, Node))) do
       begin
-        ID := SmartGetFieldInt(Node, hook_interfacenode_GetID);
+        ID := SmartGetFieldInt(Node, hook_interfacenode_ID);
         if (MainID = ID) then
         begin
-          Result := SmartGetFieldLongL(Node, hook_node_GetID);
+          Result := SmartGetFieldLongL(Node, hook_node_ID);
           SmartFreeObject(Next);
           SmartFreeObject(Node);
           SmartFreeObject(Nodes);
@@ -291,31 +291,31 @@ var
   ParentObj, Bounds: Integer;
   ParentPoint: TPoint;
 begin
-  X := SmartGetFieldInt(Obj, hook_interface_GetX);
-  Y := SmartGetFieldInt(Obj, hook_interface_GetY);
+  X := SmartGetFieldInt(Obj, hook_interface_X);
+  Y := SmartGetFieldInt(Obj, hook_interface_Y);
   ParentID := R_GetInterfaceParentID(Obj);
 
   if(ParentID > 0)then
   begin
     try
-      ParentObj := SmartGetFieldArray2DObject(0, hook_static_GetInterfaces, ParentID shr 16, ParentID and $FFFF);
+      ParentObj := SmartGetFieldArray2DObject(0, hook_static_Interfaces, ParentID shr 16, ParentID and $FFFF);
 
       ParentPoint := R_GetAbsoluteInterfacePos(ParentObj);
 
       X := X + ParentPoint.x;
       Y := Y + ParentPoint.y;
 
-      if(SmartGetFieldInt(ParentObj, hook_interface_GetHorizontalScrollBarSize) <> 0)then
-        X := X - SmartGetFieldInt(ParentObj, hook_interface_GetHorizontalScrollBarPosition);
-      if(SmartGetFieldInt(ParentObj, hook_interface_GetVerticalScrollBarSize) <> 0)then
-        Y := Y - SmartGetFieldInt(ParentObj, hook_interface_GetVerticalScrollBarPosition);
+      if(SmartGetFieldInt(ParentObj, hook_interface_HorizontalScrollBarSize) <> 0)then
+        X := X - SmartGetFieldInt(ParentObj, hook_interface_HorizontalScrollBarPosition);
+      if(SmartGetFieldInt(ParentObj, hook_interface_VerticalScrollBarSize) <> 0)then
+        Y := Y - SmartGetFieldInt(ParentObj, hook_interface_VerticalScrollBarPosition);
     finally
       SmartFreeObject(ParentObj);
     end;
   end else
   begin
-    BoundIndex := SmartGetFieldInt(Obj, hook_interface_GetBoundsArrayIndex);
-    Bounds := SmartGetFieldArrayObject(0, hook_static_GetInterfaceBoundsArray, BoundIndex);
+    BoundIndex := SmartGetFieldInt(Obj, hook_interface_BoundsArrayIndex);
+    Bounds := SmartGetFieldArrayObject(0, hook_static_InterfaceBoundsArray, BoundIndex);
     if((Bounds > 0) and (SmartGetFieldArrayBoolean(0, hook_static_InterfaceDismissBounds, BoundIndex)))then
     begin
       Result := Point(SmartGetFieldInt(Bounds, 'x'),
@@ -349,7 +349,7 @@ var
   NumActions, I, Action, C: Integer;
   Temp: String;
 begin
-  NumActions := SmartGetFieldArraySize(Obj, Hook_Interface_GetActions, 1);
+  NumActions := SmartGetFieldArraySize(Obj, Hook_Interface_Actions, 1);
   if (NumActions <= 0)then
     Exit;
 
@@ -359,7 +359,7 @@ begin
   for I := 0 to NumActions-1 do
   begin
     try
-      Action := SmartGetFieldArrayObject(Obj, hook_interface_GetActions, I);
+      Action := SmartGetFieldArrayObject(Obj, hook_interface_Actions, I);
       if(Action = 0)then
         continue;
       Temp := R_TrimHTML(R_GetJavaString(Action, 512));
@@ -405,42 +405,42 @@ begin
     begin
       Indices := [ParentI, ChildI];
       Actions := R_GetInterfaceActions(Child);
-      ID := SmartGetFieldInt(Child, hook_interface_GetID);
-      ComponentID := SmartGetFieldInt(Child, hook_interface_GetComponentID);
+      ID := SmartGetFieldInt(Child, hook_interface_ID);
+      ComponentID := SmartGetFieldInt(Child, hook_interface_ComponentID);
       ParentID := R_GetInterfaceParentID(Child);
-      Stack := SmartGetFieldInt(Child, hook_interface_GetComponentStackSize);
-      TextureID := SmartGetFieldInt(Child, hook_interface_GetTextureID);
-      ModelID := SmartGetFieldInt(Child, hook_interface_GetModelID);
-      ModelZoom := SmartGetFieldInt(Child, hook_interface_GetModelZoom);
-      RelativeX := SmartGetFieldInt(Child, hook_interface_GetX);
-      RelativeY := SmartGetFieldInt(Child, hook_interface_GetY);
-      Width := SmartGetFieldInt(Child, hook_interface_GetWidth);
-      Height := SmartGetFieldInt(Child, hook_interface_GetHeight);
+      Stack := SmartGetFieldInt(Child, hook_interface_ComponentStackSize);
+      TextureID := SmartGetFieldInt(Child, hook_interface_TextureID);
+      ModelID := SmartGetFieldInt(Child, hook_interface_ModelID);
+      ModelZoom := SmartGetFieldInt(Child, hook_interface_ModelZoom);
+      RelativeX := SmartGetFieldInt(Child, hook_interface_X);
+      RelativeY := SmartGetFieldInt(Child, hook_interface_Y);
+      Width := SmartGetFieldInt(Child, hook_interface_Width);
+      Height := SmartGetFieldInt(Child, hook_interface_Height);
 
       try
-        TextObj := SmartGetFieldObject(Child, hook_interface_GetText);
+        TextObj := SmartGetFieldObject(Child, hook_interface_Text);
         Text := R_TrimHTML(R_GetJavaString(TextObj, 512));
       finally
         SmartFreeObject(TextObj);
       end;
 
-      TextColor := SmartGetFieldInt(Child, hook_interface_GetTextColor);
+      TextColor := SmartGetFieldInt(Child, hook_interface_TextColor);
 
       try
-        NameObj := SmartGetFieldObject(Child, hook_interface_GetComponentName);
+        NameObj := SmartGetFieldObject(Child, hook_interface_ComponentName);
         Name := R_TrimHTML(R_GetJavaString(NameObj, 512));
       finally
         SmartFreeObject(NameObj);
       end;
 
       IsHidden := SmartGetFieldBoolean(Child, hook_interface_IsHidden);
-      VScrollSize := SmartGetFieldInt(Child, hook_interface_GetVerticalScrollBarSize);
-      VScrollPosition := SmartGetFieldInt(Child, hook_interface_GetVerticalScrollBarPosition);
-      VThumbSize := SmartGetFieldInt(Child, hook_interface_GetVerticalScrollBarThumbSize);
-      HScrollSize := SmartGetFieldInt(Child, hook_interface_GetHorizontalScrollBarSize);
-      HScrollPosition := SmartGetFieldInt(Child, hook_interface_GetHorizontalScrollBarPosition);
-      HThumbSize := SmartGetFieldInt(Child, hook_interface_GetHorizontalScrollBarThumbSize);
-      BoundsArrayIndex := SmartGetFieldInt(Child, hook_interface_GetBoundsArrayIndex);
+      VScrollSize := SmartGetFieldInt(Child, hook_interface_VerticalScrollBarSize);
+      VScrollPosition := SmartGetFieldInt(Child, hook_interface_VerticalScrollBarPosition);
+      VThumbSize := SmartGetFieldInt(Child, hook_interface_VerticalScrollBarThumbSize);
+      HScrollSize := SmartGetFieldInt(Child, hook_interface_HorizontalScrollBarSize);
+      HScrollPosition := SmartGetFieldInt(Child, hook_interface_HorizontalScrollBarPosition);
+      HThumbSize := SmartGetFieldInt(Child, hook_interface_HorizontalScrollBarThumbSize);
+      BoundsArrayIndex := SmartGetFieldInt(Child, hook_interface_BoundsArrayIndex);
       X := P.x;
       Y := P.y;
       Bounds := IntToBox(X, Y, X+Width, Y+Height);
@@ -481,42 +481,42 @@ begin
     begin
       Indices := [ParentI, ChildI, ComponentI];
       Actions := R_GetInterfaceActions(Component);
-      ID := SmartGetFieldInt(Component, hook_interface_GetID);
-      ComponentID := SmartGetFieldInt(Component, hook_interface_GetComponentID);
+      ID := SmartGetFieldInt(Component, hook_interface_ID);
+      ComponentID := SmartGetFieldInt(Component, hook_interface_ComponentID);
       ParentID := R_GetInterfaceParentID(Component);
-      Stack := SmartGetFieldInt(Component, hook_interface_GetComponentStackSize);
-      TextureID := SmartGetFieldInt(Component, hook_interface_GetTextureID);
-      ModelID := SmartGetFieldInt(Component, hook_interface_GetModelID);
-      ModelZoom := SmartGetFieldInt(Component, hook_interface_GetModelZoom);
-      RelativeX := SmartGetFieldInt(Component, hook_interface_GetX);
-      RelativeY := SmartGetFieldInt(Component, hook_interface_GetY);
-      Width := SmartGetFieldInt(Component, hook_interface_GetWidth);
-      Height := SmartGetFieldInt(Component, hook_interface_GetHeight);
+      Stack := SmartGetFieldInt(Component, hook_interface_ComponentStackSize);
+      TextureID := SmartGetFieldInt(Component, hook_interface_TextureID);
+      ModelID := SmartGetFieldInt(Component, hook_interface_ModelID);
+      ModelZoom := SmartGetFieldInt(Component, hook_interface_ModelZoom);
+      RelativeX := SmartGetFieldInt(Component, hook_interface_X);
+      RelativeY := SmartGetFieldInt(Component, hook_interface_Y);
+      Width := SmartGetFieldInt(Component, hook_interface_Width);
+      Height := SmartGetFieldInt(Component, hook_interface_Height);
 
       try
-        TextObj := SmartGetFieldObject(Component, hook_interface_GetText);
+        TextObj := SmartGetFieldObject(Component, hook_interface_Text);
         Text := R_TrimHTML(R_GetJavaString(TextObj, 512));
       finally
         SmartFreeObject(TextObj);
       end;
 
-      TextColor := SmartGetFieldInt(Component, hook_interface_GetTextColor);
+      TextColor := SmartGetFieldInt(Component, hook_interface_TextColor);
 
       try
-        TextObj := SmartGetFieldObject(Component, hook_interface_GetComponentName);
+        TextObj := SmartGetFieldObject(Component, hook_interface_ComponentName);
         Name := R_TrimHTML(R_GetJavaString(TextObj, 512));
       finally
         SmartFreeObject(TextObj);
       end;
 
       IsHidden := SmartGetFieldBoolean(Component, hook_interface_IsHidden);
-      VScrollSize := SmartGetFieldInt(Component, hook_interface_GetVerticalScrollBarSize);
-      VScrollPosition := SmartGetFieldInt(Component, hook_interface_GetVerticalScrollBarPosition);
-      VThumbSize := SmartGetFieldInt(Component, hook_interface_GetVerticalScrollBarThumbSize);
-      HScrollSize := SmartGetFieldInt(Component, hook_interface_GetHorizontalScrollBarSize);
-      HScrollPosition := SmartGetFieldInt(Component, hook_interface_GetHorizontalScrollBarPosition);
-      HThumbSize := SmartGetFieldInt(Component, hook_interface_GetHorizontalScrollBarThumbSize);
-      BoundsArrayIndex := SmartGetFieldInt(Component, hook_interface_GetBoundsArrayIndex);
+      VScrollSize := SmartGetFieldInt(Component, hook_interface_VerticalScrollBarSize);
+      VScrollPosition := SmartGetFieldInt(Component, hook_interface_VerticalScrollBarPosition);
+      VThumbSize := SmartGetFieldInt(Component, hook_interface_VerticalScrollBarThumbSize);
+      HScrollSize := SmartGetFieldInt(Component, hook_interface_HorizontalScrollBarSize);
+      HScrollPosition := SmartGetFieldInt(Component, hook_interface_HorizontalScrollBarPosition);
+      HThumbSize := SmartGetFieldInt(Component, hook_interface_HorizontalScrollBarThumbSize);
+      BoundsArrayIndex := SmartGetFieldInt(Component, hook_interface_BoundsArrayIndex);
       X := P.x;
       Y := P.y;
       Bounds := IntToBox(X, Y, X+Width, Y+Height);
@@ -579,7 +579,7 @@ begin
   if (CompI < 0) then
     Child := R_GetInterfaceChildRef(ParentI, ChildI)
       else Child := R_GetInterfaceComponentRef(ParentI, ChildI, CompI);
-  Text := SmartGetFieldObject(Child, hook_interface_GetText);
+  Text := SmartGetFieldObject(Child, hook_interface_Text);
   Result := R_GetJavaString(Text, 512);
   SmartFreeObject(Text);
   SmartFreeObject(Child);

@@ -83,7 +83,7 @@ begin
   c := 0;
   for i := 0 to 10 do
   begin
-    bytes := SmartGetFieldArrayObject(NPCDef, hook_npcdef_GetActions, i);
+    bytes := SmartGetFieldArrayObject(NPCDef, hook_npcdef_Actions, i);
     if(bytes > 0)then
     begin
       Result[c] := R_GetJavaString(bytes, 512);
@@ -129,9 +129,9 @@ begin
   for I := 0 to H do
   try
     TheNPCNode := SmartGetFieldArrayObject(0, hook_static_NPCNodes, I);
-    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
+    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_NPC);
     NPCDef := SmartGetFieldObject(TheNPC, hook_npc_NPCDef);
-    TheBytes := SmartGetFieldObject(NPCDef, hook_npcdef_GetName);
+    TheBytes := SmartGetFieldObject(NPCDef, hook_npcdef_Name);
     TheName := Lowercase(Trim(R_GetJavaString(TheBytes, 512)));
 
     if((not Null) and (TheName = 'null'))then
@@ -140,27 +140,27 @@ begin
     with Result[C] do
     begin
       Index := SmartGetFieldArrayInt(0, hook_static_NPCIndexArray, I);
-      Level := SmartGetFieldInt(TheNPC, hook_npc_GetLevel);
+      Level := SmartGetFieldInt(TheNPC, hook_npc_Level);
       Name := TheName;
-      ID := SmartGetFieldInt(NPCDef, hook_npcdef_GetID);
+      ID := SmartGetFieldInt(NPCDef, hook_npcdef_ID);
 
       Actions := R_GetNPCActionArray(NPCDef);
 
       Tile.X := BaseX + (SmartGetFieldInt(TheNPC, hook_animable_PixelX) / 512);
       Tile.Y := BaseY + (SmartGetFieldInt(TheNPC, hook_animable_PixelY) / 512);
-      TileArea.X1 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX1));
-      TileArea.Y1 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY1));
-      TileArea.X2 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX2));
-      TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY2));
+      TileArea.X1 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_AreaX1));
+      TileArea.Y1 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_AreaY1));
+      TileArea.X2 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_AreaX2));
+      TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_AreaY2));
 
-      Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
+      Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_Height));
       Animation := SmartGetFieldArrayInt(TheNPC, hook_character_AnimationQueue, 1);
       Motion := SmartGetFieldInt(TheNPC, hook_character_Motion);
       HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
       InCombat :=  LoopCycle < SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus);
       WalkQueueX := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueX, 0);
       WalkQueueY := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueY, 0);
-      Interacting := SmartGetFieldInt(TheNPC, hook_character_GetInteracting);
+      Interacting := SmartGetFieldInt(TheNPC, hook_character_Interacting);
       Orientation := Round(FixD(180 + (SmartGetFieldInt(TheNPC, hook_character_Orientation)* 45) / 2048));
     end;
     Inc(C);
@@ -208,35 +208,35 @@ begin
   for I := 0 to H do
   try
     TheNPCNode := SmartGetFieldArrayObject(0, hook_static_NPCNodes, I);
-    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
+    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_NPC);
     NPCDef := SmartGetFieldObject(TheNPC, hook_npc_NPCDef);
-    TheBytes := SmartGetFieldObject(NPCDef, hook_npcdef_GetName);
+    TheBytes := SmartGetFieldObject(NPCDef, hook_npcdef_Name);
     TheName := Lowercase(Trim(R_GetJavaString(TheBytes, 512)));
 
     if((not Null) and (TheName = 'null'))then
       continue;
 
-    Test := SmartGetFieldInt(TheNPC, hook_character_GetInteracting);
+    Test := SmartGetFieldInt(TheNPC, hook_character_Interacting);
     if (Test <= 0) then
       Continue;
 
     with Result[C] do
     begin
       Index := SmartGetFieldArrayInt(0, hook_static_NPCIndexArray, I);
-      Level := SmartGetFieldInt(TheNPC, hook_npc_GetLevel);
+      Level := SmartGetFieldInt(TheNPC, hook_npc_Level);
       Name := TheName;
-      ID := SmartGetFieldInt(NPCDef, hook_npcdef_GetID);
+      ID := SmartGetFieldInt(NPCDef, hook_npcdef_ID);
 
       Actions := R_GetNPCActionArray(NPCDef);
 
       Tile.X := BaseX + (SmartGetFieldInt(TheNPC, hook_animable_PixelX) / 512);
       Tile.Y := BaseY + (SmartGetFieldInt(TheNPC, hook_animable_PixelY) / 512);
-      TileArea.X1 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX1));
-      TileArea.Y1 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY1));
-      TileArea.X2 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX2));
-      TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY2));
+      TileArea.X1 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_AreaX1));
+      TileArea.Y1 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_AreaY1));
+      TileArea.X2 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_AreaX2));
+      TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_AreaY2));
 
-      Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
+      Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_Height));
       Animation := SmartGetFieldArrayInt(TheNPC, hook_character_AnimationQueue, 1);
       Motion := SmartGetFieldInt(TheNPC, hook_character_Motion);
       HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
@@ -294,15 +294,15 @@ begin
   for I := 0 to H do
   try
     TheNPCNode := SmartGetFieldArrayObject(0, hook_static_NPCNodes, I);
-    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
+    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_NPC);
     NPCDef := SmartGetFieldObject(TheNPC, hook_npc_NPCDef);
-    TheBytes := SmartGetFieldObject(NPCDef, hook_npcdef_GetName);
+    TheBytes := SmartGetFieldObject(NPCDef, hook_npcdef_Name);
     TheName := Lowercase(Trim(R_GetJavaString(TheBytes, 512)));
 
     if((not Null) and (TheName = 'null'))then
       continue;
 
-    TempID := SmartGetFieldInt(NPCDef, hook_npcdef_GetID);
+    TempID := SmartGetFieldInt(NPCDef, hook_npcdef_ID);
 
     H2 :=  High(TheVarArr);
     B := False;
@@ -325,7 +325,7 @@ begin
     with NPCs[C] do
     begin
       Index := SmartGetFieldArrayInt(0, hook_static_NPCIndexArray, I);
-      Level := SmartGetFieldInt(TheNPC, hook_npc_GetLevel);
+      Level := SmartGetFieldInt(TheNPC, hook_npc_Level);
       Name := TheName;
       ID := TempID;
 
@@ -333,19 +333,19 @@ begin
 
       Tile.X := BaseX + (SmartGetFieldInt(TheNPC, hook_animable_PixelX) / 512);
       Tile.Y := BaseY + (SmartGetFieldInt(TheNPC, hook_animable_PixelY) / 512);
-      TileArea.X1 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX1));
-      TileArea.Y1 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY1));
-      TileArea.X2 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX2));
-      TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY2));
+      TileArea.X1 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_AreaX1));
+      TileArea.Y1 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_AreaY1));
+      TileArea.X2 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_AreaX2));
+      TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_AreaY2));
 
-      Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
+      Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_Height));
       Animation := SmartGetFieldArrayInt(TheNPC, hook_character_AnimationQueue, 1);
       Motion := SmartGetFieldInt(TheNPC, hook_character_Motion);
       HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
       InCombat :=  LoopCycle < SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus);
       WalkQueueX := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueX, 0);
       WalkQueueY := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueY, 0);
-      Interacting := SmartGetFieldInt(TheNPC, hook_character_GetInteracting);
+      Interacting := SmartGetFieldInt(TheNPC, hook_character_Interacting);
       Orientation := Round(FixD(180 + (SmartGetFieldInt(TheNPC, hook_character_Orientation)* 45) / 2048));
     end;
     Inc(C);
@@ -467,9 +467,9 @@ begin
   for I := 0 to H do
   try
     TheNPCNode := SmartGetFieldArrayObject(0, hook_static_NPCNodes, I);
-    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_GetNPC);
+    TheNPC := SmartGetFieldObject(TheNPCNode, hook_npcnode_NPC);
     NPCDef := SmartGetFieldObject(TheNPC, hook_npc_NPCDef);
-    TheBytes := SmartGetFieldObject(NPCDef, hook_npcdef_GetName);
+    TheBytes := SmartGetFieldObject(NPCDef, hook_npcdef_Name);
     TheName := Lowercase(Trim(R_GetJavaString(TheBytes, 512)));
 
     if((not Null) and (TheName = 'null'))then
@@ -484,26 +484,26 @@ begin
     with Result[C] do
     begin
       Index := SmartGetFieldArrayInt(0, hook_static_NPCIndexArray, I);
-      Level := SmartGetFieldInt(TheNPC, hook_npc_GetLevel);
+      Level := SmartGetFieldInt(TheNPC, hook_npc_Level);
       Name := TheName;
-      ID := SmartGetFieldInt(NPCDef, hook_npcdef_GetID);
+      ID := SmartGetFieldInt(NPCDef, hook_npcdef_ID);
 
       Actions := R_GetNPCActionArray(NPCDef);
 
       Tile := TempTile
-      TileArea.X1 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX1));
-      TileArea.Y1 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY1));
-      TileArea.X2 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaX2));
-      TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_getAreaY2));
+      TileArea.X1 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_AreaX1));
+      TileArea.Y1 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_AreaY1));
+      TileArea.X2 := (BaseX + SmartGetFieldShort(TheNPC, hook_animableentity_AreaX2));
+      TileArea.Y2 := (BaseY + SmartGetFieldShort(TheNPC, hook_animableentity_AreaY2));
 
-      Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_GetHeight));
+      Height := IAbs(SmartGetFieldInt(TheNPC, hook_character_Height));
       Animation := SmartGetFieldArrayInt(TheNPC, hook_character_AnimationQueue, 1);
       Motion := SmartGetFieldInt(TheNPC, hook_character_Motion);
       HPRatio := SmartGetFieldInt(TheNPC, hook_character_HPRatio) * 100 / $FF;
       InCombat :=  LoopCycle < SmartGetFieldInt(TheNPC, hook_character_LoopCycleStatus);
       WalkQueueX := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueX, 0);
       WalkQueueY := SmartGetFieldArrayInt(TheNPC, hook_character_WalkQueueY, 0);
-      Interacting := SmartGetFieldInt(TheNPC, hook_character_GetInteracting);
+      Interacting := SmartGetFieldInt(TheNPC, hook_character_Interacting);
       Orientation := Round(FixD(180 + (SmartGetFieldInt(TheNPC, hook_character_Orientation)* 45) / 2048));
     end;
     Inc(C);

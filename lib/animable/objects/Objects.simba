@@ -22,11 +22,11 @@ begin
   Node := SmartGetFieldObject(GroundObj, hook_ground_AnimableList);
   while(Node <> 0)do
   begin
-    Obj := SmartGetFieldObject(Node, hook_AnimableNode_GetAnimable);
+    Obj := SmartGetFieldObject(Node, hook_AnimableNode_Animable);
     if(Obj <> 0)then
       Break;
     Last := Node;
-    Node := SmartGetFieldObject(Last, hook_AnimableNode_GetNext);
+    Node := SmartGetFieldObject(Last, hook_AnimableNode_Next);
     SmartFreeObject(Last);
   end;
   SmartFreeObject(Node);
@@ -34,12 +34,12 @@ begin
   if(Obj <= 0)then
     Exit;
 
-  ID := SmartGetFieldShort(Obj, hook_InteractiveObject_GetID) and $FFFF;
+  ID := SmartGetFieldShort(Obj, hook_InteractiveObject_ID) and $FFFF;
   if(ID = -1) or (ID = 65535)then   //65535 is an unsigned -1...
   begin
-    SecondLevel := SmartGetFieldObject(Obj, hook_interactiveobject2_GetObjectData);
-    ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetID) and $FFFF;
-    ModelID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetModelID);
+    SecondLevel := SmartGetFieldObject(Obj, hook_interactiveobject2_ObjectData);
+    ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_ID) and $FFFF;
+    ModelID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_ModelID);
     if(ID = -1) or (ID = 65535)then
     begin
       SmartFreeObject(SecondLevel);
@@ -57,10 +57,10 @@ begin
     Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
     Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
 
-    Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
-    Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
-    Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
-    Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
+    Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_AreaX1));
+    Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_AreaY1));
+    Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_AreaX2));
+    Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_AreaY2));
   end;
 
   SmartFreeObject(SecondLevel);
@@ -99,12 +99,12 @@ begin
     end;
   end;
 
-  ID := SmartGetFieldShort(Obj, hook_WallObjectData_GetID) and $FFFF;
+  ID := SmartGetFieldShort(Obj, hook_WallObjectData_ID) and $FFFF;
   if(ID = -1) or (ID = 65535)then
   begin
-    SecondLevel := SmartGetFieldObject(Obj, hook_wallobjectsub2_GetComposite);
-    ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetID) and $FFFF;
-    ModelID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetModelID);
+    SecondLevel := SmartGetFieldObject(Obj, hook_wallobjectsub2_Composite);
+    ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_ID) and $FFFF;
+    ModelID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_ModelID);
     if(ID = -1) or (ID = 65535)then
     begin
       SmartFreeObject(SecondLevel);
@@ -121,10 +121,10 @@ begin
     Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
     Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
 
-    Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
-    Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
-    Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
-    Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
+    Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_AreaX1));
+    Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_AreaY1));
+    Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_AreaX2));
+    Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_AreaY2));
   end;
 
   SmartFreeObject(SecondLevel);
@@ -163,12 +163,12 @@ begin
     end;
   end;
 
-  ID := SmartGetFieldShort(Obj, hook_WallDecorationData_GetID) and $FFFF;
+  ID := SmartGetFieldShort(Obj, hook_WallDecorationData_ID) and $FFFF;
   if(ID = -1) or (ID = 65535)then
   begin
-    SecondLevel := SmartGetFieldObject(Obj, hook_walldecorationsub2_GetComposite);
-    ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetID) and $FFFF;
-    ModelID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetModelID);
+    SecondLevel := SmartGetFieldObject(Obj, hook_walldecorationsub2_Composite);
+    ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_ID) and $FFFF;
+    ModelID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_ModelID);
     if(ID = -1) or (ID = 65535)then
     begin
       SmartFreeObject(SecondLevel);
@@ -185,10 +185,10 @@ begin
     Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
     Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
 
-    Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
-    Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
-    Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
-    Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
+    Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_AreaX1));
+    Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_AreaY1));
+    Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_AreaX2));
+    Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_AreaY2));
   end;
 
   SmartFreeObject(SecondLevel);
@@ -222,12 +222,12 @@ begin
     Exit;
   end;
 
-  ID := SmartGetFieldShort(Obj, hook_FloorDecorationData_GetID) and $FFFF;
+  ID := SmartGetFieldShort(Obj, hook_FloorDecorationData_ID) and $FFFF;
   if(ID = -1) or (ID = 65535)then
   begin
-    SecondLevel := SmartGetFieldObject(Obj, hook_floordecorationsub2_GetComposite);
-    ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetID) and $FFFF;
-    ModelID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_GetModelID);
+    SecondLevel := SmartGetFieldObject(Obj, hook_floordecorationsub2_Composite);
+    ID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_ID) and $FFFF;
+    ModelID := SmartGetFieldInt(SecondLevel, hook_secondlevelobject_ModelID);
     if(ID = -1) or (ID = 65535)then
     begin
       SmartFreeObject(SecondLevel);
@@ -244,10 +244,10 @@ begin
     Result.Tile.X := BaseX + (SmartGetFieldInt(Obj, hook_animable_PixelX) / 512);
     Result.Tile.Y := BaseY + (SmartGetFieldInt(Obj, hook_animable_PixelY) / 512);
 
-    Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX1));
-    Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY1));
-    Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_getAreaX2));
-    Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_getAreaY2));
+    Result.TileArea.X1 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_AreaX1));
+    Result.TileArea.Y1 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_AreaY1));
+    Result.TileArea.X2 := (BaseX + SmartGetFieldShort(Obj, hook_animableentity_AreaX2));
+    Result.TileArea.Y2 := (BaseY + SmartGetFieldShort(Obj, hook_animableentity_AreaY2));
   end;
 
   SmartFreeObject(SecondLevel);

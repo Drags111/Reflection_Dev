@@ -23,7 +23,7 @@ begin
       else Result := TileA;
 end;
 
-function RAbyss_GetOddAppendage: Integer;
+function RAbyss_OddAppendage: Integer;
 var
   ObjArr: array[0..3] of TRSObject;
   i: Integer;
@@ -113,7 +113,7 @@ begin
   begin
     ClickContinue(True, True);
 
-    AppendageID := RAbyss_GetOddAppendage;
+    AppendageID := RAbyss_OddAppendage;
     if (AppendageID < 0) then
     begin
       R_Debug('Odd appendage not found', 'Abyss');

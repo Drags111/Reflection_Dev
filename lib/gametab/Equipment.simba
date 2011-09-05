@@ -49,19 +49,19 @@ begin
 
   try
     Child := R_GetInterfaceChildRef(INTERFACE_EQUIPMENT, Slot);
-    ID := SmartGetFieldInt(Child, hook_interface_GetComponentID);
+    ID := SmartGetFieldInt(Child, hook_interface_ComponentID);
     if (ID > 0) then
     begin
       Result.ID := ID;
 
       try
-        NameBytes := SmartGetFieldObject(Child, hook_interface_GetComponentName);
+        NameBytes := SmartGetFieldObject(Child, hook_interface_ComponentName);
         Result.Name := R_TrimHTML(R_GetJavaString(NameBytes, 512));
       finally
         SmartFreeObject(NameBytes);
       end;
 
-      Result.Count := SmartGetFieldInt(Child, hook_interface_GetComponentStackSize);
+      Result.Count := SmartGetFieldInt(Child, hook_interface_ComponentStackSize);
       Result.Actions := R_GetInterfaceActions(Child);
       Result.IsAmmo := (Result.Count > 1);
     end;

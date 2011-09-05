@@ -20,7 +20,7 @@ begin
               R_FindNPC(REvilBobConst_EvilBob, True, NPC);
 end;
 
-function REvilBob_GetNet: Boolean;
+function REvilBob_Net: Boolean;
 var
   Net: TGroundItem;
   P: TPoint;
@@ -65,7 +65,7 @@ begin
   Result := R_CountItem(REvilBobConst_Net) > 0;
 end;
 
-function REvilBob_GetSpot: TPoint;
+function REvilBob_Spot: TPoint;
 var
   Fishes: TRSObjectArray;
   i: Integer;
@@ -127,7 +127,7 @@ begin
 
           //Wait(3500 + Random(1500));
           R_Debug('Trying to find spot', 'Evil Bob');
-          Result := REvilBob_GetSpot;
+          Result := REvilBob_Spot;
         end;
         ClickContinue(True, True);
         if Chat then Break;
@@ -488,7 +488,7 @@ begin
         end;
 
     if (R_CountItem(REvilBobConst_Net) < 1) then
-      if not REvilBob_GetNet then
+      if not REvilBob_Net then
       begin
         R_Debug('Failed to get a net', 'Evil Bob');
         Continue;

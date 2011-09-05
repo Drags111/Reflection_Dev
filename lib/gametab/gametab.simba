@@ -52,7 +52,7 @@ begin
   for I := 0 to High(GameTabs)do
   begin
     Child := R_GetInterfaceChildRef(INTERFACE_GAMETAB, GameTabs[I]);
-    TextureID := SmartGetFieldInt(Child, hook_interface_GetTextureID);
+    TextureID := SmartGetFieldInt(Child, hook_interface_TextureID);
     SmartFreeObject(Child);
     if(TextureID = 1836)then
     begin
@@ -105,7 +105,7 @@ begin
     Exit;
 
   ChildObj := R_GetInterfaceChildRef(INTERFACE_GAMETAB, Tab);
-  TextureID := SmartGetFieldInt(ChildObj, hook_interface_GetTextureID);
+  TextureID := SmartGetFieldInt(ChildObj, hook_interface_TextureID);
   SmartFreeObject(ChildObj);
 
   if(TextureID = 1836)then

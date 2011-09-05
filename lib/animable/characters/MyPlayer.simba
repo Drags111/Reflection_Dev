@@ -161,7 +161,7 @@ Returns a skill level(Top) specified by Skill(Please use constants).
 *)
 function R_GetSkillLevel(SkillConst: Integer): Integer;
 begin
-  Result := SmartGetFieldArrayInt(0, hook_static_GetSkillLevels, SkillConst);
+  Result := SmartGetFieldArrayInt(0, hook_static_SkillLevels, SkillConst);
 end;
 
 (*
@@ -181,7 +181,7 @@ Returns experience in the specified skill.
 *)
 function R_GetSkillExp(SkillConst: Integer): Integer;
 begin
-  Result := SmartGetFieldArrayInt(0, hook_static_GetSkillExperiences, SkillConst);
+  Result := SmartGetFieldArrayInt(0, hook_static_SkillExperiences, SkillConst);
 end;
 
 (*
@@ -207,7 +207,7 @@ begin
   Result:= 0;
   for i := 1 to Level do
     Result := Result + floor(i + 300 * Pow(2.0, i / 7.0));
-  Result:= (Result/4) - SmartGetFieldArrayInt(0, hook_static_GetSkillExperiences, SkillConst);
+  Result:= (Result/4) - SmartGetFieldArrayInt(0, hook_static_SkillExperiences, SkillConst);
 end;
 
 (*
@@ -256,26 +256,26 @@ begin
     Player := SmartGetFieldObject(0, hook_static_MyPlayer);
     with Result do
     begin
-      NameBytes := SmartGetFieldObject(Player, hook_player_GetName);
+      NameBytes := SmartGetFieldObject(Player, hook_player_Name);
       Name := R_GetJavaString(NameBytes, 512);
       SmartFreeObject(NameBytes);
 
-      Level := SmartGetFieldInt(Player, hook_player_GetLevel);
-      Team := SmartGetFieldInt(Player, hook_player_GetTeam);
+      Level := SmartGetFieldInt(Player, hook_player_Level);
+      Team := SmartGetFieldInt(Player, hook_player_Team);
 
       Tile.X := SmartGetFieldInt(0, hook_static_BaseX) +
                 (SmartGetFieldInt(Player, hook_animable_PixelX) / 512);
       Tile.Y := SmartGetFieldInt(0, hook_static_BaseY) +
                 (SmartGetFieldInt(Player, hook_animable_PixelY) / 512);
 
-      Height := IAbs(SmartGetFieldInt(Player, hook_character_GetHeight));
+      Height := IAbs(SmartGetFieldInt(Player, hook_character_Height));
       Animation := SmartGetFieldInt(Player, hook_character_Animation);
       Motion := SmartGetFieldInt(Player, hook_character_Motion);
       HPRatio := SmartGetFieldInt(Player, hook_character_HPRatio) * 100 / $FF;
       InCombat := SmartGetFieldInt(0, hook_static_LoopCycle) < SmartGetFieldInt(Player, hook_character_LoopCycleStatus);
       WalkQueueX := SmartGetFieldArrayInt(Player, hook_character_WalkQueueX, 0);
       WalkQueueY := SmartGetFieldArrayInt(Player, hook_character_WalkQueueY, 0);
-      Interacting := SmartGetFieldInt(Player, hook_character_GetInteracting);
+      Interacting := SmartGetFieldInt(Player, hook_character_Interacting);
       Orientation := Round(FixD(180 + (SmartGetFieldInt(Player, hook_character_Orientation)* 45) / 2048));
     end;
   finally
@@ -305,7 +305,7 @@ begin
   try
     Player := SmartGetFieldObject(0, hook_static_MyPlayer);
     PlayerDef := SmartGetFieldObject(Player, hook_player_PlayerDef);
-    Result := SmartGetFieldArrayInt(PlayerDef, hook_playerdef_GetEquipment, Slot) - MODEL_EQUIPMENT_CONSTANT;
+    Result := SmartGetFieldArrayInt(PlayerDef, hook_playerdef_Equipment, Slot) - MODEL_EQUIPMENT_CONSTANT;
   finally
     SmartFreeObject(Player);
     SmartFreeObject(PlayerDef);

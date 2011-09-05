@@ -24,8 +24,8 @@ const
   RLeoInterface_Coffin = 141;
   RLeoInterface_Coffin_Close = 12;
 
-  RLeoInterface_GettingOn = 64;
-  RLeoInterface_GettingOn_Text = 4;
+  RLeoInterface_tingOn = 64;
+  RLeoInterface_tingOn_Text = 4;
 
   RLeoInterface_Gravestone = 143;
   RLeoInterface_Gravestone_Item = 2;

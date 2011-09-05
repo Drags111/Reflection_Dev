@@ -37,7 +37,7 @@ begin
   R_WaitInterfaceClose(RArnavConst_Interface, 5000);
 end;
 
-function RArnav_GetTries: Integer;
+function RArnav_Tries: Integer;
 var
   Text, Number: String;
 begin
@@ -55,7 +55,7 @@ begin
   end;
 end;
 
-function RArnav_GetItemGoal: Integer;
+function RArnav_ItemGoal: Integer;
 var
   Item: String;
 begin
@@ -78,7 +78,7 @@ var
   I, GoalID, Y, T, T2: Integer;
 begin
   Result := False;
-  GoalID := RArnav_GetItemGoal;
+  GoalID := RArnav_ItemGoal;
   if(GoalID = -1)then
   begin
     R_Debug('Unable to obtain the GoalID', 'Cap''n Arnav');
@@ -261,7 +261,7 @@ begin
       if(TimeFromMark(T2) >= 10000)then
         Continue;
 
-      TriesLeft := RArnav_GetTries;
+      TriesLeft := RArnav_Tries;
       R_Debug(ToStr(TriesLeft)+' tries left.', 'Cap''n Arnav');
 
       if(TriesLeft = -1)then

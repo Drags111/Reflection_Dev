@@ -151,8 +151,8 @@ var
   SettingArray, Data, DL, i: Integer;
 begin
   try
-    SettingArray := SmartGetFieldObject(0, hook_static_GetSettings);
-    Data := SmartGetFieldObject(SettingArray, hook_settingarray_GetData);
+    SettingArray := SmartGetFieldObject(0, hook_static_Settings);
+    Data := SmartGetFieldObject(SettingArray, hook_settingarray_Data);
 
     DL := SmartGetFieldArraySize(Data, '', 1);
     SetLength(Result, DL);

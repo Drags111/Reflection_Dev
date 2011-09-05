@@ -462,7 +462,7 @@ var
   X, Y: Integer;
   GroundDataArray, MyPlayer, Plane, GroundData, BlocksObj: Integer;
 begin
-  GroundDataArray := SmartGetFieldObject(0, hook_static_GetGroundDataArray);
+  GroundDataArray := SmartGetFieldObject(0, hook_static_GroundDataArray);
   MyPlayer := SmartGetFieldObject(0, hook_static_MyPlayer);
   Plane := SmartGetFieldByte(MyPlayer, hook_animable_Plane);
 
@@ -476,7 +476,7 @@ begin
   end;
 
   GroundData := SmartGetFieldArrayObject(GroundDataArray, '', Plane);
-  BlocksObj := SmartGetFieldObject(GroundData, hook_grounddata_GetCollisionFlags);
+  BlocksObj := SmartGetFieldObject(GroundData, hook_grounddata_CollisionFlags);
 
   if(GroundData = 0) or (BlocksObj = 0)then
   begin

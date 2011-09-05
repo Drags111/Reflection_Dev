@@ -27,7 +27,7 @@ begin
       and R_FindObject(RMollyConst_Controls, OBJ_INTERACTABLE, 25, Controls);
 end;
 
-function RMolly_GetRoom: Integer;
+function RMolly_Room: Integer;
 var
   Control: TRSObject;
 begin
@@ -73,7 +73,7 @@ var
   StartRoom, EndRoom, T: Integer;
   P: TPoint;
 begin
-  StartRoom := RMolly_GetRoom;
+  StartRoom := RMolly_Room;
   if (StartRoom < 0) then
     Exit;
   MakeCompass('e');
@@ -102,7 +102,7 @@ begin
     MarkTime(T);
     while (TimeFromMark(T) < 10000) do
     begin
-      EndRoom := RMolly_GetRoom;
+      EndRoom := RMolly_Room;
       //R_Debug(tostr(endroom), 'EndRoom');
       Result := (EndRoom > -1) and (StartRoom <> EndRoom);
       if Result then
@@ -221,7 +221,7 @@ begin
 
   while RMolly_InRandom and (TimeFromMark(T) < 240000) do
   begin
-    CurrRoom := RMolly_GetRoom;
+    CurrRoom := RMolly_Room;
     if CurrRoom = RMollyConst_RoomMolly then
     begin
       if R_FindNPC('Molly', True, Molly) then

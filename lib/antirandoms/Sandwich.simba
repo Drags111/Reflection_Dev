@@ -59,7 +59,7 @@ begin
   Result := R_ValidInterface(RSandwichConst_FoodInterface);
 end;
 
-function RSandwich_GetTargetString: String;
+function RSandwich_TargetString: String;
 begin
   Result := Trim(Between('Have a', 'for free!',
                     R_GetInterfaceText(RSandwichConst_FoodInterface,
@@ -75,7 +75,7 @@ begin
   if not RSandwich_InterfaceUp then Exit;
   TargetModel := -1;
 
-  TargetString := RSandwich_GetTargetString;
+  TargetString := RSandwich_TargetString;
   if (TargetString = '') then
   begin
     R_Debug('Unable to retrieve food string', 'Sandwich');

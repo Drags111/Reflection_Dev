@@ -104,15 +104,15 @@ var
   Items: TStringArray;
 begin
   try
-    NodeSubList := SmartGetFieldObject(0, hook_static_GetCollapsedMenuItems);
+    NodeSubList := SmartGetFieldObject(0, hook_static_CollapsedMenuItems);
 
-    Tail := SmartGetFieldObject(NodeSubList, hook_nodesublist_getHead);
+    Tail := SmartGetFieldObject(NodeSubList, hook_nodesublist_Head);
     GroupNode := SmartGetFieldObject(Tail, hook_nodesub_Next);
     SmartFreeObject(Tail);
 
     while(GroupNode <> 0)do
     begin
-      SubMenu := SmartGetFieldObject(GroupNode, hook_MenuGroupNode_GetNodeSubListItems);
+      SubMenu := SmartGetFieldObject(GroupNode, hook_MenuGroupNode_NodeSubListItems);
       if (SubMenu <= 0) then
         break;
 
