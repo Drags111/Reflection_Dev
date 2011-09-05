@@ -40,6 +40,26 @@ begin
 end;
 
 (*
+R_GetNPCCount
+~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_GetNPCCount: Integer;
+
+Returns the number of NPC's in the area.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_GetNPCCount: Integer;
+begin
+  Result := SmartGetFieldInt(0, hook_static_NPCCount);
+end;
+
+(*
 R_GetNPCActionArray
 ~~~~~~~~~~~~~~~~~~~
 

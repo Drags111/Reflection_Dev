@@ -214,36 +214,6 @@ begin
 end;
 
 (*
-R_WaitToStopAnimating
-~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: pascal
-
-    function R_WaitToStopAnimating(MaxWait: Integer): Boolean;
-
-Waits until your player is not animating anymore.
-
-.. note::
-
-  by Drags111
-
-*)
-function R_WaitToStopAnimating(MaxWait: Integer): Boolean;
-var
-  T: Integer;
-begin
-  Result := False;
-  MarkTime(T);
-  while(R_Animating)do
-  begin
-    if(TimeFromMark(T) >= MaxWait)then
-      Break;
-    Wait(20+Random(10));
-  end;
-  Result := (TimeFromMark(T) < MaxWait);
-end;
-
-(*
 R_WaitToAnimate
 ~~~~~~~~~~~~~~~
 
@@ -268,7 +238,98 @@ begin
   begin
     if(TimeFromMark(T) >= MaxWait)then
       Break;
-    Wait(20+Random(10));
+    Wait(100+Random(100));
+  end;
+  Result := (TimeFromMark(T) < MaxWait);
+end;
+
+(*
+R_WaitToStopAnimating
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitToStopAnimating(MaxWait: Integer): Boolean;
+
+Waits until your player is not animating anymore.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WaitToStopAnimating(MaxWait: Integer): Boolean;
+var
+  T: Integer;
+begin
+  Result := False;
+  MarkTime(T);
+  while(R_Animating)do
+  begin
+    if(TimeFromMark(T) >= MaxWait)then
+      Break;
+    Wait(200+Random(100));
+  end;
+  Result := (TimeFromMark(T) < MaxWait);
+end;
+
+(*
+R_WaitToMove
+~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitToMove(Timeout: integer): Boolean;
+
+Waits for the local player to move with a timeout. Returns true if moved,
+false if timed out.
+
+.. note::
+
+  by lordsaturn
+
+*)
+function R_WaitToMove(Timeout: integer): Boolean;
+var
+  a, Speed: integer;
+begin
+  a := GetSystemTime;
+  Speed := R_GetMotion;
+  while Speed < 1 do
+  begin
+    Speed := R_GetMotion;
+    if GetSystemTime - a > Timeout then Exit;
+    Wait(100+Random(100));
+  end;
+  Result := True;
+end;
+
+(*
+R_WaitToStopMoving
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: pascal
+
+    function R_WaitToStopMoving(MaxWait: Integer): Boolean;
+
+Waits until your player is not moving anymore.
+
+.. note::
+
+  by Drags111
+
+*)
+function R_WaitToStopMoving(MaxWait: Integer): Boolean;
+var
+  T: Integer;
+begin
+  Result := False;
+  MarkTime(T);
+  while(R_Moving)do
+  begin
+    if(TimeFromMark(T) >= MaxWait)then
+      Break;
+    Wait(200+Random(100));
   end;
   Result := (TimeFromMark(T) < MaxWait);
 end;
