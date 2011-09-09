@@ -1,6 +1,6 @@
 const
 	ClientVersion = 663;
-	HookRev = 3;
+	HookRev = 4;
 
 {Static Hooks}
 	hook_static_LoginIndex = 'fia.e';
